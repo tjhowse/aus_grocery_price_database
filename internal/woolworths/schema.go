@@ -6,9 +6,14 @@ type JSONTime struct {
 	time.Time
 }
 
-type ProductID struct {
-	ID int
+type Department struct {
+	Group string         `json:"Group"`
+	Name  string         `json:"Name"`
+	Value []DepartmentID `json:"Value"`
 }
+
+type ProductID int
+type DepartmentID string
 
 type ProductInfo struct {
 	Context                   string      `json:"@context"`

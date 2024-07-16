@@ -23,7 +23,7 @@ func (w *WoolworthsWorker) Init() chan woolworths.ProductInfo {
 func (w *WoolworthsWorker) Run(input chan woolworths.ProductID) {
 	slog.Debug("Running WoolworthsWorker")
 	for id := range input {
-		slog.Debug(fmt.Sprintf("Getting product info for ID: %d", id.ID))
+		slog.Debug(fmt.Sprintf("Getting product info for ID: %d", id))
 		info, err := w.connection.GetProductInfo(id)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Error getting product info: %v", err))
@@ -53,7 +53,7 @@ func StartWorker() {
 
 	// Send a ProductID to the worker
 	slog.Debug("Sending ProductID to worker")
-	input <- woolworths.ProductID{ID: 133211}
+	input <- woolworths.ProductID(133211)
 	slog.Debug("Sent ProductID to worker")
 
 	slog.Info(fmt.Sprintf("Product Info: %v", <-output))

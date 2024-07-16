@@ -8,6 +8,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	utils "github.com/tjhowse/aus_grocery_price_database/internal/utils"
 )
 
 func TestUnmarshal(t *testing.T) {
@@ -38,21 +40,6 @@ func TestUnmarshal(t *testing.T) {
 
 }
 
-func ReadEntireFile(path string) ([]byte, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return []byte{}, err
-	}
-	defer f.Close()
-
-	// Read the contents of the file
-	testData, err := io.ReadAll(f)
-	if err != nil {
-		return []byte{}, err
-	}
-	return testData, nil
-}
-
 func WoolworthsHTTPServer() *httptest.Server {
 	var err error
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -64,14 +51,17 @@ func WoolworthsHTTPServer() *httptest.Server {
 				return
 			}
 
-			if responseData, err = ReadEntireFile(fmt.Sprintf("data/%d.json", productID)); err != nil {
+			if responseData, err = utils.ReadEntireFile(fmt.Sprintf("data/%d.json", productID)); err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 		} else if strings.HasPrefix(r.URL.Path, "/shop/browse/fruit-veg") {
-
+			if responseData, err = utils.ReadEntireFile("data/fruit-veg.html"); err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 		} else if strings.HasPrefix(r.URL.Path, "/apis/ui/browse/category") {
-			if responseData, err = ReadEntireFile("data/category.json"); err != nil {
+			if responseData, err = utils.ReadEntireFile("data/category.json"); err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -96,7 +86,7 @@ func TestGetProductList(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if want, got := 133211, prodIDs[0].ID; want != got {
+	if want, got := ProductID(133211), prodIDs[0]; want != got {
 		t.Errorf("Expected %d, got %d", want, got)
 	}
 }
@@ -116,7 +106,7 @@ func TestGetProductInfo(t *testing.T) {
 
 	for id, want := range tests {
 
-		productInfo, err := w.GetProductInfo(ProductID{ID: id})
+		productInfo, err := w.GetProductInfo(ProductID(id))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -124,5 +114,48 @@ func TestGetProductInfo(t *testing.T) {
 		if productInfo.Name != want {
 			t.Errorf("Expected %s, got %s", want, productInfo.Name)
 		}
+	}
+}
+
+func TestExtractDepartmentIDs(t *testing.T) {
+	f, err := os.Open("data/fruit-veg.html")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+
+	// Read the contents of the file
+	body, err := io.ReadAll(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	departmentIDs, err := ExtractDepartmentIDs(body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if want, got := 16, len(departmentIDs); want != got {
+		t.Errorf("Expected %d items, got %d", want, got)
+	}
+
+	if want, got := DepartmentID("1-E5BEE36E"), departmentIDs[0]; want != got {
+		t.Errorf("Expected %s, got %s", want, got)
+	}
+}
+
+func TestGetDepartmentIDs(t *testing.T) {
+	server := WoolworthsHTTPServer()
+	defer server.Close()
+
+	w := Woolworths{}
+	w.Init(server.URL)
+
+	departmentIDs, err := w.GetDepartmentIDs()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want, got := DepartmentID("1-E5BEE36E"), departmentIDs[0]; want != got {
+		t.Errorf("Expected %s, got %s", want, got)
 	}
 }
