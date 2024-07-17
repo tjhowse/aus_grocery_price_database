@@ -40,6 +40,7 @@ func TestUnmarshal(t *testing.T) {
 
 }
 
+// This mocks enough of the Woolworths API to test various stuff
 func WoolworthsHTTPServer() *httptest.Server {
 	var err error
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -82,12 +83,16 @@ func TestGetProductList(t *testing.T) {
 	w := Woolworths{}
 	w.Init(server.URL)
 
-	prodIDs, err := w.GetProductList()
+	prodIDs, count, err := w.GetProductListPage("1-E5BEE36E", 1)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if want, got := ProductID(133211), prodIDs[0]; want != got {
 		t.Errorf("Expected %d, got %d", want, got)
+	}
+
+	if want, got := 470, count; want != got {
+		t.Errorf("Expected a total product count of %d, got %d", want, got)
 	}
 }
 
@@ -157,5 +162,21 @@ func TestGetDepartmentIDs(t *testing.T) {
 	}
 	if want, got := DepartmentID("1-E5BEE36E"), departmentIDs[0]; want != got {
 		t.Errorf("Expected %s, got %s", want, got)
+	}
+}
+
+func TestExtractTotalRecordCount(t *testing.T) {
+	body, err := utils.ReadEntireFile("data/category.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	totalRecordCount, err := ExtractTotalRecordCount(body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if want, got := 470, totalRecordCount; want != got {
+		t.Errorf("Expected %d, got %d", want, got)
 	}
 }

@@ -15,6 +15,9 @@ type Department struct {
 type ProductID int
 type DepartmentID string
 
+type CategoryData []byte
+type FruitVegPage []byte
+
 type ProductInfo struct {
 	Context                   string      `json:"@context"`
 	Type                      string      `json:"@type"`
