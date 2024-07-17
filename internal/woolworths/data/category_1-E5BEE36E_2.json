@@ -1,0 +1,10 @@
+// This is a terrible hack, since we're processing this payload
+// with regexes rather than parsing a mass of JSON we aren't
+// interested in.
+
+// Note we're relying on the fact the TotalRecordCount is updated
+// per request. The initial request says there are 470 records to
+// query, but this payload overrides it with 38, so it doesn't request
+// page 3.
+
+{"Stockcode":888888,"Stockcode":999999,"TotalRecordCount":38,"bloop":1}

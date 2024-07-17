@@ -76,6 +76,7 @@ func WoolworthsHTTPServer() *httptest.Server {
 			}
 			responseFilename := fmt.Sprintf("data/category_%s_%d.json", categoryRequest.CategoryID, categoryRequest.PageNumber)
 			if responseData, err = utils.ReadEntireFile(responseFilename); err != nil {
+				fmt.Printf("Invalid category filename \"%s\", returning error\n", responseFilename)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -176,6 +177,9 @@ func TestGetDepartmentIDs(t *testing.T) {
 	if want, got := DepartmentID("1-E5BEE36E"), departmentIDs[0]; want != got {
 		t.Errorf("Expected %s, got %s", want, got)
 	}
+	if want, got := 16, len(departmentIDs); want != got {
+		t.Errorf("Expected %d departments, got %d", want, got)
+	}
 }
 
 func TestExtractTotalRecordCount(t *testing.T) {
@@ -191,5 +195,21 @@ func TestExtractTotalRecordCount(t *testing.T) {
 
 	if want, got := 470, totalRecordCount; want != got {
 		t.Errorf("Expected %d, got %d", want, got)
+	}
+}
+
+func TestGetProductsFromDepartment(t *testing.T) {
+	server := WoolworthsHTTPServer()
+	defer server.Close()
+
+	w := Woolworths{}
+	w.Init(server.URL)
+
+	productIDs, err := w.GetProductsFromDepartment("1-E5BEE36E")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want, got := 38, len(productIDs); want != got {
+		t.Errorf("Expected %d items, got %d", want, got)
 	}
 }

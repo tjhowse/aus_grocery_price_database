@@ -10,3 +10,5 @@ last-checked times
 product IDs
 latest copy of all product data
 
+### General
+Add timeouts to all http requests

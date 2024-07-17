@@ -87,6 +87,9 @@ func (w *Woolworths) GetDepartmentIDs() ([]DepartmentID, error) {
 			return departmentIDs, err
 		}
 		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			return departmentIDs, fmt.Errorf("failed to get category data: %s", resp.Status)
+		}
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return departmentIDs, err
@@ -216,11 +219,15 @@ func (w *Woolworths) GetProductListPage(department DepartmentID, page int) ([]Pr
 	if err != nil {
 		return prodIDs, 0, err
 	}
+	slog.Debug("Putting together a request", "requestBody", requestBody)
 
 	url = fmt.Sprintf("%s/apis/ui/browse/category", w.baseURL)
 	if req, err := http.NewRequest("POST", url, bytes.NewBufferString(requestBody)); err != nil {
 		return prodIDs, 0, err
 	} else {
+		// This is the minimal set of headers the request expects to see.
+		// Note that the cookie jar must be full from previous requests
+		// to the /shop/browse/* endpoint for this to work.
 		req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:127.0) Gecko/20100101 Firefox/127.0")
 		req.Header.Set("Accept", "application/json, text/plain, */*")
 		req.Header.Set("Content-Type", "application/json")
@@ -230,6 +237,9 @@ func (w *Woolworths) GetProductListPage(department DepartmentID, page int) ([]Pr
 			return prodIDs, 0, fmt.Errorf("failed to get category data: %w", err)
 		}
 		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			return prodIDs, 0, fmt.Errorf("failed to get category data: %s", resp.Status)
+		}
 
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
@@ -270,6 +280,9 @@ func (w *Woolworths) GetProductInfo(id ProductID) (ProductInfo, error) {
 	resp, err := w.client.Do(req)
 	if err != nil {
 		return ProductInfo{}, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return ProductInfo{}, fmt.Errorf("failed to get category data: %s", resp.Status)
 	}
 
 	// Parse the response
