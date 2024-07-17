@@ -1,29 +1,121 @@
 package woolworths
 
 import (
-	"bytes"
+	"database/sql"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log/slog"
 	"net/http"
 	"net/http/cookiejar"
-	"regexp"
-	"strconv"
 	"time"
 
+	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/time/rate"
 )
 
 const WOOLWORTHS_PRODUCT_URL_FORMAT = "%s/api/v3/ui/schemaorg/product/%d"
+const DB_SCHEMA_VERSION = 1
+const WORKER_COUNT = 5
 
 type Woolworths struct {
 	baseURL   string
 	client    *RLHTTPClient
-	cookieJar *cookiejar.Jar
+	cookieJar *cookiejar.Jar // TODO This might not be threadsafe.
+	db        *sql.DB
 }
 
-func (w *Woolworths) Init(baseURL string) {
+func (w *Woolworths) ProductWorker(input chan ProductID, output chan ProductInfo) {
+	slog.Debug("Running a Woolworths.Worker")
+	for id := range input {
+		slog.Debug(fmt.Sprintf("Getting product info for ID: %d", id))
+		info, err := w.GetProductInfo(id)
+		if err != nil {
+			slog.Error(fmt.Sprintf("Error getting product info: %v", err))
+		}
+		output <- info
+	}
+}
+
+// Initialises the DB with the schema. Note you must bump the DB_SCHEMA_VERSION
+// constant if you change the schema.
+func (w *Woolworths) InitBlankDB() {
+	w.db.Exec("CREATE TABLE IF NOT EXISTS schema (version INTEGER PRIMARY KEY)")
+	w.db.Exec("INSERT INTO schema (version) VALUES (?)", DB_SCHEMA_VERSION)
+	w.db.Exec("CREATE TABLE IF NOT EXISTS departmentIDs (departmentID TEXT UNIQUE, retrieved DATETIME)")
+	w.db.Exec("CREATE TABLE IF NOT EXISTS productIDs (productID INTEGER UNIQUE, retrieved DATETIME)")
+	w.db.Exec("CREATE TABLE IF NOT EXISTS products (productID INTEGER UNIQUE, productData TEXT, retrieved DATETIME)")
+}
+
+func (w *Woolworths) InitDB(dbPath string) {
+	var err error
+	w.db, err = sql.Open("sqlite3", dbPath)
+	if err != nil {
+		slog.Error(fmt.Sprintf("Error opening database: %v", err))
+	}
+	var version int
+	err = w.db.QueryRow("SELECT version FROM schema").Scan(&version)
+	if err != nil || version != DB_SCHEMA_VERSION {
+		slog.Warn("DB schema error. Creating blank DB.", "version", version)
+		w.InitBlankDB()
+	}
+
+	// w.db.Exec("CREATE TABLE IF NOT EXISTS product_info (id INTEGER PRIMARY KEY, data TEXT)")
+	/*
+		Structure the DB as follows:
+		Table for product ID
+		Table for product info
+
+		Each row in each table has a retrieved datetime field.
+		In code, define a maximum age for each type of data.
+		The runner will check the age of the data in the DB and refresh it if it's too old.
+		If a new product is found, it will be added to the DB and have its datatime set to 0.
+		The scheduler queries the DB sorted by datetime and launches a worker to refresh the data
+		as required. The workers don't write to the DB, they just return the data to the scheduler.
+	*/
+}
+
+// Saves product info to the database
+func (w *Woolworths) SaveProductInfo(productInfo ProductInfo) error {
+	var err error
+	var result sql.Result
+
+	var productInfoBytes []byte
+
+	productInfoBytes, err = json.Marshal(productInfo)
+	if err != nil {
+		return fmt.Errorf("failed to marshal product info: %w", err)
+	}
+	productInfoString := string(productInfoBytes)
+
+	result, err = w.db.Exec(`
+		INSERT INTO products (productID, productData, retrieved)
+		VALUES (?, ?, ?)
+		ON CONFLICT(productID) DO UPDATE SET productID = ?, productData = ?, retrieved = ?
+		`, productInfo.ProductID, productInfoString, time.Now(), productInfo.ProductID, productInfoString, time.Now())
+
+	if err != nil {
+		return fmt.Errorf("failed to update product info: %w", err)
+	}
+	if rowsAffected, err := result.RowsAffected(); err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	} else if rowsAffected == 0 {
+		slog.Warn("Product info not updated.")
+	}
+
+	return nil
+}
+
+// Loads cached product info from the database
+func (w *Woolworths) LoadProductInfo(productID ProductID) (ProductInfo, error) {
+	var result ProductInfo
+	err := w.db.QueryRow("SELECT productData FROM products WHERE productID = ? LIMIT 1", productID).Scan(&result)
+	if err != nil {
+		return result, fmt.Errorf("failed to query existing productData: %w", err)
+	}
+	return result, nil
+}
+
+func (w *Woolworths) Init(baseURL string, dbPath string) {
 	var err error
 	w.cookieJar, err = cookiejar.New(nil)
 	if err != nil {
@@ -36,272 +128,27 @@ func (w *Woolworths) Init(baseURL string) {
 		},
 		Ratelimiter: rate.NewLimiter(rate.Every(1*time.Second), 1),
 	}
+	w.InitDB(dbPath)
 }
 
-func ExtractStockCodes(body CategoryData) ([]int, error) {
-	stockCodeRegex := regexp.MustCompile(`"Stockcode":(\d*),`)
-	stockCodeMatches := stockCodeRegex.FindAllStringSubmatch(string(body), -1)
-	if len(stockCodeMatches) == 0 {
-		return []int{}, fmt.Errorf("no stock codes found")
+func (w *Woolworths) RunScheduler() {
+
+	productIDInputChannel := make(chan ProductID)
+	productInfoChannel := make(chan ProductInfo)
+	newProductIDsChannel := make(chan ProductID)
+	newDepartmentIDsChannel := make(chan ProductID)
+	go w.ProductWorker(productIDInputChannel, productInfoChannel)
+
+	select {
+	case newProductID := <-newProductIDsChannel:
+		slog.Debug(fmt.Sprintf("New product ID: %d", newProductID))
+		// Update the productIDs table with the new product ID
+	case newDepartmentID := <-newDepartmentIDsChannel:
+		slog.Debug(fmt.Sprintf("New department ID: %d", newDepartmentID))
+		// Update the departmentIDs table with the new department ID
+	case productInfo := <-productInfoChannel:
+		slog.Debug(fmt.Sprintf("Product info: %v", productInfo))
+		// Update the products table with the new product info
 	}
 
-	stockCodes := []int{}
-	for _, code := range stockCodeMatches {
-		id, err := strconv.Atoi(code[1])
-		if err != nil {
-			return []int{}, fmt.Errorf("failed to parse stock code: %w", err)
-		} else {
-			stockCodes = append(stockCodes, id)
-		}
-	}
-
-	return stockCodes, nil
-}
-
-// This extracts a substring out of the fruit-veg page and uses a regex to find
-// the list of department IDs within. It decodes this list as json.
-func ExtractDepartmentIDs(body FruitVegPage) ([]DepartmentID, error) {
-	departmentIDListRegex := regexp.MustCompile(`{"Group":"lists","Name":"includedDepartmentIds","Value":\[.*?\]}`)
-	departmentIDListMatches := departmentIDListRegex.FindAllStringSubmatch(string(body), -1)
-	if len(departmentIDListMatches) == 0 {
-		return []DepartmentID{}, fmt.Errorf("no department IDs found")
-	}
-
-	var department Department
-	err := json.Unmarshal([]byte(departmentIDListMatches[0][0]), &department)
-	if err != nil {
-		return []DepartmentID{}, fmt.Errorf("failed to unmarshal department information: %w", err)
-	}
-
-	return department.Value, nil
-}
-
-func (w *Woolworths) GetDepartmentIDs() ([]DepartmentID, error) {
-	departmentIDs := []DepartmentID{}
-	url := fmt.Sprintf("%s/shop/browse/fruit-veg", w.baseURL)
-	if req, err := http.NewRequest("GET", url, nil); err != nil {
-		return departmentIDs, err
-	} else {
-		resp, err := w.client.Do(req)
-		if err != nil {
-			return departmentIDs, err
-		}
-		defer resp.Body.Close()
-		if resp.StatusCode != http.StatusOK {
-			return departmentIDs, fmt.Errorf("failed to get category data: %s", resp.Status)
-		}
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return departmentIDs, err
-		}
-		departmentIDs, err = ExtractDepartmentIDs(body)
-		if err != nil {
-			return departmentIDs, err
-		}
-		return departmentIDs, nil
-	}
-}
-
-func ExtractTotalRecordCount(body CategoryData) (int, error) {
-	totalRecordCountRegex := regexp.MustCompile(`"TotalRecordCount":(\d*),`)
-	totalRecordCountMatches := totalRecordCountRegex.FindAllStringSubmatch(string(body), -1)
-	if len(totalRecordCountMatches) == 0 {
-		return 0, fmt.Errorf("total record count not found")
-	}
-	count, err := strconv.Atoi(totalRecordCountMatches[0][1])
-	if err != nil {
-		return 0, fmt.Errorf("failed to parse total record count: %w", err)
-	}
-
-	return count, nil
-}
-
-func BuildCategoryRequestBody(departmentID DepartmentID, pageNumber int) (string, error) {
-	// Example:
-	// {
-	// 	"categoryId": "adadsf",
-	// 	"pageNumber": 1,
-	// 	"pageSize": 36,
-	// 	"sortType": "TraderRelevance",
-	// 	"url": "/shop/browse/fruit-veg",
-	// 	"location": "/shop/browse/fruit-veg",
-	// 	"formatObject": "{\"name\":\"Fruit & Veg\"}",
-	// 	"isSpecial": false,
-	// 	"isBundle": false,
-	// 	"isMobile": false,
-	// 	"filters": [],
-	// 	"token": "",
-	// 	"gpBoost": 0,
-	// 	"isHideUnavailableProducts": false,
-	// 	"isRegisteredRewardCardPromotion": false,
-	// 	"enableAdReRanking": false,
-	// 	"groupEdmVariants": true,
-	// 	"categoryVersion": "v2"
-	// }
-	pageData := CategoryRequestBody{
-		CategoryID:                      departmentID,
-		PageNumber:                      pageNumber,
-		PageSize:                        36,
-		SortType:                        "TraderRelevance",
-		URL:                             "/shop/browse/fruit-veg",
-		Location:                        "/shop/browse/fruit-veg",
-		FormatObject:                    "{\"name\":\"Fruit & Veg\"}",
-		IsSpecial:                       false,
-		IsBundle:                        false,
-		IsMobile:                        false,
-		Filters:                         []string{},
-		Token:                           "",
-		GPBoost:                         0,
-		IsHideUnavailableProducts:       false,
-		IsRegisteredRewardCardPromotion: false,
-		EnableAdReRanking:               false,
-		GroupEdmVariants:                true,
-		CategoryVersion:                 "v2",
-	}
-	request, err := json.Marshal(pageData)
-	if err != nil {
-		return "", fmt.Errorf("error marshalling page data: %w", err)
-	}
-	return string(request), nil
-}
-
-func (w *Woolworths) GetProductList() ([]ProductID, error) {
-
-	prodIDs := []ProductID{}
-
-	departmentIDs, err := w.GetDepartmentIDs()
-	if err != nil {
-		return prodIDs, err
-	}
-
-	slog.Debug(fmt.Sprintf("Got department IDs: %v", departmentIDs))
-
-	// This is a long-running process. We probably don't want to split it into multiple
-	// concurrent workers out of politeness to the Woolworths API. We only need to refresh
-	// our product list once a day or so, so it's OK if it takes a while to run.
-	for _, departmentID := range departmentIDs {
-		ids, err := w.GetProductsFromDepartment(departmentID)
-		if err != nil {
-			return prodIDs, err
-		}
-		prodIDs = append(prodIDs, ids...)
-	}
-
-	return prodIDs, nil
-}
-
-func (w *Woolworths) GetProductsFromDepartment(department DepartmentID) ([]ProductID, error) {
-	prodIDs := []ProductID{}
-	page := 1
-
-	for {
-		ids, count, err := w.GetProductListPage(department, page)
-		if err != nil {
-			return prodIDs, err
-		}
-		prodIDs = append(prodIDs, ids...)
-		if len(prodIDs) >= count {
-			break
-		}
-		page++
-	}
-
-	return prodIDs, nil
-}
-
-func (w *Woolworths) GetProductListPage(department DepartmentID, page int) ([]ProductID, int, error) {
-	var url string
-	var totalCount int
-
-	prodIDs := []ProductID{}
-
-	requestBody, err := BuildCategoryRequestBody(department, page)
-	if err != nil {
-		return prodIDs, 0, err
-	}
-	slog.Debug("Putting together a request", "requestBody", requestBody)
-
-	url = fmt.Sprintf("%s/apis/ui/browse/category", w.baseURL)
-	if req, err := http.NewRequest("POST", url, bytes.NewBufferString(requestBody)); err != nil {
-		return prodIDs, 0, err
-	} else {
-		// This is the minimal set of headers the request expects to see.
-		// Note that the cookie jar must be full from previous requests
-		// to the /shop/browse/* endpoint for this to work.
-		req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:127.0) Gecko/20100101 Firefox/127.0")
-		req.Header.Set("Accept", "application/json, text/plain, */*")
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Request-Id", "|b14af797522740e5a25290ac283f739d.037da5c5e87f4706")
-		resp, err := w.client.Do(req)
-		if err != nil {
-			return prodIDs, 0, fmt.Errorf("failed to get category data: %w", err)
-		}
-		defer resp.Body.Close()
-		if resp.StatusCode != http.StatusOK {
-			return prodIDs, 0, fmt.Errorf("failed to get category data: %s", resp.Status)
-		}
-
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return prodIDs, 0, err
-		}
-
-		totalCount, err = ExtractTotalRecordCount(body)
-		if err != nil {
-			return prodIDs, 0, err
-		}
-
-		stockCodes, err := ExtractStockCodes(body)
-		if err != nil {
-			return prodIDs, 0, err
-		}
-
-		for _, code := range stockCodes {
-			prodIDs = append(prodIDs, ProductID(code))
-		}
-	}
-
-	return prodIDs, totalCount, nil
-}
-
-// This queries the Woolworths API to get the product information
-// using the WOOLWORTHS_PRODUCT_URL_PREFIX prefix.
-func (w *Woolworths) GetProductInfo(id ProductID) (ProductInfo, error) {
-	slog.Debug(fmt.Sprintf("Base URL: %s", w.baseURL))
-	url := fmt.Sprintf(WOOLWORTHS_PRODUCT_URL_FORMAT, w.baseURL, id)
-
-	// Create a new request
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return ProductInfo{}, err
-	}
-
-	// Dispatch the request
-	resp, err := w.client.Do(req)
-	if err != nil {
-		return ProductInfo{}, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return ProductInfo{}, fmt.Errorf("failed to get category data: %s", resp.Status)
-	}
-
-	// Parse the response
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return ProductInfo{}, err
-	}
-
-	return UnmarshalProductInfo(body)
-}
-
-func UnmarshalProductInfo(body []byte) (ProductInfo, error) {
-	var productInfo ProductInfo
-
-	if err := json.Unmarshal(body, &productInfo); err != nil {
-		return ProductInfo{}, fmt.Errorf("failed to unmarshal product info: %w", err)
-	}
-
-	return productInfo, nil
 }
