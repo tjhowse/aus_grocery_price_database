@@ -95,7 +95,7 @@ func TestGetProductListPage(t *testing.T) {
 	defer server.Close()
 
 	w := Woolworths{}
-	w.Init(server.URL, ":memory:")
+	w.Init(server.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
 
 	prodIDs, count, err := w.GetProductListPage("1-E5BEE36E", 1)
 	if err != nil {
@@ -115,7 +115,7 @@ func TestGetProductInfo(t *testing.T) {
 	defer server.Close()
 
 	w := Woolworths{}
-	w.Init(server.URL, ":memory:")
+	w.Init(server.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
 
 	tests := map[int]string{
 		187314: "Woolworths Broccolini Bunch  Each",
@@ -168,7 +168,7 @@ func TestGetDepartmentIDs(t *testing.T) {
 	defer server.Close()
 
 	w := Woolworths{}
-	w.Init(server.URL, ":memory:")
+	w.Init(server.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
 
 	departmentIDs, err := w.GetDepartmentIDs()
 	if err != nil {
@@ -203,7 +203,7 @@ func TestGetProductsFromDepartment(t *testing.T) {
 	defer server.Close()
 
 	w := Woolworths{}
-	w.Init(server.URL, ":memory:")
+	w.Init(server.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
 
 	productIDs, err := w.GetProductsFromDepartment("1-E5BEE36E")
 	if err != nil {

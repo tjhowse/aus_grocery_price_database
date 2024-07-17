@@ -17,14 +17,14 @@ const WOOLWORTHS_PRODUCT_URL_FORMAT = "%s/api/v3/ui/schemaorg/product/%d"
 const DB_SCHEMA_VERSION = 1
 const WORKER_COUNT = 5
 
-// const PRODUCT_INFO_MAX_AGE = 2 * time.Hour // 24 hours
-const PRODUCT_INFO_MAX_AGE = 10 * time.Second // 24 hours
+const PRODUCT_INFO_MAX_AGE = 6 * time.Hour
 
 type Woolworths struct {
-	baseURL   string
-	client    *RLHTTPClient
-	cookieJar *cookiejar.Jar // TODO This might not be threadsafe.
-	db        *sql.DB
+	baseURL       string
+	client        *RLHTTPClient
+	cookieJar     *cookiejar.Jar // TODO This might not be threadsafe.
+	db            *sql.DB
+	productMaxAge time.Duration
 }
 
 func (w *Woolworths) ProductInfoFetchingWorker(input chan ProductID, output chan WoolworthsProductInfo) {
@@ -126,7 +126,7 @@ func (w *Woolworths) LoadProductInfo(productID ProductID) (ProductInfo, error) {
 	return result, nil
 }
 
-func (w *Woolworths) Init(baseURL string, dbPath string) {
+func (w *Woolworths) Init(baseURL string, dbPath string, productMaxAge time.Duration) {
 	var err error
 	w.cookieJar, err = cookiejar.New(nil)
 	if err != nil {
@@ -139,6 +139,7 @@ func (w *Woolworths) Init(baseURL string, dbPath string) {
 		},
 		Ratelimiter: rate.NewLimiter(rate.Every(1*time.Second), 1),
 	}
+	w.productMaxAge = productMaxAge
 	w.InitDB(dbPath)
 }
 
@@ -175,14 +176,12 @@ func (w *Woolworths) ProductUpdateQueueWorker(output chan ProductID, maxAge time
 
 func (w *Woolworths) NewProductIDWorker(output chan WoolworthsProductInfo) {
 	// TODO
-	output <- WoolworthsProductInfo{ID: 165262, Info: ProductInfo{}, Updated: time.Now().Add(-2 * PRODUCT_INFO_MAX_AGE)}
-	output <- WoolworthsProductInfo{ID: 187314, Info: ProductInfo{}, Updated: time.Now().Add(-2 * PRODUCT_INFO_MAX_AGE)}
-	output <- WoolworthsProductInfo{ID: 524336, Info: ProductInfo{}, Updated: time.Now().Add(-2 * PRODUCT_INFO_MAX_AGE)}
+	output <- WoolworthsProductInfo{ID: 165262, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
+	output <- WoolworthsProductInfo{ID: 187314, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
+	output <- WoolworthsProductInfo{ID: 524336, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
 }
 
-func (w *Woolworths) RunScheduler() {
-
-	slog.SetLogLoggerLevel(slog.LevelDebug)
+func (w *Woolworths) RunScheduler(cancel chan struct{}) {
 
 	// productIDInputChannel := make(chan ProductID)
 	productInfoChannel := make(chan WoolworthsProductInfo)
@@ -190,7 +189,7 @@ func (w *Woolworths) RunScheduler() {
 	productsThatNeedAnUpdateChannel := make(chan ProductID)
 	newDepartmentIDsChannel := make(chan ProductID)
 	go w.ProductInfoFetchingWorker(productsThatNeedAnUpdateChannel, productInfoChannel)
-	go w.ProductUpdateQueueWorker(productsThatNeedAnUpdateChannel, PRODUCT_INFO_MAX_AGE)
+	go w.ProductUpdateQueueWorker(productsThatNeedAnUpdateChannel, w.productMaxAge)
 	go w.NewProductIDWorker(productInfoChannel)
 
 	for {
@@ -206,6 +205,9 @@ func (w *Woolworths) RunScheduler() {
 		case newDepartmentID := <-newDepartmentIDsChannel:
 			slog.Debug(fmt.Sprintf("New department ID: %d", newDepartmentID))
 			// Update the departmentIDs table with the new department ID
+		case <-cancel:
+			slog.Info("Exiting scheduler")
+			return
 		}
 	}
 

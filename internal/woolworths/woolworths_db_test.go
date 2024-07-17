@@ -15,8 +15,7 @@ func TestUpdateProductInfo(t *testing.T) {
 	}
 
 	w := Woolworths{}
-	// w.Init("https://www.woolworths.com.au", ":memory:")
-	w.Init("https://www.woolworths.com.au", "delme.db3")
+	w.Init("https://www.woolworths.com.au", ":memory:", PRODUCT_INFO_MAX_AGE)
 
 	wProdInfo.Updated = time.Now()
 	err = w.SaveProductInfo(wProdInfo)
@@ -59,9 +58,9 @@ func TestProductUpdateQueueGenerator(t *testing.T) {
 	}
 
 	w := Woolworths{}
-	w.Init("https://www.woolworths.example.com", ":memory:")
+	w.Init("https://www.woolworths.example.com", ":memory:", PRODUCT_INFO_MAX_AGE)
 
-	wProdInfo.Updated = time.Now()
+	wProdInfo.Updated = time.Now().Add(-1 * time.Hour)
 	err = w.SaveProductInfo(wProdInfo)
 	if err != nil {
 		t.Fatal(err)
@@ -87,6 +86,10 @@ func TestScheduler(t *testing.T) {
 
 	w := Woolworths{}
 	// w.Init(server.URL, ":memory:")
-	w.Init(server.URL, "junk/delme.db3")
-	w.RunScheduler()
+	w.Init(server.URL, "junk/delme.db3", 5*time.Second)
+	cancel := make(chan struct{})
+	go w.RunScheduler(cancel)
+	time.Sleep(10 * time.Second)
+	close(cancel)
+	// TODO validate the DB contents
 }

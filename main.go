@@ -32,7 +32,7 @@ func main() {
 	slog.Debug("Hi!")
 
 	w := woolworths.Woolworths{}
-	w.Init("https://www.woolworths.com.au", ":memory:")
+	w.Init("https://www.woolworths.com.au", ":memory:", woolworths.PRODUCT_INFO_MAX_AGE)
 
 	// if prodids, err := w.GetProductList(); err != nil {
 	// 	slog.Error(fmt.Sprintf("Error getting product list: %v", err))
