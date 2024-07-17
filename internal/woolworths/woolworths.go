@@ -17,8 +17,8 @@ const WOOLWORTHS_PRODUCT_URL_FORMAT = "%s/api/v3/ui/schemaorg/product/%d"
 const DB_SCHEMA_VERSION = 1
 const WORKER_COUNT = 5
 
-// const PRODUCT_INFO_MAX_AGE_SECONDS = 60 * 60 * 24 // 24 hours
-const PRODUCT_INFO_MAX_AGE_SECONDS = 30
+// const PRODUCT_INFO_MAX_AGE_SECONDS = 24 * time.Hour // 24 hours
+const PRODUCT_INFO_MAX_AGE_SECONDS = 10 * time.Second
 
 type Woolworths struct {
 	baseURL   string
@@ -147,17 +147,19 @@ func (w *Woolworths) Init(baseURL string, dbPath string) {
 func (w *Woolworths) ProductUpdateQueueWorker(output chan ProductID, maxAge time.Duration) {
 	for {
 		var productID ProductID
-		err := w.db.QueryRow(`	SELECT productID FROM products
+		var t time.Time
+		err := w.db.QueryRow(`	SELECT productID, retrieved FROM products
 								WHERE retrieved < ?
 								ORDER BY retrieved ASC
-								LIMIT 1`, time.Now().Add(-maxAge)).Scan(&productID)
+								LIMIT 1`, time.Now().Add(-maxAge)).Scan(&productID, &t)
 		if err != nil {
-			if err == sql.ErrNoRows {
-				slog.Debug("No products need an update")
-			} else {
+			if err != sql.ErrNoRows {
 				slog.Error(fmt.Sprintf("Error getting product ID: %v", err))
 			}
 		} else {
+			slog.Debug("Retrieved time", "time", t)
+			slog.Debug("current time", "time", time.Now())
+			slog.Debug("threshold time", "time", time.Now().Add(-maxAge))
 			slog.Debug("ProductUpdateQueueWorker Blocking on sending out")
 			output <- productID
 			slog.Debug("ProductUpdateQueueWorker Unblocked on sending out")
