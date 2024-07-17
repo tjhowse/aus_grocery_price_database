@@ -18,7 +18,8 @@ func TestUpdateProductInfo(t *testing.T) {
 	// w.Init("https://www.woolworths.com.au", ":memory:")
 	w.Init("https://www.woolworths.com.au", "delme.db3")
 
-	err = w.SaveProductInfo(wProdInfo, time.Now())
+	wProdInfo.Updated = time.Now()
+	err = w.SaveProductInfo(wProdInfo)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,7 +61,8 @@ func TestProductUpdateQueueGenerator(t *testing.T) {
 	w := Woolworths{}
 	w.Init("https://www.woolworths.example.com", ":memory:")
 
-	err = w.SaveProductInfo(wProdInfo, time.Now())
+	wProdInfo.Updated = time.Now()
+	err = w.SaveProductInfo(wProdInfo)
 	if err != nil {
 		t.Fatal(err)
 	}

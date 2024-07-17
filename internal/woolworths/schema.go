@@ -40,8 +40,9 @@ type CategoryRequestBody struct {
 }
 
 type WoolworthsProductInfo struct {
-	ID   ProductID
-	Info ProductInfo
+	ID      ProductID
+	Info    ProductInfo
+	Updated time.Time
 }
 
 type ProductInfo struct {

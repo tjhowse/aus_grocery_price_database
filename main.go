@@ -43,8 +43,8 @@ func main() {
 
 	inputChannel := make(chan woolworths.ProductID)
 	outputChannel := make(chan woolworths.WoolworthsProductInfo)
-	go w.ProductWorker(inputChannel, outputChannel)
-	go w.ProductWorker(inputChannel, outputChannel)
+	go w.ProductInfoFetchingWorker(inputChannel, outputChannel)
+	go w.ProductInfoFetchingWorker(inputChannel, outputChannel)
 	inputChannel <- woolworths.ProductID(187314)
 	inputChannel <- woolworths.ProductID(187315)
 	slog.Info(fmt.Sprintf("Product Info: %v", <-outputChannel))
