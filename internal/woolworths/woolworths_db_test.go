@@ -3,30 +3,22 @@ package woolworths
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	utils "github.com/tjhowse/aus_grocery_price_database/internal/utils"
 )
 
 func TestUpdateProductInfo(t *testing.T) {
-	var err error
-	var prodInfoRaw []byte
-	prodInfoRaw, err = utils.ReadEntireFile("data/187314.json")
+	wProdInfo, err := ReadWoolworthsProductInfoFromFile("data/187314.json")
 	if err != nil {
 		t.Fatal(err)
 	}
-	prodInfo := ProductInfo{}
-	err = json.Unmarshal(prodInfoRaw, &prodInfo)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	wProdInfo := WoolworthsProductInfo{ID: 187314, Info: prodInfo}
 
 	w := Woolworths{}
 	// w.Init("https://www.woolworths.com.au", ":memory:")
 	w.Init("https://www.woolworths.com.au", "delme.db3")
 
-	err = w.SaveProductInfo(wProdInfo)
+	err = w.SaveProductInfo(wProdInfo, time.Now())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,7 +28,63 @@ func TestUpdateProductInfo(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if readProdInfo.Description != prodInfo.Description {
-		t.Errorf("Expected %v, got %v", prodInfo.Description, readProdInfo.Description)
+	if readProdInfo.Description != wProdInfo.Info.Description {
+		t.Errorf("Expected %v, got %v", wProdInfo.Info.Description, readProdInfo.Description)
 	}
+}
+
+func ReadWoolworthsProductInfoFromFile(filename string) (WoolworthsProductInfo, error) {
+	var err error
+	var prodInfoRaw []byte
+	var result WoolworthsProductInfo
+	prodInfoRaw, err = utils.ReadEntireFile(filename)
+	if err != nil {
+		return result, err
+	}
+	prodInfo := ProductInfo{}
+	err = json.Unmarshal(prodInfoRaw, &prodInfo)
+	if err != nil {
+		return result, err
+	}
+
+	result = WoolworthsProductInfo{ID: 187314, Info: prodInfo}
+	return result, nil
+}
+
+func TestProductUpdateQueueGenerator(t *testing.T) {
+	wProdInfo, err := ReadWoolworthsProductInfoFromFile("data/187314.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	w := Woolworths{}
+	w.Init("https://www.woolworths.example.com", ":memory:")
+
+	err = w.SaveProductInfo(wProdInfo, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	idChannel := make(chan ProductID)
+	go w.ProductUpdateQueueWorker(idChannel, 20*time.Millisecond)
+
+	time.Sleep(50 * time.Microsecond)
+
+	select {
+	case id := <-idChannel:
+		if id != 187314 {
+			t.Errorf("Expected 187314, got %d", id)
+		}
+	case <-time.After(1 * time.Second):
+		t.Fatal("Timed out waiting for product ID")
+	}
+}
+
+func TestScheduler(t *testing.T) {
+	server := WoolworthsHTTPServer()
+
+	w := Woolworths{}
+	// w.Init(server.URL, ":memory:")
+	w.Init(server.URL, "junk/delme.db3")
+	w.RunScheduler()
 }

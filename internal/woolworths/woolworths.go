@@ -17,6 +17,9 @@ const WOOLWORTHS_PRODUCT_URL_FORMAT = "%s/api/v3/ui/schemaorg/product/%d"
 const DB_SCHEMA_VERSION = 1
 const WORKER_COUNT = 5
 
+// const PRODUCT_INFO_MAX_AGE_SECONDS = 60 * 60 * 24 // 24 hours
+const PRODUCT_INFO_MAX_AGE_SECONDS = 30
+
 type Woolworths struct {
 	baseURL   string
 	client    *RLHTTPClient
@@ -32,7 +35,9 @@ func (w *Woolworths) ProductWorker(input chan ProductID, output chan WoolworthsP
 		if err != nil {
 			slog.Error(fmt.Sprintf("Error getting product info: %v", err))
 		}
+		slog.Debug("ProductWorker Blocking on sending out")
 		output <- info
+		slog.Debug("ProductWorker unblocked on sending out")
 	}
 }
 
@@ -75,11 +80,13 @@ func (w *Woolworths) InitDB(dbPath string) {
 }
 
 // Saves product info to the database
-func (w *Woolworths) SaveProductInfo(productInfo WoolworthsProductInfo) error {
+func (w *Woolworths) SaveProductInfo(productInfo WoolworthsProductInfo, updateTime time.Time) error {
 	var err error
 	var result sql.Result
 
 	var productInfoBytes []byte
+
+	slog.Debug("Saving product", "info", productInfo.Info.Description)
 
 	productInfoBytes, err = json.Marshal(productInfo.Info)
 	if err != nil {
@@ -91,7 +98,7 @@ func (w *Woolworths) SaveProductInfo(productInfo WoolworthsProductInfo) error {
 		INSERT INTO products (productID, productData, retrieved)
 		VALUES (?, ?, ?)
 		ON CONFLICT(productID) DO UPDATE SET productID = ?, productData = ?, retrieved = ?
-		`, productInfo.ID, productInfoString, time.Now(), productInfo.ID, productInfoString, time.Now())
+		`, productInfo.ID, productInfoString, updateTime, productInfo.ID, productInfoString, updateTime)
 
 	if err != nil {
 		return fmt.Errorf("failed to update product info: %w", err)
@@ -136,24 +143,75 @@ func (w *Woolworths) Init(baseURL string, dbPath string) {
 	w.InitDB(dbPath)
 }
 
+// This produces a stream of product IDs that are expired and need an update.
+func (w *Woolworths) ProductUpdateQueueWorker(output chan ProductID, maxAge time.Duration) {
+	for {
+		var productID ProductID
+		err := w.db.QueryRow(`	SELECT productID FROM products
+								WHERE retrieved < ?
+								ORDER BY retrieved ASC
+								LIMIT 1`, time.Now().Add(-maxAge)).Scan(&productID)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				slog.Debug("No products need an update")
+			} else {
+				slog.Error(fmt.Sprintf("Error getting product ID: %v", err))
+			}
+		} else {
+			slog.Debug("ProductUpdateQueueWorker Blocking on sending out")
+			output <- productID
+			slog.Debug("ProductUpdateQueueWorker Unblocked on sending out")
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+}
+
+func (w *Woolworths) NewProductIDWorker(output chan ProductID) {
+	// TODO
+	output <- 165262
+	output <- 187314
+	output <- 524336
+}
+
 func (w *Woolworths) RunScheduler() {
 
-	productIDInputChannel := make(chan ProductID)
+	slog.SetLogLoggerLevel(slog.LevelDebug)
+
+	// productIDInputChannel := make(chan ProductID)
 	productInfoChannel := make(chan WoolworthsProductInfo)
 	newProductIDsChannel := make(chan ProductID)
+	productsThatNeedAnUpdateChannel := make(chan ProductID)
 	newDepartmentIDsChannel := make(chan ProductID)
-	go w.ProductWorker(productIDInputChannel, productInfoChannel)
+	go w.ProductWorker(productsThatNeedAnUpdateChannel, productInfoChannel)
+	go w.ProductUpdateQueueWorker(productsThatNeedAnUpdateChannel, PRODUCT_INFO_MAX_AGE_SECONDS)
+	// go w.ProductUpdateQueueWorker(productsThatNeedAnUpdateChannel, 1000*time.Millisecond)
+	go w.NewProductIDWorker(newProductIDsChannel)
 
-	select {
-	case newProductID := <-newProductIDsChannel:
-		slog.Debug(fmt.Sprintf("New product ID: %d", newProductID))
-		// Update the productIDs table with the new product ID
-	case newDepartmentID := <-newDepartmentIDsChannel:
-		slog.Debug(fmt.Sprintf("New department ID: %d", newDepartmentID))
-		// Update the departmentIDs table with the new department ID
-	case productInfo := <-productInfoChannel:
-		slog.Debug(fmt.Sprintf("Product info: %v", productInfo))
-		// Update the products table with the new product info
+	for {
+		slog.Debug("Loopan")
+		select {
+		// case productID := <-productsThatNeedAnUpdateChannel:
+		// 	slog.Debug(fmt.Sprintf("Product ID that needs an update: %d", productID))
+		// 	productIDInputChannel <- productID
+		case productInfoUpdate := <-productInfoChannel:
+			slog.Debug(fmt.Sprintf("Product info update: %v", productInfoUpdate))
+			// Update the product info in the DB
+			err := w.SaveProductInfo(productInfoUpdate, time.Now())
+			if err != nil {
+				slog.Error(fmt.Sprintf("Error saving product info: %v", err))
+			}
+		case newProductID := <-newProductIDsChannel:
+			slog.Debug(fmt.Sprintf("New product ID: %d", newProductID))
+			// Update the productIDs table with the new product ID
+			// with blank productinfo and and a very old datetime.
+			err := w.SaveProductInfo(WoolworthsProductInfo{ID: newProductID, Info: ProductInfo{}}, time.Now().Add(-PRODUCT_INFO_MAX_AGE_SECONDS))
+			if err != nil {
+				slog.Error(fmt.Sprintf("Error saving product info: %v", err))
+			}
+		case newDepartmentID := <-newDepartmentIDsChannel:
+			slog.Debug(fmt.Sprintf("New department ID: %d", newDepartmentID))
+			// Update the departmentIDs table with the new department ID
+		}
 	}
 
 }
