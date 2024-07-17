@@ -39,6 +39,11 @@ type CategoryRequestBody struct {
 	CategoryVersion                 string       `json:"categoryVersion"`
 }
 
+type WoolworthsProductInfo struct {
+	ID   ProductID
+	Info ProductInfo
+}
+
 type ProductInfo struct {
 	Context                   string      `json:"@context"`
 	Type                      string      `json:"@type"`

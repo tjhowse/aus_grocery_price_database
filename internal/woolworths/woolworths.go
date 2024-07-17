@@ -24,7 +24,7 @@ type Woolworths struct {
 	db        *sql.DB
 }
 
-func (w *Woolworths) ProductWorker(input chan ProductID, output chan ProductInfo) {
+func (w *Woolworths) ProductWorker(input chan ProductID, output chan WoolworthsProductInfo) {
 	slog.Debug("Running a Woolworths.Worker")
 	for id := range input {
 		slog.Debug(fmt.Sprintf("Getting product info for ID: %d", id))
@@ -75,13 +75,13 @@ func (w *Woolworths) InitDB(dbPath string) {
 }
 
 // Saves product info to the database
-func (w *Woolworths) SaveProductInfo(productInfo ProductInfo) error {
+func (w *Woolworths) SaveProductInfo(productInfo WoolworthsProductInfo) error {
 	var err error
 	var result sql.Result
 
 	var productInfoBytes []byte
 
-	productInfoBytes, err = json.Marshal(productInfo)
+	productInfoBytes, err = json.Marshal(productInfo.Info)
 	if err != nil {
 		return fmt.Errorf("failed to marshal product info: %w", err)
 	}
@@ -91,7 +91,7 @@ func (w *Woolworths) SaveProductInfo(productInfo ProductInfo) error {
 		INSERT INTO products (productID, productData, retrieved)
 		VALUES (?, ?, ?)
 		ON CONFLICT(productID) DO UPDATE SET productID = ?, productData = ?, retrieved = ?
-		`, productInfo.ProductID, productInfoString, time.Now(), productInfo.ProductID, productInfoString, time.Now())
+		`, productInfo.ID, productInfoString, time.Now(), productInfo.ID, productInfoString, time.Now())
 
 	if err != nil {
 		return fmt.Errorf("failed to update product info: %w", err)
@@ -107,10 +107,15 @@ func (w *Woolworths) SaveProductInfo(productInfo ProductInfo) error {
 
 // Loads cached product info from the database
 func (w *Woolworths) LoadProductInfo(productID ProductID) (ProductInfo, error) {
+	var buffer string
 	var result ProductInfo
-	err := w.db.QueryRow("SELECT productData FROM products WHERE productID = ? LIMIT 1", productID).Scan(&result)
+	err := w.db.QueryRow("SELECT productData FROM products WHERE productID = ? LIMIT 1", productID).Scan(&buffer)
 	if err != nil {
 		return result, fmt.Errorf("failed to query existing productData: %w", err)
+	}
+	err = json.Unmarshal([]byte(buffer), &result)
+	if err != nil {
+		return result, fmt.Errorf("failed to unmarshal productData: %w", err)
 	}
 	return result, nil
 }
@@ -134,7 +139,7 @@ func (w *Woolworths) Init(baseURL string, dbPath string) {
 func (w *Woolworths) RunScheduler() {
 
 	productIDInputChannel := make(chan ProductID)
-	productInfoChannel := make(chan ProductInfo)
+	productInfoChannel := make(chan WoolworthsProductInfo)
 	newProductIDsChannel := make(chan ProductID)
 	newDepartmentIDsChannel := make(chan ProductID)
 	go w.ProductWorker(productIDInputChannel, productInfoChannel)

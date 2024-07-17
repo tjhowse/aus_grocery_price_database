@@ -239,23 +239,24 @@ func (w *Woolworths) GetProductListPage(department DepartmentID, page int) ([]Pr
 
 // This queries the Woolworths API to get the product information
 // using the WOOLWORTHS_PRODUCT_URL_PREFIX prefix.
-func (w *Woolworths) GetProductInfo(id ProductID) (ProductInfo, error) {
+func (w *Woolworths) GetProductInfo(id ProductID) (WoolworthsProductInfo, error) {
 	slog.Debug(fmt.Sprintf("Base URL: %s", w.baseURL))
 	url := fmt.Sprintf(WOOLWORTHS_PRODUCT_URL_FORMAT, w.baseURL, id)
+	result := WoolworthsProductInfo{ID: id}
 
 	// Create a new request
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return ProductInfo{}, err
+		return result, err
 	}
 
 	// Dispatch the request
 	resp, err := w.client.Do(req)
 	if err != nil {
-		return ProductInfo{}, err
+		return result, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return ProductInfo{}, fmt.Errorf("failed to get category data: %s", resp.Status)
+		return result, fmt.Errorf("failed to get category data: %s", resp.Status)
 	}
 
 	// Parse the response
@@ -263,10 +264,11 @@ func (w *Woolworths) GetProductInfo(id ProductID) (ProductInfo, error) {
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return ProductInfo{}, err
+		return result, err
 	}
 
-	return UnmarshalProductInfo(body)
+	result.Info, err = UnmarshalProductInfo(body)
+	return result, nil
 }
 
 func UnmarshalProductInfo(body []byte) (ProductInfo, error) {

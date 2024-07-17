@@ -20,10 +20,13 @@ func TestUpdateProductInfo(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	wProdInfo := WoolworthsProductInfo{ID: 187314, Info: prodInfo}
+
 	w := Woolworths{}
 	// w.Init("https://www.woolworths.com.au", ":memory:")
 	w.Init("https://www.woolworths.com.au", "delme.db3")
-	err = w.SaveProductInfo(prodInfo)
+
+	err = w.SaveProductInfo(wProdInfo)
 	if err != nil {
 		t.Fatal(err)
 	}

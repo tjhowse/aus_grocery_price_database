@@ -130,8 +130,8 @@ func TestGetProductInfo(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if productInfo.Name != want {
-			t.Errorf("Expected %s, got %s", want, productInfo.Name)
+		if productInfo.Info.Name != want {
+			t.Errorf("Expected %s, got %s", want, productInfo.Info.Name)
 		}
 	}
 }

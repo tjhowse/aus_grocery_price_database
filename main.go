@@ -42,7 +42,7 @@ func main() {
 	// StartWorker()
 
 	inputChannel := make(chan woolworths.ProductID)
-	outputChannel := make(chan woolworths.ProductInfo)
+	outputChannel := make(chan woolworths.WoolworthsProductInfo)
 	go w.ProductWorker(inputChannel, outputChannel)
 	go w.ProductWorker(inputChannel, outputChannel)
 	inputChannel <- woolworths.ProductID(187314)
