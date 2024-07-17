@@ -113,8 +113,53 @@ func ExtractTotalRecordCount(body CategoryData) (int, error) {
 	return count, nil
 }
 
-func BuildCategoryRequestBody(departmentID DepartmentID, pageNumber int) string {
-	return fmt.Sprintf(`{"categoryId":"%s","pageNumber":%d,"pageSize":36,"sortType":"TraderRelevance","url":"/shop/browse/fruit-veg","location":"/shop/browse/fruit-veg","formatObject":"{\"name\":\"Fruit & Veg\"}","isSpecial":false,"isBundle":false,"isMobile":false,"filters":[],"token":"","gpBoost":0,"isHideUnavailableProducts":false,"isRegisteredRewardCardPromotion":false,"enableAdReRanking":false,"groupEdmVariants":true,"categoryVersion":"v2"}`, departmentID, pageNumber)
+func BuildCategoryRequestBody(departmentID DepartmentID, pageNumber int) (string, error) {
+	// Example:
+	// {
+	// 	"categoryId": "adadsf",
+	// 	"pageNumber": 1,
+	// 	"pageSize": 36,
+	// 	"sortType": "TraderRelevance",
+	// 	"url": "/shop/browse/fruit-veg",
+	// 	"location": "/shop/browse/fruit-veg",
+	// 	"formatObject": "{\"name\":\"Fruit & Veg\"}",
+	// 	"isSpecial": false,
+	// 	"isBundle": false,
+	// 	"isMobile": false,
+	// 	"filters": [],
+	// 	"token": "",
+	// 	"gpBoost": 0,
+	// 	"isHideUnavailableProducts": false,
+	// 	"isRegisteredRewardCardPromotion": false,
+	// 	"enableAdReRanking": false,
+	// 	"groupEdmVariants": true,
+	// 	"categoryVersion": "v2"
+	// }
+	pageData := CategoryRequestBody{
+		CategoryID:                      departmentID,
+		PageNumber:                      pageNumber,
+		PageSize:                        36,
+		SortType:                        "TraderRelevance",
+		URL:                             "/shop/browse/fruit-veg",
+		Location:                        "/shop/browse/fruit-veg",
+		FormatObject:                    "{\"name\":\"Fruit & Veg\"}",
+		IsSpecial:                       false,
+		IsBundle:                        false,
+		IsMobile:                        false,
+		Filters:                         []string{},
+		Token:                           "",
+		GPBoost:                         0,
+		IsHideUnavailableProducts:       false,
+		IsRegisteredRewardCardPromotion: false,
+		EnableAdReRanking:               false,
+		GroupEdmVariants:                true,
+		CategoryVersion:                 "v2",
+	}
+	request, err := json.Marshal(pageData)
+	if err != nil {
+		return "", fmt.Errorf("error marshalling page data: %w", err)
+	}
+	return string(request), nil
 }
 
 func (w *Woolworths) GetProductList() ([]ProductID, error) {
@@ -167,7 +212,10 @@ func (w *Woolworths) GetProductListPage(department DepartmentID, page int) ([]Pr
 
 	prodIDs := []ProductID{}
 
-	requestBody := BuildCategoryRequestBody(department, page)
+	requestBody, err := BuildCategoryRequestBody(department, page)
+	if err != nil {
+		return prodIDs, 0, err
+	}
 
 	url = fmt.Sprintf("%s/apis/ui/browse/category", w.baseURL)
 	if req, err := http.NewRequest("POST", url, bytes.NewBufferString(requestBody)); err != nil {

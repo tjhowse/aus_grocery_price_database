@@ -18,6 +18,27 @@ type DepartmentID string
 type CategoryData []byte
 type FruitVegPage []byte
 
+type CategoryRequestBody struct {
+	CategoryID                      DepartmentID `json:"categoryId"`
+	PageNumber                      int          `json:"pageNumber"`
+	PageSize                        int          `json:"pageSize"`
+	SortType                        string       `json:"sortType"`
+	URL                             string       `json:"url"`
+	Location                        string       `json:"location"`
+	FormatObject                    string       `json:"formatObject"`
+	IsSpecial                       bool         `json:"isSpecial"`
+	IsBundle                        bool         `json:"isBundle"`
+	IsMobile                        bool         `json:"isMobile"`
+	Filters                         []string     `json:"filters"`
+	Token                           string       `json:"token"`
+	GPBoost                         int          `json:"gpBoost"`
+	IsHideUnavailableProducts       bool         `json:"isHideUnavailableProducts"`
+	IsRegisteredRewardCardPromotion bool         `json:"isRegisteredRewardCardPromotion"`
+	EnableAdReRanking               bool         `json:"enableAdReRanking"`
+	GroupEdmVariants                bool         `json:"groupEdmVariants"`
+	CategoryVersion                 string       `json:"categoryVersion"`
+}
+
 type ProductInfo struct {
 	Context                   string      `json:"@context"`
 	Type                      string      `json:"@type"`

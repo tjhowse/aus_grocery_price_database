@@ -1,6 +1,7 @@
 package woolworths
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -62,7 +63,19 @@ func WoolworthsHTTPServer() *httptest.Server {
 				return
 			}
 		} else if strings.HasPrefix(r.URL.Path, "/apis/ui/browse/category") {
-			if responseData, err = utils.ReadEntireFile("data/category.json"); err != nil {
+			var categoryRequest CategoryRequestBody
+			body, err := io.ReadAll(r.Body)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			err = json.Unmarshal(body, &categoryRequest)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			responseFilename := fmt.Sprintf("data/category_%s_%d.json", categoryRequest.CategoryID, categoryRequest.PageNumber)
+			if responseData, err = utils.ReadEntireFile(responseFilename); err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -76,7 +89,7 @@ func WoolworthsHTTPServer() *httptest.Server {
 	}))
 }
 
-func TestGetProductList(t *testing.T) {
+func TestGetProductListPage(t *testing.T) {
 	server := WoolworthsHTTPServer()
 	defer server.Close()
 
@@ -166,7 +179,7 @@ func TestGetDepartmentIDs(t *testing.T) {
 }
 
 func TestExtractTotalRecordCount(t *testing.T) {
-	body, err := utils.ReadEntireFile("data/category.json")
+	body, err := utils.ReadEntireFile("data/category_1-E5BEE36E_1.json")
 	if err != nil {
 		t.Fatal(err)
 	}
