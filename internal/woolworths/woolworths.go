@@ -126,6 +126,8 @@ func (w *Woolworths) GetProductList() ([]ProductID, error) {
 		return prodIDs, err
 	}
 
+	slog.Debug(fmt.Sprintf("Got department IDs: %v", departmentIDs))
+
 	// This is a long-running process. We probably don't want to split it into multiple
 	// concurrent workers out of politeness to the Woolworths API. We only need to refresh
 	// our product list once a day or so, so it's OK if it takes a while to run.
