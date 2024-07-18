@@ -81,6 +81,16 @@ func TestProductUpdateQueueGenerator(t *testing.T) {
 	}
 }
 
+func ValidateProduct(t *testing.T, w Woolworths, id ProductID, want string) {
+	prod, err := w.LoadProductInfo(id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if prod.Name != want {
+		t.Errorf("Expected %s, got %s", want, prod.Name)
+	}
+}
+
 func TestScheduler(t *testing.T) {
 	server := WoolworthsHTTPServer()
 
@@ -92,4 +102,7 @@ func TestScheduler(t *testing.T) {
 	time.Sleep(10 * time.Second)
 	close(cancel)
 	// TODO validate the DB contents
+	ValidateProduct(t, w, 165262, "Driscoll's Raspberries Punnet 125g Punnet")
+	ValidateProduct(t, w, 187314, "Woolworths Broccolini Bunch  Each")
+	ValidateProduct(t, w, 524336, "Woolworths Baby Spinach Spinach 280g")
 }
