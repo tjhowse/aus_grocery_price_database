@@ -64,7 +64,7 @@ func (w *Woolworths) InitBlankDB() {
 		w.db.Exec("CREATE TABLE IF NOT EXISTS products (productID INTEGER UNIQUE, productData TEXT, updated DATETIME)")
 	if err != nil {
 		slog.Error(fmt.Sprintf("Error creating schema table: %v", err))
-	})
+	}
 }
 
 func (w *Woolworths) InitDB(dbPath string) {
