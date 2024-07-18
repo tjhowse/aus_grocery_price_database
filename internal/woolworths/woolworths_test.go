@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	_ "github.com/mattn/go-sqlite3"
 	utils "github.com/tjhowse/aus_grocery_price_database/internal/utils"
 )
 

@@ -3,6 +3,7 @@ package woolworths
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -15,9 +16,11 @@ import (
 
 const WOOLWORTHS_PRODUCT_URL_FORMAT = "%s/api/v3/ui/schemaorg/product/%d"
 const DB_SCHEMA_VERSION = 1
-const WORKER_COUNT = 5
+const PRODUCT_INFO_WORKER_COUNT = 5
 
 const PRODUCT_INFO_MAX_AGE = 6 * time.Hour
+
+var ErrProductMissing = errors.New("no product found")
 
 type Woolworths struct {
 	baseURL       string
@@ -43,11 +46,25 @@ func (w *Woolworths) ProductInfoFetchingWorker(input chan ProductID, output chan
 // Initialises the DB with the schema. Note you must bump the DB_SCHEMA_VERSION
 // constant if you change the schema.
 func (w *Woolworths) InitBlankDB() {
-	w.db.Exec("CREATE TABLE IF NOT EXISTS schema (version INTEGER PRIMARY KEY)")
-	w.db.Exec("INSERT INTO schema (version) VALUES (?)", DB_SCHEMA_VERSION)
+	_, err := w.db.Exec("CREATE TABLE IF NOT EXISTS schema (version INTEGER PRIMARY KEY)")
+	if err != nil {
+		slog.Error(fmt.Sprintf("Error creating schema table: %v", err))
+	}
+	_, err = w.db.Exec("INSERT INTO schema (version) VALUES (?)", DB_SCHEMA_VERSION)
 	w.db.Exec("CREATE TABLE IF NOT EXISTS departmentIDs (departmentID TEXT UNIQUE, updated DATETIME)")
-	w.db.Exec("CREATE TABLE IF NOT EXISTS productIDs (productID INTEGER UNIQUE, updated DATETIME)")
-	w.db.Exec("CREATE TABLE IF NOT EXISTS products (productID INTEGER UNIQUE, productData TEXT, updated DATETIME)")
+	if err != nil {
+		slog.Error(fmt.Sprintf("Error creating schema table: %v", err))
+	}
+	_, err =
+		w.db.Exec("CREATE TABLE IF NOT EXISTS productIDs (productID INTEGER UNIQUE, updated DATETIME)")
+	if err != nil {
+		slog.Error(fmt.Sprintf("Error creating schema table: %v", err))
+	}
+	_, err =
+		w.db.Exec("CREATE TABLE IF NOT EXISTS products (productID INTEGER UNIQUE, productData TEXT, updated DATETIME)")
+	if err != nil {
+		slog.Error(fmt.Sprintf("Error creating schema table: %v", err))
+	})
 }
 
 func (w *Woolworths) InitDB(dbPath string) {
@@ -117,6 +134,9 @@ func (w *Woolworths) LoadProductInfo(productID ProductID) (ProductInfo, error) {
 	var result ProductInfo
 	err := w.db.QueryRow("SELECT productData FROM products WHERE productID = ? LIMIT 1", productID).Scan(&buffer)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return result, ErrProductMissing
+		}
 		return result, fmt.Errorf("failed to query existing productData: %w", err)
 	}
 	err = json.Unmarshal([]byte(buffer), &result)
@@ -124,6 +144,23 @@ func (w *Woolworths) LoadProductInfo(productID ProductID) (ProductInfo, error) {
 		return result, fmt.Errorf("failed to unmarshal productData: %w", err)
 	}
 	return result, nil
+}
+
+func (w *Woolworths) LoadDepartmentIDsList() ([]DepartmentID, error) {
+	var departmentIDs []DepartmentID
+	rows, err := w.db.Query("SELECT departmentID FROM departmentIDs")
+	if err != nil {
+		return departmentIDs, fmt.Errorf("failed to query departmentIDs: %w", err)
+	}
+	for rows.Next() {
+		var departmentID DepartmentID
+		err = rows.Scan(&departmentID)
+		if err != nil {
+			return departmentIDs, fmt.Errorf("failed to scan departmentID: %w", err)
+		}
+		departmentIDs = append(departmentIDs, departmentID)
+	}
+	return departmentIDs, nil
 }
 
 func (w *Woolworths) Init(baseURL string, dbPath string, productMaxAge time.Duration) {
@@ -174,23 +211,88 @@ func (w *Woolworths) ProductUpdateQueueWorker(output chan ProductID, maxAge time
 	}
 }
 
-func (w *Woolworths) NewProductIDWorker(output chan WoolworthsProductInfo) {
-	// TODO
-	output <- WoolworthsProductInfo{ID: 165262, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
-	output <- WoolworthsProductInfo{ID: 187314, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
-	output <- WoolworthsProductInfo{ID: 524336, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
+func (w *Woolworths) NewDepartmentIDWorker(output chan DepartmentID) {
+	for {
+		// Read the department list from the web...
+		departmentsFromWeb, err := w.GetDepartmentIDs()
+		if err != nil {
+			slog.Error(fmt.Sprintf("Error getting department IDs from web: %v", err))
+		}
+
+		// Read the department list from the DB.
+		departmentsFromDB, err := w.LoadDepartmentIDsList()
+		if err != nil {
+			slog.Error(fmt.Sprintf("Error loading department IDs from DB: %v", err))
+		}
+		// Compare the two lists and output any new department IDs.
+		for _, webDepartmentID := range departmentsFromWeb {
+			found := false
+			for _, dbDepartmentID := range departmentsFromDB {
+				if webDepartmentID == dbDepartmentID {
+					found = true
+					break
+				}
+			}
+			if found {
+				continue
+			}
+			output <- webDepartmentID
+		}
+		// We don't need to check for departments very often.
+		time.Sleep(1 * time.Hour)
+	}
 }
 
+func (w *Woolworths) NewProductIDWorker(output chan WoolworthsProductInfo) {
+	// TODO
+	// output <- WoolworthsProductInfo{ID: 165262, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
+	// output <- WoolworthsProductInfo{ID: 187314, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
+	// output <- WoolworthsProductInfo{ID: 524336, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
+	// return
+	for {
+		departments, err := w.LoadDepartmentIDsList()
+		if err != nil {
+			slog.Error(fmt.Sprintf("Error loading department IDs: %v", err))
+			// Try again in ten minutes.
+			time.Sleep(10 * time.Minute)
+			continue
+		}
+		for _, departmentID := range departments {
+			products, err := w.GetProductsFromDepartment(departmentID)
+			if err != nil {
+				slog.Error(fmt.Sprintf("Error getting products from department: %v", err))
+				// Try again in ten minutes.
+				time.Sleep(10 * time.Minute)
+				continue
+			}
+			for _, productID := range products {
+				_, err := w.LoadProductInfo(productID)
+				if err != ErrProductMissing {
+					continue
+				}
+				output <- WoolworthsProductInfo{ID: productID, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
+			}
+		}
+		// We don't need to check for new products very often.
+		time.Sleep(1 * time.Hour)
+	}
+}
+
+// Runs up all the workers and mediates data flowing between them.
+// Currently all sqlite writes happen via this function. This may move
+// off to a separate goroutine in the future.
 func (w *Woolworths) RunScheduler(cancel chan struct{}) {
 
-	// productIDInputChannel := make(chan ProductID)
 	productInfoChannel := make(chan WoolworthsProductInfo)
-	// newProductIDsChannel := make(chan ProductID)
 	productsThatNeedAnUpdateChannel := make(chan ProductID)
-	newDepartmentIDsChannel := make(chan ProductID)
+	newDepartmentIDsChannel := make(chan DepartmentID)
+	// for i := 0; i < PRODUCT_INFO_WORKER_COUNT; i++ {
+	// 	go w.ProductInfoFetchingWorker(productsThatNeedAnUpdateChannel, productInfoChannel)
+	// }
 	go w.ProductInfoFetchingWorker(productsThatNeedAnUpdateChannel, productInfoChannel)
 	go w.ProductUpdateQueueWorker(productsThatNeedAnUpdateChannel, w.productMaxAge)
 	go w.NewProductIDWorker(productInfoChannel)
+	go w.NewDepartmentIDWorker(newDepartmentIDsChannel)
 
 	for {
 		slog.Debug("Loopan")
@@ -203,7 +305,7 @@ func (w *Woolworths) RunScheduler(cancel chan struct{}) {
 				slog.Error(fmt.Sprintf("Error saving product info: %v", err))
 			}
 		case newDepartmentID := <-newDepartmentIDsChannel:
-			slog.Debug(fmt.Sprintf("New department ID: %d", newDepartmentID))
+			slog.Debug(fmt.Sprintf("New department ID: %s", newDepartmentID))
 			// Update the departmentIDs table with the new department ID
 		case <-cancel:
 			slog.Info("Exiting scheduler")
