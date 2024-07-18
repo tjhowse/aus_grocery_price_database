@@ -245,10 +245,11 @@ func (w *Woolworths) NewDepartmentIDWorker(output chan DepartmentID) {
 
 func (w *Woolworths) NewProductIDWorker(output chan WoolworthsProductInfo) {
 	// TODO
-	// output <- WoolworthsProductInfo{ID: 165262, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
-	// output <- WoolworthsProductInfo{ID: 187314, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
-	// output <- WoolworthsProductInfo{ID: 524336, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
-	// return
+	output <- WoolworthsProductInfo{ID: 165262, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
+	output <- WoolworthsProductInfo{ID: 187314, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
+	output <- WoolworthsProductInfo{ID: 524336, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
+	return
+	// TODO Fix the below, it's busted in novel and interesting ways.
 	for {
 		departments, err := w.LoadDepartmentIDsList()
 		if err != nil {
@@ -286,10 +287,9 @@ func (w *Woolworths) RunScheduler(cancel chan struct{}) {
 	productInfoChannel := make(chan WoolworthsProductInfo)
 	productsThatNeedAnUpdateChannel := make(chan ProductID)
 	newDepartmentIDsChannel := make(chan DepartmentID)
-	// for i := 0; i < PRODUCT_INFO_WORKER_COUNT; i++ {
-	// 	go w.ProductInfoFetchingWorker(productsThatNeedAnUpdateChannel, productInfoChannel)
-	// }
-	go w.ProductInfoFetchingWorker(productsThatNeedAnUpdateChannel, productInfoChannel)
+	for i := 0; i < PRODUCT_INFO_WORKER_COUNT; i++ {
+		go w.ProductInfoFetchingWorker(productsThatNeedAnUpdateChannel, productInfoChannel)
+	}
 	go w.ProductUpdateQueueWorker(productsThatNeedAnUpdateChannel, w.productMaxAge)
 	go w.NewProductIDWorker(productInfoChannel)
 	go w.NewDepartmentIDWorker(newDepartmentIDsChannel)

@@ -2,6 +2,7 @@ package woolworths
 
 import (
 	"encoding/json"
+	"log/slog"
 	"testing"
 	"time"
 
@@ -83,6 +84,7 @@ func TestProductUpdateQueueGenerator(t *testing.T) {
 
 func TestMissingProduct(t *testing.T) {
 
+	slog.SetLogLoggerLevel(slog.LevelDebug)
 	server := WoolworthsHTTPServer()
 
 	w := Woolworths{}
@@ -110,8 +112,7 @@ func TestScheduler(t *testing.T) {
 	server := WoolworthsHTTPServer()
 
 	w := Woolworths{}
-	// w.Init(server.URL, ":memory:", 5*time.Second)
-	w.Init(server.URL, "junk/delme.db3", 5*time.Second)
+	w.Init(server.URL, ":memory:", 5*time.Second)
 	cancel := make(chan struct{})
 	go w.RunScheduler(cancel)
 	time.Sleep(10 * time.Second)
