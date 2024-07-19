@@ -129,6 +129,29 @@ func (w *Woolworths) SaveProductInfo(productInfo WoolworthsProductInfo) error {
 	return nil
 }
 
+// Saves product info to the database
+func (w *Woolworths) SaveDepartment(productInfo DepartmentID) error {
+	var err error
+	var result sql.Result
+
+	result, err = w.db.Exec(`
+		INSERT INTO departmentIDs (departmentID, updated)
+		VALUES (?, ?)
+		ON CONFLICT(departmentID) DO UPDATE SET departmentID = ?, updated = ?
+		`, productInfo, time.Now(), productInfo, time.Now())
+
+	if err != nil {
+		return fmt.Errorf("failed to update department ID info: %w", err)
+	}
+	if rowsAffected, err := result.RowsAffected(); err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	} else if rowsAffected == 0 {
+		slog.Warn("Department not upserted")
+	}
+
+	return nil
+}
+
 // Loads cached product info from the database
 func (w *Woolworths) LoadProductInfo(productID ProductID) (ProductInfo, error) {
 	var buffer string
@@ -250,37 +273,42 @@ func (w *Woolworths) NewDepartmentIDWorker(output chan DepartmentID) {
 
 func (w *Woolworths) NewProductIDWorker(output chan WoolworthsProductInfo) {
 	// TODO
-	output <- WoolworthsProductInfo{ID: 165262, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
-	output <- WoolworthsProductInfo{ID: 187314, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
-	output <- WoolworthsProductInfo{ID: 524336, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
+	// output <- WoolworthsProductInfo{ID: 165262, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
+	// output <- WoolworthsProductInfo{ID: 187314, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
+	// output <- WoolworthsProductInfo{ID: 524336, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
 	// TODO Fix the below, it's busted in novel and interesting ways.
-	// for {
-	// 	departments, err := w.LoadDepartmentIDsList()
-	// 	if err != nil {
-	// 		slog.Error(fmt.Sprintf("Error loading department IDs: %v", err))
-	// 		// Try again in ten minutes.
-	// 		time.Sleep(10 * time.Minute)
-	// 		continue
-	// 	}
-	// 	for _, departmentID := range departments {
-	// 		products, err := w.GetProductsFromDepartment(departmentID)
-	// 		if err != nil {
-	// 			slog.Error(fmt.Sprintf("Error getting products from department: %v", err))
-	// 			// Try again in ten minutes.
-	// 			time.Sleep(10 * time.Minute)
-	// 			continue
-	// 		}
-	// 		for _, productID := range products {
-	// 			_, err := w.LoadProductInfo(productID)
-	// 			if err != ErrProductMissing {
-	// 				continue
-	// 			}
-	// 			output <- WoolworthsProductInfo{ID: productID, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
-	// 		}
-	// 	}
-	// 	// We don't need to check for new products very often.
-	// 	time.Sleep(1 * time.Hour)
-	// }
+	for {
+		departments, err := w.LoadDepartmentIDsList()
+		if err != nil {
+			slog.Error(fmt.Sprintf("Error loading department IDs: %v", err))
+			// Try again in ten minutes.
+			time.Sleep(10 * time.Minute)
+			continue
+		}
+		for _, departmentID := range departments {
+			products, err := w.GetProductsFromDepartment(departmentID)
+			if err != nil {
+				slog.Error(fmt.Sprintf("Error getting products from department: %v", err))
+				// Try again in ten minutes.
+				time.Sleep(10 * time.Minute)
+				continue
+			}
+			for _, productID := range products {
+				_, err := w.LoadProductInfo(productID)
+				if err != ErrProductMissing {
+					continue
+				}
+				output <- WoolworthsProductInfo{ID: productID, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
+			}
+		}
+		if len(departments) > 0 {
+			// If we have bootstrapped we don't need to check for new products very often.
+			time.Sleep(1 * time.Hour)
+		} else {
+			time.Sleep(1 * time.Second)
+		}
+
+	}
 }
 
 // Runs up all the workers and mediates data flowing between them.

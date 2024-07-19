@@ -107,6 +107,24 @@ func ValidateProduct(t *testing.T, w *Woolworths, id ProductID, want string) {
 	}
 }
 
+func TestDepartment(t *testing.T) {
+	server := WoolworthsHTTPServer()
+
+	w := Woolworths{}
+	w.Init(server.URL, ":memory:", 5*time.Second)
+	w.SaveDepartment("1-E5BEE36E")
+	departmentIDs, err := w.LoadDepartmentIDsList()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want, got := 1, len(departmentIDs); want != got {
+		t.Errorf("Expected %d, got %d", want, got)
+	}
+	if want, got := DepartmentID("1-E5BEE36E"), departmentIDs[0]; want != got {
+		t.Errorf("Expected %s, got %s", want, got)
+	}
+}
+
 func TestScheduler(t *testing.T) {
 	slog.SetLogLoggerLevel(slog.LevelDebug)
 	server := WoolworthsHTTPServer()
