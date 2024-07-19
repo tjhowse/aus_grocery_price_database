@@ -79,7 +79,32 @@ func TestProductInfoFetchingWorker(t *testing.T) {
 }
 
 func TestNewDepartmentIDWorker(t *testing.T) {
-	// TODO
+	server := WoolworthsHTTPServer()
+	defer server.Close()
+
+	w := Woolworths{}
+	err := w.Init(server.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Pre-load one existing department ID to check we're only being notified of
+	// new ones
+	w.SaveDepartment("1-E5BEE36E")
+
+	departmentIDChannel := make(chan DepartmentID)
+	go w.NewDepartmentIDWorker(departmentIDChannel)
+	var index int
+	var departmentIDs = []DepartmentID{"1_DEB537E", "1_D5A2236", "1_6E4F4E4"}
+	select {
+	case d := <-departmentIDChannel:
+		if want, got := departmentIDs[index], d; want != got {
+			t.Errorf("Expected %s, got %s", want, got)
+		}
+		index++
+	case <-time.After(2 * time.Second):
+		t.Fatal("Timed out waiting for department ID")
+	}
 }
 
 func TestNewProductWorker(t *testing.T) {
