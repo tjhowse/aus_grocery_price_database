@@ -15,7 +15,7 @@ Grafana instance
 ### General
 Add timeouts to all http requests
 Calculate $/g where possible
-
+Configuration management
 
 ## Further work
 
