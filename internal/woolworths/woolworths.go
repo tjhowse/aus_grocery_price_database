@@ -73,10 +73,12 @@ func (w *Woolworths) InitBlankDB() error {
 
 func (w *Woolworths) InitDB(dbPath string) error {
 	var err error
+	dbPath += "?cache=shared"
 	w.db, err = sql.Open("sqlite3", dbPath)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error opening database: %v", err))
+		return fmt.Errorf("failed to open database: %w", err)
 	}
+	w.db.SetMaxOpenConns(1)
 	var version int
 	err = w.db.QueryRow("SELECT version FROM schema").Scan(&version)
 	if err != nil {
@@ -303,10 +305,9 @@ func (w *Woolworths) RunScheduler(cancel chan struct{}) {
 	productInfoChannel := make(chan WoolworthsProductInfo)
 	productsThatNeedAnUpdateChannel := make(chan ProductID)
 	newDepartmentIDsChannel := make(chan DepartmentID)
-	// for i := 0; i < PRODUCT_INFO_WORKER_COUNT; i++ {
-	// 	go w.ProductInfoFetchingWorker(productsThatNeedAnUpdateChannel, productInfoChannel)
-	// }
-	go w.ProductInfoFetchingWorker(productsThatNeedAnUpdateChannel, productInfoChannel)
+	for i := 0; i < PRODUCT_INFO_WORKER_COUNT; i++ {
+		go w.ProductInfoFetchingWorker(productsThatNeedAnUpdateChannel, productInfoChannel)
+	}
 	go w.ProductUpdateQueueWorker(productsThatNeedAnUpdateChannel, w.productMaxAge)
 	go w.NewProductIDWorker(productInfoChannel)
 	go w.NewDepartmentIDWorker(newDepartmentIDsChannel)
