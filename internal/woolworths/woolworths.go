@@ -210,7 +210,7 @@ func (w *Woolworths) Init(baseURL string, dbPath string, productMaxAge time.Dura
 }
 
 // This produces a stream of product IDs that are expired and need an update.
-func (w *Woolworths) ProductUpdateQueueWorker(output chan ProductID, maxAge time.Duration) {
+func (w *Woolworths) ProductUpdateQueueWorker(output chan<- ProductID, maxAge time.Duration) {
 	for {
 		var productIDs []ProductID
 		rows, err := w.db.Query(`	SELECT productID FROM products
@@ -240,7 +240,7 @@ func (w *Woolworths) ProductUpdateQueueWorker(output chan ProductID, maxAge time
 	}
 }
 
-func (w *Woolworths) NewDepartmentIDWorker(output chan DepartmentID) {
+func (w *Woolworths) NewDepartmentIDWorker(output chan<- DepartmentID) {
 	for {
 		// Read the department list from the web...
 		departmentsFromWeb, err := w.GetDepartmentIDs()
@@ -272,7 +272,8 @@ func (w *Woolworths) NewDepartmentIDWorker(output chan DepartmentID) {
 	}
 }
 
-func (w *Woolworths) NewProductIDWorker(output chan WoolworthsProductInfo) {
+// This worker emits product IDs that don't currently exist in the local DB.
+func (w *Woolworths) NewProductWorker(output chan<- WoolworthsProductInfo) {
 	// TODO
 	// output <- WoolworthsProductInfo{ID: 165262, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
 	// output <- WoolworthsProductInfo{ID: 187314, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
@@ -324,7 +325,7 @@ func (w *Woolworths) RunScheduler(cancel chan struct{}) {
 		go w.ProductInfoFetchingWorker(productsThatNeedAnUpdateChannel, productInfoChannel)
 	}
 	go w.ProductUpdateQueueWorker(productsThatNeedAnUpdateChannel, w.productMaxAge)
-	go w.NewProductIDWorker(productInfoChannel)
+	go w.NewProductWorker(productInfoChannel)
 	go w.NewDepartmentIDWorker(newDepartmentIDsChannel)
 
 	for {

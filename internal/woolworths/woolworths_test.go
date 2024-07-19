@@ -289,3 +289,33 @@ func TestProductInfoFetchingWorker(t *testing.T) {
 
 	// If this test seems tortuous, I agree. I'd like an easier way to capture log output from tests.
 }
+
+func TestNewDepartmentIDWorker(t *testing.T) {
+	// TODO
+}
+
+func TestNewProductWorker(t *testing.T) {
+	server := WoolworthsHTTPServer()
+	defer server.Close()
+
+	w := Woolworths{}
+	err := w.Init(server.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
+	if err != nil {
+		t.Fatal(err)
+	}
+	w.SaveDepartment("1-E5BEE36E")
+
+	productIDChannel := make(chan WoolworthsProductInfo)
+	go w.NewProductWorker(productIDChannel)
+
+	// TODO expand this to check for a few product IDs, not just the first one. 134034 and 105919 come next
+	select {
+	case p := <-productIDChannel:
+		if want, got := ProductID(133211), p.ID; want != got {
+			t.Errorf("Expected %d, got %d", want, got)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("Timed out waiting for product info")
+	}
+
+}

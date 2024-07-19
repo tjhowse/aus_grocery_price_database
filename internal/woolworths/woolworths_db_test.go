@@ -124,6 +124,18 @@ func TestDepartment(t *testing.T) {
 	}
 }
 
+func TestDBFail(t *testing.T) {
+
+	w := Woolworths{}
+	err := w.Init("", "/zingabingo/db.db3", 5*time.Second)
+	if err == nil {
+		t.Fatal("Expected an error")
+	}
+	if want, got := "failed to create blank DB: unable to open database file: no such file or directory", err.Error(); want != got {
+		t.Errorf("Expected %s, got %s", want, got)
+	}
+}
+
 // func TestScheduler(t *testing.T) {
 // 	slog.SetLogLoggerLevel(slog.LevelDebug)
 // 	server := WoolworthsHTTPServer()
