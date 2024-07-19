@@ -204,7 +204,10 @@ func TestGetProductsFromDepartment(t *testing.T) {
 	defer server.Close()
 
 	w := Woolworths{}
-	w.Init(server.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
+	err := w.Init(server.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	productIDs, err := w.GetProductsFromDepartment("1-E5BEE36E")
 	if err != nil {

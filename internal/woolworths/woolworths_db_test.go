@@ -84,7 +84,6 @@ func TestProductUpdateQueueGenerator(t *testing.T) {
 
 func TestMissingProduct(t *testing.T) {
 
-	slog.SetLogLoggerLevel(slog.LevelDebug)
 	server := WoolworthsHTTPServer()
 
 	w := Woolworths{}
@@ -109,6 +108,7 @@ func ValidateProduct(t *testing.T, w Woolworths, id ProductID, want string) {
 }
 
 func TestScheduler(t *testing.T) {
+	slog.SetLogLoggerLevel(slog.LevelDebug)
 	server := WoolworthsHTTPServer()
 
 	w := Woolworths{}

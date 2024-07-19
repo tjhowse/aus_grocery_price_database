@@ -45,29 +45,33 @@ func (w *Woolworths) ProductInfoFetchingWorker(input chan ProductID, output chan
 
 // Initialises the DB with the schema. Note you must bump the DB_SCHEMA_VERSION
 // constant if you change the schema.
-func (w *Woolworths) InitBlankDB() {
+func (w *Woolworths) InitBlankDB() error {
 	_, err := w.db.Exec("CREATE TABLE IF NOT EXISTS schema (version INTEGER PRIMARY KEY)")
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error creating schema table: %v", err))
+		return err
 	}
 	_, err = w.db.Exec("INSERT INTO schema (version) VALUES (?)", DB_SCHEMA_VERSION)
-	w.db.Exec("CREATE TABLE IF NOT EXISTS departmentIDs (departmentID TEXT UNIQUE, updated DATETIME)")
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error creating schema table: %v", err))
+		return err
+	}
+	_, err = w.db.Exec("CREATE TABLE IF NOT EXISTS departmentIDs (departmentID TEXT UNIQUE, updated DATETIME)")
+	if err != nil {
+		return err
 	}
 	_, err =
 		w.db.Exec("CREATE TABLE IF NOT EXISTS productIDs (productID INTEGER UNIQUE, updated DATETIME)")
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error creating schema table: %v", err))
+		return err
 	}
 	_, err =
 		w.db.Exec("CREATE TABLE IF NOT EXISTS products (productID INTEGER UNIQUE, productData TEXT, updated DATETIME)")
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error creating schema table: %v", err))
+		return err
 	}
+	return nil
 }
 
-func (w *Woolworths) InitDB(dbPath string) {
+func (w *Woolworths) InitDB(dbPath string) error {
 	var err error
 	w.db, err = sql.Open("sqlite3", dbPath)
 	if err != nil {
@@ -75,10 +79,19 @@ func (w *Woolworths) InitDB(dbPath string) {
 	}
 	var version int
 	err = w.db.QueryRow("SELECT version FROM schema").Scan(&version)
-	if err != nil || version != DB_SCHEMA_VERSION {
-		slog.Warn("DB schema error. Creating blank DB.", "version", version)
-		w.InitBlankDB()
+	if err != nil {
+		slog.Warn("DB schema error. Creating blank DB.", "error", err)
 	}
+	if version != DB_SCHEMA_VERSION {
+		slog.Warn("DB schema error. Creating blank DB.", "path", dbPath, "version", DB_SCHEMA_VERSION)
+		err := w.InitBlankDB()
+		if err != nil {
+			return fmt.Errorf("failed to create blank DB: %w", err)
+		} else {
+			slog.Info("Blank DB created")
+		}
+	}
+	return nil
 
 	// w.db.Exec("CREATE TABLE IF NOT EXISTS product_info (id INTEGER PRIMARY KEY, data TEXT)")
 	/*
@@ -163,11 +176,11 @@ func (w *Woolworths) LoadDepartmentIDsList() ([]DepartmentID, error) {
 	return departmentIDs, nil
 }
 
-func (w *Woolworths) Init(baseURL string, dbPath string, productMaxAge time.Duration) {
+func (w *Woolworths) Init(baseURL string, dbPath string, productMaxAge time.Duration) error {
 	var err error
 	w.cookieJar, err = cookiejar.New(nil)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error creating cookie jar: %v", err))
+		return fmt.Errorf("Error creating cookie jar: %v", err)
 	}
 	w.baseURL = baseURL
 	w.client = &RLHTTPClient{
@@ -177,7 +190,11 @@ func (w *Woolworths) Init(baseURL string, dbPath string, productMaxAge time.Dura
 		Ratelimiter: rate.NewLimiter(rate.Every(1*time.Second), 1),
 	}
 	w.productMaxAge = productMaxAge
-	w.InitDB(dbPath)
+	err = w.InitDB(dbPath)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // This produces a stream of product IDs that are expired and need an update.
@@ -248,35 +265,34 @@ func (w *Woolworths) NewProductIDWorker(output chan WoolworthsProductInfo) {
 	output <- WoolworthsProductInfo{ID: 165262, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
 	output <- WoolworthsProductInfo{ID: 187314, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
 	output <- WoolworthsProductInfo{ID: 524336, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
-	return
 	// TODO Fix the below, it's busted in novel and interesting ways.
-	for {
-		departments, err := w.LoadDepartmentIDsList()
-		if err != nil {
-			slog.Error(fmt.Sprintf("Error loading department IDs: %v", err))
-			// Try again in ten minutes.
-			time.Sleep(10 * time.Minute)
-			continue
-		}
-		for _, departmentID := range departments {
-			products, err := w.GetProductsFromDepartment(departmentID)
-			if err != nil {
-				slog.Error(fmt.Sprintf("Error getting products from department: %v", err))
-				// Try again in ten minutes.
-				time.Sleep(10 * time.Minute)
-				continue
-			}
-			for _, productID := range products {
-				_, err := w.LoadProductInfo(productID)
-				if err != ErrProductMissing {
-					continue
-				}
-				output <- WoolworthsProductInfo{ID: productID, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
-			}
-		}
-		// We don't need to check for new products very often.
-		time.Sleep(1 * time.Hour)
-	}
+	// for {
+	// 	departments, err := w.LoadDepartmentIDsList()
+	// 	if err != nil {
+	// 		slog.Error(fmt.Sprintf("Error loading department IDs: %v", err))
+	// 		// Try again in ten minutes.
+	// 		time.Sleep(10 * time.Minute)
+	// 		continue
+	// 	}
+	// 	for _, departmentID := range departments {
+	// 		products, err := w.GetProductsFromDepartment(departmentID)
+	// 		if err != nil {
+	// 			slog.Error(fmt.Sprintf("Error getting products from department: %v", err))
+	// 			// Try again in ten minutes.
+	// 			time.Sleep(10 * time.Minute)
+	// 			continue
+	// 		}
+	// 		for _, productID := range products {
+	// 			_, err := w.LoadProductInfo(productID)
+	// 			if err != ErrProductMissing {
+	// 				continue
+	// 			}
+	// 			output <- WoolworthsProductInfo{ID: productID, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
+	// 		}
+	// 	}
+	// 	// We don't need to check for new products very often.
+	// 	time.Sleep(1 * time.Hour)
+	// }
 }
 
 // Runs up all the workers and mediates data flowing between them.
@@ -287,9 +303,10 @@ func (w *Woolworths) RunScheduler(cancel chan struct{}) {
 	productInfoChannel := make(chan WoolworthsProductInfo)
 	productsThatNeedAnUpdateChannel := make(chan ProductID)
 	newDepartmentIDsChannel := make(chan DepartmentID)
-	for i := 0; i < PRODUCT_INFO_WORKER_COUNT; i++ {
-		go w.ProductInfoFetchingWorker(productsThatNeedAnUpdateChannel, productInfoChannel)
-	}
+	// for i := 0; i < PRODUCT_INFO_WORKER_COUNT; i++ {
+	// 	go w.ProductInfoFetchingWorker(productsThatNeedAnUpdateChannel, productInfoChannel)
+	// }
+	go w.ProductInfoFetchingWorker(productsThatNeedAnUpdateChannel, productInfoChannel)
 	go w.ProductUpdateQueueWorker(productsThatNeedAnUpdateChannel, w.productMaxAge)
 	go w.NewProductIDWorker(productInfoChannel)
 	go w.NewDepartmentIDWorker(newDepartmentIDsChannel)
