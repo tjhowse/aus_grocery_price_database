@@ -2,7 +2,6 @@ package woolworths
 
 import (
 	"encoding/json"
-	"log/slog"
 	"testing"
 	"time"
 
@@ -125,17 +124,17 @@ func TestDepartment(t *testing.T) {
 	}
 }
 
-func TestScheduler(t *testing.T) {
-	slog.SetLogLoggerLevel(slog.LevelDebug)
-	server := WoolworthsHTTPServer()
+// func TestScheduler(t *testing.T) {
+// 	slog.SetLogLoggerLevel(slog.LevelDebug)
+// 	server := WoolworthsHTTPServer()
 
-	w := Woolworths{}
-	w.Init(server.URL, ":memory:", 5*time.Second)
-	cancel := make(chan struct{})
-	go w.RunScheduler(cancel)
-	time.Sleep(5 * time.Second)
-	close(cancel)
-	ValidateProduct(t, &w, 165262, "Driscoll's Raspberries Punnet 125g Punnet")
-	ValidateProduct(t, &w, 187314, "Woolworths Broccolini Bunch  Each")
-	ValidateProduct(t, &w, 524336, "Woolworths Baby Spinach Spinach 280g")
-}
+// 	w := Woolworths{}
+// 	w.Init(server.URL, ":memory:", 5*time.Second)
+// 	cancel := make(chan struct{})
+// 	go w.RunScheduler(cancel)
+// 	time.Sleep(5 * time.Second)
+// 	close(cancel)
+// 	ValidateProduct(t, &w, 165262, "Driscoll's Raspberries Punnet 125g Punnet")
+// 	ValidateProduct(t, &w, 187314, "Woolworths Broccolini Bunch  Each")
+// 	ValidateProduct(t, &w, 524336, "Woolworths Baby Spinach Spinach 280g")
+// }

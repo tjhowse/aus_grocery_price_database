@@ -37,6 +37,7 @@ func (w *Woolworths) ProductInfoFetchingWorker(input chan ProductID, output chan
 		info, err := w.GetProductInfo(id)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Error getting product info: %v", err))
+			continue
 		}
 		info.Updated = time.Now()
 		output <- info

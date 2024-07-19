@@ -1,14 +1,17 @@
 package woolworths
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 	utils "github.com/tjhowse/aus_grocery_price_database/internal/utils"
@@ -216,4 +219,73 @@ func TestGetProductsFromDepartment(t *testing.T) {
 	if want, got := 38, len(productIDs); want != got {
 		t.Errorf("Expected %d items, got %d", want, got)
 	}
+}
+
+func TestProductInfoFetchingWorker(t *testing.T) {
+	server := WoolworthsHTTPServer()
+	defer server.Close()
+
+	w := Woolworths{}
+	err := w.Init(server.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	productInfoChannel := make(chan WoolworthsProductInfo)
+	productsThatNeedAnUpdateChannel := make(chan ProductID)
+	go w.ProductInfoFetchingWorker(productsThatNeedAnUpdateChannel, productInfoChannel)
+
+	productsThatNeedAnUpdateChannel <- 187314
+
+	select {
+	case productInfo := <-productInfoChannel:
+		if want, got := "Woolworths Broccolini Bunch  Each", productInfo.Info.Name; want != got {
+			t.Errorf("Expected %s, got %s", want, got)
+		}
+	case <-time.After(500 * time.Millisecond):
+		t.Fatal("Timed out waiting for product info")
+	}
+
+	// Set up a pipe to use as a substitute for stdout for the logger
+	reader, writer, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer reader.Close()
+	defer writer.Close()
+
+	// Tell slog to log to the pipe instead of stdout
+	slog.SetDefault(slog.New(slog.NewTextHandler(writer, &slog.HandlerOptions{Level: slog.LevelDebug})))
+
+	// Give it a bogus product that doesn't exist in the mocked webserver.
+	productsThatNeedAnUpdateChannel <- 999999
+
+	// Ensure we don't get a productInfo from the worker.
+	select {
+	case productInfo := <-productInfoChannel:
+		t.Fatalf("Expected nothing, got %v", productInfo)
+	case <-time.After(100 * time.Millisecond):
+	}
+
+	// Set up a semaphore for the goroutine to signal to us that it found the log message
+	foundLogMessage := make(chan struct{})
+
+	// Run a goroutine to scan the output of the logger for the expected message
+	go func() {
+		scanner := bufio.NewScanner(reader)
+		for scanner.Scan() {
+			if strings.Contains(scanner.Text(), "failed to get product info") {
+				foundLogMessage <- struct{}{}
+			}
+		}
+	}()
+
+	// Wait for the log message to be found, or timeout.
+	select {
+	case <-foundLogMessage:
+	case <-time.After(1000 * time.Millisecond):
+		t.Fatal("Timed out waiting for log message")
+	}
+
+	// If this test seems tortuous, I agree. I'd like an easier way to capture log output from tests.
 }
