@@ -307,13 +307,14 @@ func TestNewProductWorker(t *testing.T) {
 
 	productIDChannel := make(chan WoolworthsProductInfo)
 	go w.NewProductWorker(productIDChannel)
-
-	// TODO expand this to check for a few product IDs, not just the first one. 134034 and 105919 come next
+	var index int
+	var productIDs = []ProductID{133211, 134034, 105919}
 	select {
 	case p := <-productIDChannel:
-		if want, got := ProductID(133211), p.ID; want != got {
+		if want, got := productIDs[index], p.ID; want != got {
 			t.Errorf("Expected %d, got %d", want, got)
 		}
+		index++
 	case <-time.After(2 * time.Second):
 		t.Fatal("Timed out waiting for product info")
 	}
