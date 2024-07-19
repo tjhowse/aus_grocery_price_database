@@ -94,20 +94,6 @@ func (w *Woolworths) InitDB(dbPath string) error {
 		}
 	}
 	return nil
-
-	// w.db.Exec("CREATE TABLE IF NOT EXISTS product_info (id INTEGER PRIMARY KEY, data TEXT)")
-	/*
-		Structure the DB as follows:
-		Table for product ID
-		Table for product info
-
-		Each row in each table has a updated datetime field.
-		In code, define a maximum age for each type of data.
-		The runner will check the age of the data in the DB and refresh it if it's too old.
-		If a new product is found, it will be added to the DB and have its datatime set to 0.
-		The scheduler queries the DB sorted by datetime and launches a worker to refresh the data
-		as required. The workers don't write to the DB, they just return the data to the scheduler.
-	*/
 }
 
 // Saves product info to the database
@@ -182,7 +168,7 @@ func (w *Woolworths) Init(baseURL string, dbPath string, productMaxAge time.Dura
 	var err error
 	w.cookieJar, err = cookiejar.New(nil)
 	if err != nil {
-		return fmt.Errorf("Error creating cookie jar: %v", err)
+		return fmt.Errorf("error creating cookie jar: %v", err)
 	}
 	w.baseURL = baseURL
 	w.client = &RLHTTPClient{

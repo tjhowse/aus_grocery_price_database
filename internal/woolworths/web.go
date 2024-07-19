@@ -268,6 +268,9 @@ func (w *Woolworths) GetProductInfo(id ProductID) (WoolworthsProductInfo, error)
 	}
 
 	result.Info, err = UnmarshalProductInfo(body)
+	if err != nil {
+		return result, err
+	}
 	return result, nil
 }
 
