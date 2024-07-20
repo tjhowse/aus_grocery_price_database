@@ -11,6 +11,17 @@ import (
 // Initialises the DB with the schema. Note you must bump the DB_SCHEMA_VERSION
 // constant if you change the schema.
 func (w *Woolworths) InitBlankDB() error {
+
+	// Drop all tables
+	for _, table := range []string{"schema", "departmentIDs", "productIDs", "products"} {
+		// Mildly confused by why this doesn't work? TODO investigate
+		// _, err := w.db.Exec("DROP TABLE IF EXISTS ?", table)
+		_, err := w.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", table))
+		if err != nil {
+			return err
+		}
+	}
+
 	_, err := w.db.Exec("CREATE TABLE IF NOT EXISTS schema (version INTEGER PRIMARY KEY)")
 	if err != nil {
 		return err
@@ -150,4 +161,22 @@ func (w *Woolworths) LoadDepartmentIDsList() ([]DepartmentID, error) {
 		departmentIDs = append(departmentIDs, departmentID)
 	}
 	return departmentIDs, nil
+}
+
+// Returns a list of product IDs that have been updated since the given time
+func (w *Woolworths) GetProductIDsUpdatedAfter(t time.Time) ([]ProductID, error) {
+	var productIDs []ProductID
+	rows, err := w.db.Query("SELECT productID FROM products WHERE updated > ?", t)
+	if err != nil {
+		return productIDs, fmt.Errorf("failed to query productIDs: %w", err)
+	}
+	for rows.Next() {
+		var productID ProductID
+		err = rows.Scan(&productID)
+		if err != nil {
+			return productIDs, fmt.Errorf("failed to scan productID: %w", err)
+		}
+		productIDs = append(productIDs, productID)
+	}
+	return productIDs, nil
 }

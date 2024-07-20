@@ -120,3 +120,16 @@ func TestDBFail(t *testing.T) {
 		t.Errorf("Expected %s, got %s", want, got)
 	}
 }
+
+// func TestGetProductIDsUpdatedAfter(t *testing.T) {
+// 	w := Woolworths{}
+// 	w.Init(woolworthsServer.URL, ":memory:", 5*time.Second)
+// 	w.SaveProductInfo(WoolworthsProductInfo{ID: 123456, Info: ProductInfo{}, Updated: time.Now().Add(-2 * time.Hour)})
+// 	productIDs, err := w.GetProductIDsUpdatedAfter(time.Now().Add(-1 * time.Hour))
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
+// 	if want, got := 38, len(productIDs); want != got {
+// 		t.Errorf("Expected %d, got %d", want, got)
+// 	}
+// }

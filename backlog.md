@@ -16,6 +16,7 @@ Grafana instance
 Add timeouts to all http requests
 Calculate $/g where possible
 Configuration management
+Create DB backup on invalid schema, rather than deleting the old one.
 
 ## Further work
 
