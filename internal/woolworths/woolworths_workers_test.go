@@ -10,11 +10,8 @@ import (
 )
 
 func TestProductInfoFetchingWorker(t *testing.T) {
-	server := WoolworthsHTTPServer()
-	defer server.Close()
-
 	w := Woolworths{}
-	err := w.Init(server.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
+	err := w.Init(woolworthsServer.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,11 +77,8 @@ func TestProductInfoFetchingWorker(t *testing.T) {
 }
 
 func TestNewDepartmentIDWorker(t *testing.T) {
-	server := WoolworthsHTTPServer()
-	defer server.Close()
-
 	w := Woolworths{}
-	err := w.Init(server.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
+	err := w.Init(woolworthsServer.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -109,11 +103,8 @@ func TestNewDepartmentIDWorker(t *testing.T) {
 }
 
 func TestNewProductWorker(t *testing.T) {
-	server := WoolworthsHTTPServer()
-	defer server.Close()
-
 	w := Woolworths{}
-	err := w.Init(server.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
+	err := w.Init(woolworthsServer.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
 	if err != nil {
 		t.Fatal(err)
 	}

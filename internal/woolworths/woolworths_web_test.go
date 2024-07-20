@@ -15,6 +15,8 @@ import (
 	utils "github.com/tjhowse/aus_grocery_price_database/internal/utils"
 )
 
+var woolworthsServer = WoolworthsHTTPServer()
+
 func TestUnmarshal(t *testing.T) {
 	// Read in the contents of data/example_product_info.json
 	// and unmarshal it into a ProductInfo struct
@@ -46,24 +48,33 @@ func TestUnmarshal(t *testing.T) {
 // This mocks enough of the Woolworths API to test various stuff
 func WoolworthsHTTPServer() *httptest.Server {
 	var err error
+
+	filesToLoad := []string{
+		"data/187314.json",
+		"data/165262.json",
+		"data/524336.json",
+		"data/category_1-E5BEE36E_1.json",
+		"data/category_1-E5BEE36E_2.json",
+		"data/fruit-veg.html",
+	}
+	fileContents := make(map[string][]byte)
+	for _, filename := range filesToLoad {
+		fileContents[filename], err = utils.ReadEntireFile(filename)
+		if err != nil {
+			slog.Error(fmt.Sprintf("Failed to read file %s: %v\n", filename, err))
+		}
+	}
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var responseData []byte
+		var responseFilename string
 		if strings.HasPrefix(r.URL.Path, "/api/v3/ui/schemaorg/product/") {
 			var productID int
 			if _, err := fmt.Sscanf(r.URL.Path, "/api/v3/ui/schemaorg/product/%d", &productID); err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
-
-			if responseData, err = utils.ReadEntireFile(fmt.Sprintf("data/%d.json", productID)); err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
+			responseFilename = fmt.Sprintf("data/%d.json", productID)
 		} else if strings.HasPrefix(r.URL.Path, "/shop/browse/fruit-veg") {
-			if responseData, err = utils.ReadEntireFile("data/fruit-veg.html"); err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
+			responseFilename = "data/fruit-veg.html"
 		} else if strings.HasPrefix(r.URL.Path, "/apis/ui/browse/category") {
 			var categoryRequest CategoryRequestBody
 			body, err := io.ReadAll(r.Body)
@@ -76,28 +87,26 @@ func WoolworthsHTTPServer() *httptest.Server {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			responseFilename := fmt.Sprintf("data/category_%s_%d.json", categoryRequest.CategoryID, categoryRequest.PageNumber)
-			if responseData, err = utils.ReadEntireFile(responseFilename); err != nil {
-				slog.Error(fmt.Sprintf("Invalid category filename \"%s\", returning error\n", responseFilename))
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
+			responseFilename = fmt.Sprintf("data/category_%s_%d.json", categoryRequest.CategoryID, categoryRequest.PageNumber)
 		} else {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
 
-		w.WriteHeader(http.StatusOK)
-		w.Write(responseData)
+		if responseData, knownFile := fileContents[responseFilename]; !knownFile {
+			slog.Error("Simulated woolworths server can't find requested file.", "filename", responseFilename)
+			w.WriteHeader(http.StatusNotFound)
+			return
+		} else {
+			w.WriteHeader(http.StatusOK)
+			w.Write(responseData)
+		}
 	}))
 }
 
 func TestGetProductListPage(t *testing.T) {
-	server := WoolworthsHTTPServer()
-	defer server.Close()
-
 	w := Woolworths{}
-	w.Init(server.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
+	w.Init(woolworthsServer.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
 
 	prodIDs, count, err := w.GetProductListPage("1-E5BEE36E", 1)
 	if err != nil {
@@ -113,11 +122,8 @@ func TestGetProductListPage(t *testing.T) {
 }
 
 func TestGetProductInfo(t *testing.T) {
-	server := WoolworthsHTTPServer()
-	defer server.Close()
-
 	w := Woolworths{}
-	w.Init(server.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
+	w.Init(woolworthsServer.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
 
 	tests := map[int]string{
 		187314: "Woolworths Broccolini Bunch  Each",
@@ -166,11 +172,8 @@ func TestExtractDepartmentIDs(t *testing.T) {
 }
 
 func TestGetDepartmentIDs(t *testing.T) {
-	server := WoolworthsHTTPServer()
-	defer server.Close()
-
 	w := Woolworths{}
-	w.Init(server.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
+	w.Init(woolworthsServer.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
 
 	departmentIDs, err := w.GetDepartmentIDs()
 	if err != nil {
@@ -201,11 +204,9 @@ func TestExtractTotalRecordCount(t *testing.T) {
 }
 
 func TestGetProductsFromDepartment(t *testing.T) {
-	server := WoolworthsHTTPServer()
-	defer server.Close()
 
 	w := Woolworths{}
-	err := w.Init(server.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
+	err := w.Init(woolworthsServer.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -220,11 +221,9 @@ func TestGetProductsFromDepartment(t *testing.T) {
 }
 
 func TestGetProductList(t *testing.T) {
-	server := WoolworthsHTTPServer()
-	defer server.Close()
 
 	w := Woolworths{}
-	err := w.Init(server.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
+	err := w.Init(woolworthsServer.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -82,11 +82,8 @@ func TestProductUpdateQueueGenerator(t *testing.T) {
 }
 
 func TestMissingProduct(t *testing.T) {
-
-	server := WoolworthsHTTPServer()
-
 	w := Woolworths{}
-	w.Init(server.URL, ":memory:", 5*time.Second)
+	w.Init(woolworthsServer.URL, ":memory:", 5*time.Second)
 	_, err := w.LoadProductInfo(123456)
 	if err == nil {
 		t.Fatal("Expected an error")
@@ -107,10 +104,8 @@ func ValidateProduct(t *testing.T, w *Woolworths, id ProductID, want string) {
 }
 
 func TestDepartment(t *testing.T) {
-	server := WoolworthsHTTPServer()
-
 	w := Woolworths{}
-	w.Init(server.URL, ":memory:", 5*time.Second)
+	w.Init(woolworthsServer.URL, ":memory:", 5*time.Second)
 	w.SaveDepartment("1-E5BEE36E")
 	departmentIDs, err := w.LoadDepartmentIDsList()
 	if err != nil {
@@ -135,18 +130,3 @@ func TestDBFail(t *testing.T) {
 		t.Errorf("Expected %s, got %s", want, got)
 	}
 }
-
-// func TestScheduler(t *testing.T) {
-// 	slog.SetLogLoggerLevel(slog.LevelDebug)
-// 	server := WoolworthsHTTPServer()
-
-// 	w := Woolworths{}
-// 	w.Init(server.URL, ":memory:", 5*time.Second)
-// 	cancel := make(chan struct{})
-// 	go w.RunScheduler(cancel)
-// 	time.Sleep(5 * time.Second)
-// 	close(cancel)
-// 	ValidateProduct(t, &w, 165262, "Driscoll's Raspberries Punnet 125g Punnet")
-// 	ValidateProduct(t, &w, 187314, "Woolworths Broccolini Bunch  Each")
-// 	ValidateProduct(t, &w, 524336, "Woolworths Baby Spinach Spinach 280g")
-// }

@@ -66,7 +66,7 @@ func (w *Woolworths) RunScheduler(cancel chan struct{}) {
 	go w.NewDepartmentIDWorker(newDepartmentIDsChannel)
 
 	for {
-		slog.Debug("Loopan")
+		slog.Debug("Heartbeat")
 		select {
 		case productInfoUpdate := <-productInfoChannel:
 			slog.Debug("Read from productInfoChannel", "name", productInfoUpdate.Info.Name)
@@ -78,6 +78,10 @@ func (w *Woolworths) RunScheduler(cancel chan struct{}) {
 		case newDepartmentID := <-newDepartmentIDsChannel:
 			slog.Debug(fmt.Sprintf("New department ID: %s", newDepartmentID))
 			// Update the departmentIDs table with the new department ID
+			err := w.SaveDepartment(newDepartmentID)
+			if err != nil {
+				slog.Error(fmt.Sprintf("Error saving department ID: %v", err))
+			}
 		case <-cancel:
 			slog.Info("Exiting scheduler")
 			return
