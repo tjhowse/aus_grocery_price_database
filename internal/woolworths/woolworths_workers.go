@@ -116,7 +116,7 @@ func (w *Woolworths) NewProductWorker(output chan<- WoolworthsProductInfo) {
 			}
 		}
 		if len(departments) > 0 {
-			// If we have bootstrapped we don't need to check for new products very often.
+			// If we have bootstrapped we don't need to check for new departments very often.
 			time.Sleep(1 * time.Hour)
 		} else {
 			time.Sleep(1 * time.Second)

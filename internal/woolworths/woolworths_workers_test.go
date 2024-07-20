@@ -44,6 +44,7 @@ func TestProductInfoFetchingWorker(t *testing.T) {
 
 	// Tell slog to log to the pipe instead of stdout
 	slog.SetDefault(slog.New(slog.NewTextHandler(writer, &slog.HandlerOptions{Level: slog.LevelDebug})))
+	// TODO Defer a func call to restore slog settings back to how they were before this test.
 
 	// Give it a bogus product that doesn't exist in the mocked webserver.
 	productsThatNeedAnUpdateChannel <- 999999

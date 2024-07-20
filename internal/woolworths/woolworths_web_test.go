@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -77,7 +78,7 @@ func WoolworthsHTTPServer() *httptest.Server {
 			}
 			responseFilename := fmt.Sprintf("data/category_%s_%d.json", categoryRequest.CategoryID, categoryRequest.PageNumber)
 			if responseData, err = utils.ReadEntireFile(responseFilename); err != nil {
-				fmt.Printf("Invalid category filename \"%s\", returning error\n", responseFilename)
+				slog.Error(fmt.Sprintf("Invalid category filename \"%s\", returning error\n", responseFilename))
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -215,5 +216,33 @@ func TestGetProductsFromDepartment(t *testing.T) {
 	}
 	if want, got := 38, len(productIDs); want != got {
 		t.Errorf("Expected %d items, got %d", want, got)
+	}
+}
+
+func TestGetProductList(t *testing.T) {
+	server := WoolworthsHTTPServer()
+	defer server.Close()
+
+	w := Woolworths{}
+	err := w.Init(server.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	w.SaveDepartment("1-E5BEE36E")
+
+	productIDs, err := w.GetProductList()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want, got := 38, len(productIDs); want != got {
+		t.Errorf("Expected %d items, got %d", want, got)
+	}
+
+	var expectedProductIDs = []ProductID{133211, 134034, 105919}
+	for i, id := range expectedProductIDs {
+		if want, got := id, productIDs[i]; want != got {
+			t.Errorf("Expected %d, got %d", want, got)
+		}
 	}
 }

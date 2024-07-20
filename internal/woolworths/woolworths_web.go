@@ -142,7 +142,7 @@ func (w *Woolworths) GetProductList() ([]ProductID, error) {
 
 	prodIDs := []ProductID{}
 
-	departmentIDs, err := w.GetDepartmentIDs()
+	departmentIDs, err := w.LoadDepartmentIDsList()
 	if err != nil {
 		return prodIDs, err
 	}
