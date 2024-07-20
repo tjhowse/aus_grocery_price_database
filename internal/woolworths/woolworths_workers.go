@@ -8,13 +8,14 @@ import (
 )
 
 func (w *Woolworths) ProductInfoFetchingWorker(input chan ProductID, output chan WoolworthsProductInfo) {
-	slog.Debug("Running a Woolworths.Worker")
 	for id := range input {
-		slog.Debug(fmt.Sprintf("Getting product info for ID: %d", id))
+		slog.Debug("Getting product", "id", id)
 		info, err := w.GetProductInfo(id)
 		if err != nil {
+			// Log an error to update this info, but still flag it as updated.
+			// This prevents dud product IDs clogging up the system, at the cost
+			// of potentially missing an update occasionally.
 			slog.Error(fmt.Sprintf("Error getting product info: %v", err))
-			continue
 		}
 		info.Updated = time.Now()
 		output <- info
@@ -46,6 +47,7 @@ func (w *Woolworths) ProductUpdateQueueWorker(output chan<- ProductID, maxAge ti
 		}
 
 		for _, productID := range productIDs {
+			slog.Debug("Feeding a product ID out of ProductUpdateQueueWorker", "productID", productID)
 			output <- productID
 		}
 		time.Sleep(1 * time.Second)
@@ -86,11 +88,6 @@ func (w *Woolworths) NewDepartmentIDWorker(output chan<- DepartmentID) {
 
 // This worker emits product IDs that don't currently exist in the local DB.
 func (w *Woolworths) NewProductWorker(output chan<- WoolworthsProductInfo) {
-	// TODO
-	// output <- WoolworthsProductInfo{ID: 165262, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
-	// output <- WoolworthsProductInfo{ID: 187314, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
-	// output <- WoolworthsProductInfo{ID: 524336, Info: ProductInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
-	// TODO Fix the below, it's busted in novel and interesting ways.
 	for {
 		departments, err := w.LoadDepartmentIDsList()
 		if err != nil {
@@ -123,4 +120,44 @@ func (w *Woolworths) NewProductWorker(output chan<- WoolworthsProductInfo) {
 		}
 
 	}
+}
+
+// Runs up all the workers and mediates data flowing between them.
+// Currently all sqlite writes happen via this function. This may move
+// off to a separate goroutine in the future.
+func (w *Woolworths) RunScheduler(cancel chan struct{}) {
+
+	productInfoChannel := make(chan WoolworthsProductInfo)
+	productsThatNeedAnUpdateChannel := make(chan ProductID)
+	newDepartmentIDsChannel := make(chan DepartmentID)
+	for i := 0; i < PRODUCT_INFO_WORKER_COUNT; i++ {
+		go w.ProductInfoFetchingWorker(productsThatNeedAnUpdateChannel, productInfoChannel)
+	}
+	go w.ProductUpdateQueueWorker(productsThatNeedAnUpdateChannel, w.productMaxAge)
+	go w.NewProductWorker(productInfoChannel)
+	go w.NewDepartmentIDWorker(newDepartmentIDsChannel)
+
+	for {
+		slog.Debug("Heartbeat")
+		select {
+		case productInfoUpdate := <-productInfoChannel:
+			slog.Debug("Read from productInfoChannel", "name", productInfoUpdate.Info.Name)
+			// Update the product info in the DB
+			err := w.SaveProductInfo(productInfoUpdate)
+			if err != nil {
+				slog.Error(fmt.Sprintf("Error saving product info: %v", err))
+			}
+		case newDepartmentID := <-newDepartmentIDsChannel:
+			slog.Debug(fmt.Sprintf("New department ID: %s", newDepartmentID))
+			// Update the departmentIDs table with the new department ID
+			err := w.SaveDepartment(newDepartmentID)
+			if err != nil {
+				slog.Error(fmt.Sprintf("Error saving department ID: %v", err))
+			}
+		case <-cancel:
+			slog.Info("Exiting scheduler")
+			return
+		}
+	}
+
 }

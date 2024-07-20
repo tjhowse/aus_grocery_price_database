@@ -93,16 +93,6 @@ func TestMissingProduct(t *testing.T) {
 	}
 }
 
-func ValidateProduct(t *testing.T, w *Woolworths, id ProductID, want string) {
-	prod, err := w.LoadProductInfo(id)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if prod.Name != want {
-		t.Errorf("Expected %s, got %s", want, prod.Name)
-	}
-}
-
 func TestDepartment(t *testing.T) {
 	w := Woolworths{}
 	w.Init(woolworthsServer.URL, ":memory:", 5*time.Second)

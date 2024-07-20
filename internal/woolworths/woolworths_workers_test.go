@@ -1,15 +1,13 @@
 package woolworths
 
 import (
-	"bufio"
 	"log/slog"
-	"os"
-	"strings"
 	"testing"
 	"time"
 )
 
 func TestProductInfoFetchingWorker(t *testing.T) {
+	slog.SetLogLoggerLevel(slog.LevelDebug)
 	w := Woolworths{}
 	err := w.Init(woolworthsServer.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
 	if err != nil {
@@ -31,49 +29,23 @@ func TestProductInfoFetchingWorker(t *testing.T) {
 		t.Fatal("Timed out waiting for product info")
 	}
 
-	// Set up a pipe to use as a substitute for stdout for the logger
-	reader, writer, err := os.Pipe()
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer reader.Close()
-	defer writer.Close()
-
-	// Tell slog to log to the pipe instead of stdout
-	slog.SetDefault(slog.New(slog.NewTextHandler(writer, &slog.HandlerOptions{Level: slog.LevelDebug})))
-	// TODO Defer a func call to restore slog settings back to how they were before this test.
-
 	// Give it a bogus product that doesn't exist in the mocked webserver.
 	productsThatNeedAnUpdateChannel <- 999999
 
-	// Ensure we don't get a productInfo from the worker.
+	// Ensure we get a blank product ID back
 	select {
 	case productInfo := <-productInfoChannel:
-		t.Fatalf("Expected nothing, got %v", productInfo)
-	case <-time.After(100 * time.Millisecond):
-	}
-
-	// Set up a semaphore for the goroutine to signal to us that it found the log message
-	foundLogMessage := make(chan struct{})
-
-	// Run a goroutine to scan the output of the logger for the expected message
-	go func() {
-		scanner := bufio.NewScanner(reader)
-		for scanner.Scan() {
-			if strings.Contains(scanner.Text(), "failed to get product info") {
-				foundLogMessage <- struct{}{}
-			}
+		if want, got := "", productInfo.Info.Name; want != got {
+			t.Errorf("Expected %s, got %s", want, got)
 		}
-	}()
-
-	// Wait for the log message to be found, or timeout.
-	select {
-	case <-foundLogMessage:
-	case <-time.After(1000 * time.Millisecond):
-		t.Fatal("Timed out waiting for log message")
+		// Check the updated time is within the last 2 seconds
+		if time.Since(productInfo.Updated) > 2*time.Second {
+			t.Errorf("Expected updated time to be within the last 2 seconds, got %v", time.Since(productInfo.Updated))
+		}
+	case <-time.After(500 * time.Millisecond):
+		t.Fatal("Timed out waiting for product info")
 	}
 
-	// If this test seems tortuous, I agree. I'd like an easier way to capture log output from tests.
 }
 
 func TestNewDepartmentIDWorker(t *testing.T) {
