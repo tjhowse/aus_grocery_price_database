@@ -7,6 +7,20 @@ import (
 	"time"
 )
 
+func (w *Woolworths) ProductInfoFetchingWorker(input chan ProductID, output chan WoolworthsProductInfo) {
+	slog.Debug("Running a Woolworths.Worker")
+	for id := range input {
+		slog.Debug(fmt.Sprintf("Getting product info for ID: %d", id))
+		info, err := w.GetProductInfo(id)
+		if err != nil {
+			slog.Error(fmt.Sprintf("Error getting product info: %v", err))
+			continue
+		}
+		info.Updated = time.Now()
+		output <- info
+	}
+}
+
 // This produces a stream of product IDs that are expired and need an update.
 func (w *Woolworths) ProductUpdateQueueWorker(output chan<- ProductID, maxAge time.Duration) {
 	for {
