@@ -13,7 +13,7 @@ import (
 func (w *Woolworths) InitBlankDB() error {
 
 	// Drop all tables
-	for _, table := range []string{"schema", "departmentIDs", "productIDs", "products"} {
+	for _, table := range []string{"schema", "departmentIDs", "products"} {
 		// Mildly confused by why this doesn't work? TODO investigate
 		// _, err := w.db.Exec("DROP TABLE IF EXISTS ?", table)
 		_, err := w.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", table))
@@ -31,11 +31,6 @@ func (w *Woolworths) InitBlankDB() error {
 		return err
 	}
 	_, err = w.db.Exec("CREATE TABLE IF NOT EXISTS departmentIDs (departmentID TEXT UNIQUE, updated DATETIME)")
-	if err != nil {
-		return err
-	}
-	_, err =
-		w.db.Exec("CREATE TABLE IF NOT EXISTS productIDs (productID INTEGER UNIQUE, updated DATETIME)")
 	if err != nil {
 		return err
 	}

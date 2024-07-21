@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log/slog"
 	"os"
+	"time"
 
 	woolworths "github.com/tjhowse/aus_grocery_price_database/internal/woolworths"
 )
@@ -31,7 +32,11 @@ func main() {
 	slog.Debug("Hi!")
 
 	w := woolworths.Woolworths{}
-	w.Init("https://www.woolworths.com.au", ":memory:", woolworths.PRODUCT_INFO_MAX_AGE)
+	// w.Init("https://www.woolworths.com.au", ":memory:", woolworths.PRODUCT_INFO_MAX_AGE)
+	// w.Init("https://www.woolworths.com.au", "woolworths.db3", woolworths.PRODUCT_INFO_MAX_AGE)
+	w.Init("https://www.woolworths.com.au", "woolworths.db3", 5*time.Minute)
 	cancel := make(chan struct{})
 	go w.RunScheduler(cancel)
+	time.Sleep(60 * time.Minute)
+	close(cancel)
 }
