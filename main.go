@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log/slog"
 	"os"
 
@@ -33,21 +32,6 @@ func main() {
 
 	w := woolworths.Woolworths{}
 	w.Init("https://www.woolworths.com.au", ":memory:", woolworths.PRODUCT_INFO_MAX_AGE)
-
-	// if prodids, err := w.GetProductList(); err != nil {
-	// 	slog.Error(fmt.Sprintf("Error getting product list: %v", err))
-	// } else {
-	// 	slog.Info(fmt.Sprintf("Product IDs: %d", prodids[0]))
-	// }
-	// StartWorker()
-
-	inputChannel := make(chan woolworths.ProductID)
-	outputChannel := make(chan woolworths.WoolworthsProductInfo)
-	go w.ProductInfoFetchingWorker(inputChannel, outputChannel)
-	go w.ProductInfoFetchingWorker(inputChannel, outputChannel)
-	inputChannel <- woolworths.ProductID(187314)
-	inputChannel <- woolworths.ProductID(187315)
-	slog.Info(fmt.Sprintf("Product Info: %v", <-outputChannel))
-	slog.Info(fmt.Sprintf("Product Info: %v", <-outputChannel))
-
+	cancel := make(chan struct{})
+	go w.RunScheduler(cancel)
 }
