@@ -3,7 +3,7 @@
 ## Basic
 
 ### Egress
-* write numbers to an influxdb database
+* Write numbers to an influxdb database
 
 ### Devops
 * fly.io config
@@ -18,8 +18,10 @@
 * Configuration management
 * Create DB backup on invalid schema, rather than deleting the old one.
 * Tune the max product age to roughly the time it takes for a full DB update.
-  * Maybe tune this at runtime? Or don't use a max age at all, instead take the
-    X oldest records and update them.
+    * Maybe tune this at runtime? Or don't use a max age at all, instead take the
+        X oldest records and update them.
+    * Would it make sense to scale the number of workers to hit a target full-db
+        update interva?
 
 ## Further work
 
