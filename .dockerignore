@@ -1,0 +1,4 @@
+# flyctl launch added from .gitignore
+**/junk
+**/*.db3
+fly.toml

@@ -1,0 +1,28 @@
+# fly.toml app configuration file generated for aus-grocery-price-database on 2024-07-21T11:16:13+10:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'aus-grocery-price-database'
+primary_region = 'syd'
+
+[build]
+  [build.args]
+    GO_VERSION = '1.22.5'
+
+[env]
+  PORT = '8080'
+  LOCAL_DB_PATH = '/data/database.db3'
+  MAX_PRODUCT_AGE_MINUTES = 1440
+  WoolworthsURL = 'https://www.woolworths.com.au'
+
+
+[[vm]]
+  memory_mb = 256
+  cpu_kind = 'shared'
+  cpus = 1
+
+[mounts]
+  source = "local_database"
+  destination = "/data"
+
