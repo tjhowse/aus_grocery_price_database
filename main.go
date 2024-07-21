@@ -40,21 +40,40 @@ func main() {
 	verbose := flag.Bool("v", false, "verbose")
 	flag.Parse()
 	logLevel := slog.LevelInfo
-	if *verbose {
+	if *verbose || cfg.DebugLogging == "true" {
 		// Set the log level to debug
 		logLevel = slog.LevelDebug
 	}
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel}))
 	slog.SetDefault(logger)
 
-	slog.Debug("Hi!")
+	slog.Info("AUS Grocery Price Database", "version", VERSION)
 
 	w := woolworths.Woolworths{}
-	// w.Init("https://www.woolworths.com.au", ":memory:", woolworths.PRODUCT_INFO_MAX_AGE)
-	// w.Init("https://www.woolworths.com.au", "woolworths.db3", woolworths.PRODUCT_INFO_MAX_AGE)
 	w.Init(cfg.WoolworthsURL, cfg.LocalWoolworthsDBPath, time.Duration(cfg.MaxProductAgeMinutes)*time.Minute)
+
+	influx := influxDB{}
+	influx.Init(cfg.InfluxDBURL, cfg.InfluxDBToken, cfg.InfluxDBOrg, cfg.InfluxDBBucket)
+	defer influx.Close()
+
+	products := make(chan shared.ProductInfo)
+	go influx.WriteWorker(products)
+	defer close(products)
+
 	cancel := make(chan struct{})
+	defer close(cancel)
 	go w.RunScheduler(cancel)
-	time.Sleep(60 * time.Minute)
-	close(cancel)
+
+	for {
+		updateTime := time.Now()
+		_, err := w.GetProductIDsUpdatedAfter(updateTime, 10)
+		if err != nil {
+			slog.Error("Error getting product IDs", "error", err)
+			time.Sleep(10 * time.Second)
+			continue
+		}
+		// for _, productID := range woolworthsProducts {
+
+	}
+
 }
