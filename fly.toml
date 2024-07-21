@@ -12,7 +12,7 @@ primary_region = 'syd'
 
 [env]
   PORT = '8080'
-  LOCAL_DB_PATH = '/data/database.db3'
+  LOCAL_WOOLWORTHS_DB_PATH = '/data/woolworths.db3'
   MAX_PRODUCT_AGE_MINUTES = 1440
   WoolworthsURL = 'https://www.woolworths.com.au'
 

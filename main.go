@@ -12,11 +12,11 @@ import (
 )
 
 type config struct {
-	InfluxDBURL          string `env:"INFLUXDB_URL"`
-	InfluxDBKey          string `env:"INFLUXDB_KEY"`
-	LocalDBPath          string `env:"LOCAL_DB_PATH" envDefault:":memory:"`
-	MaxProductAgeMinutes int    `env:"MAX_PRODUCT_AGE_MINUTES" envDefault:"1440"`
-	WoolworthsURL        string `env:"WOOLWORTHS_URL" envDefault:"https://www.woolworths.com.au"`
+	InfluxDBURL           string `env:"INFLUXDB_URL"`
+	InfluxDBKey           string `env:"INFLUXDB_KEY"`
+	LocalWoolworthsDBPath string `env:"LOCAL_WOOLWORTHS_DB_PATH" envDefault:":memory:"`
+	MaxProductAgeMinutes  int    `env:"MAX_PRODUCT_AGE_MINUTES" envDefault:"1440"`
+	WoolworthsURL         string `env:"WOOLWORTHS_URL" envDefault:"https://www.woolworths.com.au"`
 }
 
 // Convert from woolworths.ProductInfo to main.ProductInfo
@@ -49,7 +49,7 @@ func main() {
 	w := woolworths.Woolworths{}
 	// w.Init("https://www.woolworths.com.au", ":memory:", woolworths.PRODUCT_INFO_MAX_AGE)
 	// w.Init("https://www.woolworths.com.au", "woolworths.db3", woolworths.PRODUCT_INFO_MAX_AGE)
-	w.Init(cfg.WoolworthsURL, cfg.LocalDBPath, time.Duration(cfg.MaxProductAgeMinutes)*time.Minute)
+	w.Init(cfg.WoolworthsURL, cfg.LocalWoolworthsDBPath, time.Duration(cfg.MaxProductAgeMinutes)*time.Minute)
 	cancel := make(chan struct{})
 	go w.RunScheduler(cancel)
 	time.Sleep(60 * time.Minute)
