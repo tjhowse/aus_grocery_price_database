@@ -11,9 +11,12 @@ import (
 	woolworths "github.com/tjhowse/aus_grocery_price_database/internal/woolworths"
 )
 
+// TODO https://github.com/influxdata/influxdb-client-go
 type config struct {
 	InfluxDBURL           string `env:"INFLUXDB_URL"`
-	InfluxDBKey           string `env:"INFLUXDB_KEY"`
+	InfluxDBToken         string `env:"INFLUXDB_TOKEN"`
+	InfluxDBOrg           string `env:"INFLUXDB_ORG"`
+	InfluxDBBucker        string `env:"INFLUXDB_BUCKER"`
 	LocalWoolworthsDBPath string `env:"LOCAL_WOOLWORTHS_DB_PATH" envDefault:":memory:"`
 	MaxProductAgeMinutes  int    `env:"MAX_PRODUCT_AGE_MINUTES" envDefault:"1440"`
 	WoolworthsURL         string `env:"WOOLWORTHS_URL" envDefault:"https://www.woolworths.com.au"`
