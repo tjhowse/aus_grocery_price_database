@@ -14,15 +14,4 @@ Additionally: Hosting this will be fairly cheap, but not free. Consider a cheeky
 
 This is setup for hosting on fly.io. I'm not completely happy with investing effort on hosting infrastructure using a for-profit service, but they sure do make it straightforward. It would not be much more effort to throw together a docker-compose to make it more platform-independent.
 
-### Setup process
 
-Here's the process I went through for setting up the integration. **This is not a guide on how to deploy this app**, this is a record for my later reference.
-
-    fly launch
-    # All default answers to the CLI interface questions
-    # Change the memory allocation in the fly.toml to memory_mb = 256
-    # Shut down the VMs after creation. Next time use `fly launch --no-deploy`
-    fly scale count 0
-    fly volumes create
-    # Ignore warning about volume pinning
-    # Add the [mounts] block to fly.toml.

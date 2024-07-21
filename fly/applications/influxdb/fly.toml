@@ -1,0 +1,30 @@
+# fly.toml app configuration file generated for aus-grocery-price-database-influxdb on 2024-07-21T14:37:19+10:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+# Consult https://hub.docker.com/_/influxdb for more configuration information
+
+app = 'aus-grocery-price-database-influxdb'
+primary_region = 'syd'
+
+[build]
+  [build.args]
+    BASE_IMAGE = 'influxdb:2.7.7'
+
+[http_service]
+  internal_port = 8086
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  memory_mb = 512
+  cpu_kind = 'shared'
+  cpus = 1
+
+[mounts]
+  source = "influxdb_database"
+  destination = "/data"
+
