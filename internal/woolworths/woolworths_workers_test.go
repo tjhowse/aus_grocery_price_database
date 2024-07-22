@@ -18,7 +18,7 @@ func TestProductInfoFetchingWorker(t *testing.T) {
 	productsThatNeedAnUpdateChannel := make(chan ProductID)
 	go w.ProductInfoFetchingWorker(productsThatNeedAnUpdateChannel, productInfoChannel)
 
-	productsThatNeedAnUpdateChannel <- 187314
+	productsThatNeedAnUpdateChannel <- "187314"
 
 	select {
 	case productInfo := <-productInfoChannel:
@@ -30,7 +30,7 @@ func TestProductInfoFetchingWorker(t *testing.T) {
 	}
 
 	// Give it a bogus product that doesn't exist in the mocked webserver.
-	productsThatNeedAnUpdateChannel <- 999999
+	productsThatNeedAnUpdateChannel <- "999999"
 
 	// Ensure we get a blank product ID back
 	select {
@@ -87,11 +87,11 @@ func TestNewProductWorker(t *testing.T) {
 	productIDChannel := make(chan WoolworthsProductInfo)
 	go w.NewProductWorker(productIDChannel)
 	var index int
-	var productIDs = []ProductID{133211, 134034, 105919}
+	var productIDs = []ProductID{"133211", "134034", "105919"}
 	select {
 	case p := <-productIDChannel:
 		if want, got := productIDs[index], p.ID; want != got {
-			t.Errorf("Expected %d, got %d", want, got)
+			t.Errorf("Expected %s, got %s", want, got)
 		}
 		index++
 	case <-time.After(2 * time.Second):

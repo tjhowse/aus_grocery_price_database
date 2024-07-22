@@ -3,6 +3,7 @@ package shared
 import "time"
 
 type ProductInfo struct {
+	ID          string
 	Name        string
 	Description string
 	Store       string

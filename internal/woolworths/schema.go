@@ -12,7 +12,7 @@ type Department struct {
 	Value []DepartmentID `json:"Value"`
 }
 
-type ProductID int
+type ProductID string
 type DepartmentID string
 
 type CategoryData []byte

@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+const DB_SCHEMA_VERSION = 2
+
 // Initialises the DB with the schema. Note you must bump the DB_SCHEMA_VERSION
 // constant if you change the schema.
 func (w *Woolworths) InitBlankDB() error {
@@ -35,7 +37,15 @@ func (w *Woolworths) InitBlankDB() error {
 		return err
 	}
 	_, err =
-		w.db.Exec("CREATE TABLE IF NOT EXISTS products (productID INTEGER UNIQUE, productData TEXT, updated DATETIME)")
+		w.db.Exec(`	CREATE TABLE IF NOT EXISTS products
+						(	productID TEXT UNIQUE,
+							Name TEXT,
+							Description TEXT,
+							Price FLOAT,
+							WeightGrams FLOAT,
+							productData TEXT,
+							updated DATETIME
+						)`)
 	if err != nil {
 		return err
 	}

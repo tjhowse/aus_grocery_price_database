@@ -12,8 +12,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
-const WOOLWORTHS_PRODUCT_URL_FORMAT = "%s/api/v3/ui/schemaorg/product/%d"
-const DB_SCHEMA_VERSION = 1
+const WOOLWORTHS_PRODUCT_URL_FORMAT = "%s/api/v3/ui/schemaorg/product/%s"
 const PRODUCT_INFO_WORKER_COUNT = 10
 
 const PRODUCT_INFO_MAX_AGE = 6 * time.Hour

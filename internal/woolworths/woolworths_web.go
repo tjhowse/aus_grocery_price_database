@@ -11,21 +11,16 @@ import (
 	"strconv"
 )
 
-func ExtractStockCodes(body CategoryData) ([]int, error) {
+func ExtractStockCodes(body CategoryData) ([]string, error) {
 	stockCodeRegex := regexp.MustCompile(`"Stockcode":(\d*),`)
 	stockCodeMatches := stockCodeRegex.FindAllStringSubmatch(string(body), -1)
 	if len(stockCodeMatches) == 0 {
-		return []int{}, fmt.Errorf("no stock codes found")
+		return []string{}, fmt.Errorf("no stock codes found")
 	}
 
-	stockCodes := []int{}
+	stockCodes := []string{}
 	for _, code := range stockCodeMatches {
-		id, err := strconv.Atoi(code[1])
-		if err != nil {
-			return []int{}, fmt.Errorf("failed to parse stock code: %w", err)
-		} else {
-			stockCodes = append(stockCodes, id)
-		}
+		stockCodes = append(stockCodes, code[1])
 	}
 
 	return stockCodes, nil

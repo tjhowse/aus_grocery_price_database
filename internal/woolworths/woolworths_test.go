@@ -10,7 +10,7 @@ import (
 func ValidateProduct(t *testing.T, w *Woolworths, id ProductID, want string) error {
 	prod, err := w.LoadProductInfo(id)
 	if err != nil {
-		return fmt.Errorf("Failed to get product ID %d: %v", id, err)
+		return fmt.Errorf("Failed to get product ID %s: %v", id, err)
 	}
 	if prod.Name != want {
 		return fmt.Errorf("Expected %s, got %s", want, prod.Name)
@@ -29,8 +29,8 @@ func TestScheduler(t *testing.T) {
 	done := make(chan struct{})
 	go func() {
 		for {
-			err1 := ValidateProduct(t, &w, 165262, "Driscoll's Raspberries Punnet 125g Punnet")
-			err2 := ValidateProduct(t, &w, 187314, "Woolworths Broccolini Bunch  Each")
+			err1 := ValidateProduct(t, &w, "165262", "Driscoll's Raspberries Punnet 125g Punnet")
+			err2 := ValidateProduct(t, &w, "187314", "Woolworths Broccolini Bunch  Each")
 			if err1 == nil && err2 == nil {
 				close(done)
 				return

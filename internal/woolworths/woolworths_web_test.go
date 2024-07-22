@@ -112,8 +112,8 @@ func TestGetProductListPage(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if want, got := ProductID(133211), prodIDs[0]; want != got {
-		t.Errorf("Expected %d, got %d", want, got)
+	if want, got := ProductID("133211"), prodIDs[0]; want != got {
+		t.Errorf("Expected %s, got %s", want, got)
 	}
 
 	if want, got := 470, count; want != got {
@@ -125,10 +125,10 @@ func TestGetProductInfo(t *testing.T) {
 	w := Woolworths{}
 	w.Init(woolworthsServer.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
 
-	tests := map[int]string{
-		187314: "Woolworths Broccolini Bunch  Each",
-		165262: "Driscoll's Raspberries Punnet 125g Punnet",
-		524336: "Woolworths Baby Spinach Spinach 280g",
+	tests := map[string]string{
+		"187314": "Woolworths Broccolini Bunch  Each",
+		"165262": "Driscoll's Raspberries Punnet 125g Punnet",
+		"524336": "Woolworths Baby Spinach Spinach 280g",
 	}
 
 	for id, want := range tests {
@@ -238,10 +238,10 @@ func TestGetProductList(t *testing.T) {
 		t.Errorf("Expected %d items, got %d", want, got)
 	}
 
-	var expectedProductIDs = []ProductID{133211, 134034, 105919}
+	var expectedProductIDs = []ProductID{"133211", "134034", "105919"}
 	for i, id := range expectedProductIDs {
 		if want, got := id, productIDs[i]; want != got {
-			t.Errorf("Expected %d, got %d", want, got)
+			t.Errorf("Expected %s, got %s", want, got)
 		}
 	}
 }

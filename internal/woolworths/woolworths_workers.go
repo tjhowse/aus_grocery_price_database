@@ -77,7 +77,7 @@ func (w *Woolworths) FilterDepartmentIDs(departmentIDs []DepartmentID) []Departm
 func (w *Woolworths) FilterProductIDs(productIDs []ProductID) []ProductID {
 	var filtered []ProductID
 
-	productSet := map[ProductID]bool{133211: true, 134034: true, 105919: true, 144607: true, 208895: true, 135306: true, 144329: true, 134681: true, 170225: true, 169438: true, 135344: true, 120080: true, 135369: true, 829107: true, 144497: true, 130935: true, 149864: true, 149620: true, 147071: true, 137102: true, 137130: true, 157649: true, 120384: true, 259450: true, 155003: true, 314075: true, 713429: true, 727144: true, 147603: true, 144336: true, 829360: true, 165262: true, 310968: true, 154340: true, 187314: true, 262783: true}
+	productSet := map[ProductID]bool{"133211": true, "134034": true, "105919": true, "144607": true, "208895": true, "135306": true, "144329": true, "134681": true, "170225": true, "169438": true, "135344": true, "120080": true, "135369": true, "829107": true, "144497": true, "130935": true, "149864": true, "149620": true, "147071": true, "137102": true, "137130": true, "157649": true, "120384": true, "259450": true, "155003": true, "314075": true, "713429": true, "727144": true, "147603": true, "144336": true, "829360": true, "165262": true, "310968": true, "154340": true, "187314": true, "262783": true}
 
 	for _, productID := range productIDs {
 		if _, ok := productSet[productID]; ok {
