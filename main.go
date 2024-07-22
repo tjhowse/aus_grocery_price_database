@@ -73,9 +73,9 @@ func main() {
 
 	for {
 		updateTime := time.Now()
-		_, err := w.GetProductIDsUpdatedAfter(updateTime, 10)
+		_, err := w.GetSharedProductsUpdatedAfter(updateTime, 10)
 		if err != nil {
-			slog.Error("Error getting product IDs", "error", err)
+			slog.Error("Error getting shared products", "error", err)
 			time.Sleep(10 * time.Second)
 			continue
 		}

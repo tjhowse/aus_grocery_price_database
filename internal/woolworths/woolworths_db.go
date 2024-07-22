@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log/slog"
 	"time"
+
+	"github.com/tjhowse/aus_grocery_price_database/internal/shared"
 )
 
 const DB_SCHEMA_VERSION = 2
@@ -165,19 +167,20 @@ func (w *Woolworths) LoadDepartmentIDsList() ([]DepartmentID, error) {
 }
 
 // Returns a list of product IDs that have been updated since the given time
-func (w *Woolworths) GetProductIDsUpdatedAfter(t time.Time, count int) ([]ProductID, error) {
-	var productIDs []ProductID
-	rows, err := w.db.Query("SELECT productID FROM products WHERE updated > ? LIMIT ?", t, count)
+func (w *Woolworths) GetSharedProductsUpdatedAfter(t time.Time, count int) ([]shared.ProductInfo, error) {
+	var productIDs []shared.ProductInfo
+	rows, err := w.db.Query("SELECT productID, name, description, price, weightGrams, updated FROM products WHERE updated > ? LIMIT ?", t, count)
 	if err != nil {
 		return productIDs, fmt.Errorf("failed to query productIDs: %w", err)
 	}
 	for rows.Next() {
-		var productID ProductID
-		err = rows.Scan(&productID)
+		var product shared.ProductInfo
+		err = rows.Scan(&product.ID, &product.Name, &product.Description, &product.Price, &product.WeightGrams, &product.Timestamp)
 		if err != nil {
 			return productIDs, fmt.Errorf("failed to scan productID: %w", err)
 		}
-		productIDs = append(productIDs, productID)
+		product.ID = WOOLWORTHS_ID_PREFIX + product.ID
+		productIDs = append(productIDs, product)
 	}
 	return productIDs, nil
 }

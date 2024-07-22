@@ -18,6 +18,16 @@ type DepartmentID string
 type CategoryData []byte
 type FruitVegPage []byte
 
+// Prefix for product IDs when exported outside of woolworths-world
+const WOOLWORTHS_ID_PREFIX = "woolworths_sku_"
+
+type WoolworthsProductInfo struct {
+	ID      ProductID
+	Info    ProductInfo
+	RawJSON []byte
+	Updated time.Time
+}
+
 type CategoryRequestBody struct {
 	CategoryID                      DepartmentID `json:"categoryId"`
 	PageNumber                      int          `json:"pageNumber"`
@@ -37,13 +47,6 @@ type CategoryRequestBody struct {
 	EnableAdReRanking               bool         `json:"enableAdReRanking"`
 	GroupEdmVariants                bool         `json:"groupEdmVariants"`
 	CategoryVersion                 string       `json:"categoryVersion"`
-}
-
-type WoolworthsProductInfo struct {
-	ID      ProductID
-	Info    ProductInfo
-	RawJSON []byte
-	Updated time.Time
 }
 
 type ProductInfo struct {
