@@ -13,17 +13,15 @@ RUN rm -r /var/lib/influxdb2
 RUN ln -s /data/data /etc/influxdb2
 RUN ln -s /data/config /var/lib/influxdb2
 
-# TODO this stuff.
 ENV DOCKER_INFLUXDB_INIT_MODE=setup
-ENV DOCKER_INFLUXDB_INIT_USERNAME=blerp
-ENV DOCKER_INFLUXDB_INIT_PASSWORD=pp75D7eG83kU9NhbsayA
 ENV DOCKER_INFLUXDB_INIT_ORG=groceries
 ENV DOCKER_INFLUXDB_INIT_BUCKET=groceries
-ENV DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=yf67EDurejjBCt2jBafV
 
+# These envars are set in secrets.
+# ENV DOCKER_INFLUXDB_INIT_USERNAME=
+# ENV DOCKER_INFLUXDB_INIT_PASSWORD=
+# ENV DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=
+
+# Use this to override the base image's entrypoint if you need the container to just stay up
+# regardless of influx crashing every time it starts.
 # ENTRYPOINT ["tail", "-f", "/dev/null"]
-
-# ENTRYPOINT ["/usr/bin/sleep 100000"]
-# ENTRYPOINT ["/usr/bin/entrypoint.sh"]
-
-# CMD ["serve"]

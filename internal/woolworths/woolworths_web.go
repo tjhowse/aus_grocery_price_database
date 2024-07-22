@@ -235,7 +235,6 @@ func (w *Woolworths) getProductListPage(department departmentID, page int) ([]pr
 // This queries the Woolworths API to get the product information
 // using the WOOLWORTHS_PRODUCT_URL_PREFIX prefix.
 func (w *Woolworths) getProductInfo(productId productID) (woolworthsProductInfo, error) {
-	slog.Debug(fmt.Sprintf("Base URL: %s", w.baseURL))
 	url := fmt.Sprintf(WOOLWORTHS_PRODUCT_URL_FORMAT, w.baseURL, productId)
 	result := woolworthsProductInfo{ID: productId}
 

@@ -66,6 +66,7 @@ func main() {
 	cancel := make(chan struct{})
 	defer close(cancel)
 	go w.Run(cancel)
+
 	updateTime := time.Now().Add(-1 * time.Hour)
 	for {
 		woolworthsProducts, err := w.GetSharedProductsUpdatedAfter(updateTime, 10)
@@ -74,10 +75,13 @@ func main() {
 			time.Sleep(10 * time.Second)
 			continue
 		}
+		if len(woolworthsProducts) != 0 {
+			updateTime = time.Now()
+		}
 		for _, product := range woolworthsProducts {
 			slog.Info("Updating product data", "name", product.Name, "price", product.PriceCents)
+			products <- product
 		}
 		time.Sleep(10 * time.Second)
-		updateTime = time.Now()
 	}
 }

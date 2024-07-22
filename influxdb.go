@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log/slog"
+
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
 	shared "github.com/tjhowse/aus_grocery_price_database/internal/shared"
@@ -12,6 +14,7 @@ type influxDB struct {
 }
 
 func (i *influxDB) Init(url, token, org, bucket string) {
+	slog.Info("Initialising InfluxDB", "url", url, "org", org, "bucket", bucket)
 	i.db = influxdb2.NewClient(url, token)
 	i.writeAPI = i.db.WriteAPI(org, bucket)
 }

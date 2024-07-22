@@ -5,6 +5,14 @@
 https://fly.io/docs/laravel/advanced-guides/multiple-applications/
 https://hub.docker.com/_/influxdb
 
+## Secrets
+
+Set the following secrets with `fly secrets set KEY=VALUE KEY=VALUE`. It's best to set them all in one go, because it restarts the app every time. Make sure the password and token are fairly long, otherwise influxdb will go into a boot loop about it.
+
+* DOCKER_INFLUXDB_INIT_USERNAME
+* DOCKER_INFLUXDB_INIT_PASSWORD
+* DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
+
 ## Setup process
 
 Here's the process I went through for setting up the integration. **This is not a guide on how to deploy this app**, this is a record for my later reference.
