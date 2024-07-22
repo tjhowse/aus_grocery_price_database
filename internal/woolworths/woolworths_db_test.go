@@ -134,7 +134,7 @@ func TestGetProductIDsUpdatedAfter(t *testing.T) {
 		t.Fatal(err)
 	}
 	if want, got := 2, len(productIDs); want != got {
-		t.Errorf("Expected %d products, got %d", want, got)
+		t.Fatalf("Expected %d products, got %d", want, got)
 	}
 	if want, got := ProductID("123458"), productIDs[0]; want != got {
 		t.Errorf("Expected %s, got %s", want, got)
@@ -147,7 +147,10 @@ func TestGetProductIDsUpdatedAfter(t *testing.T) {
 		t.Fatal(err)
 	}
 	if want, got := 1, len(productIDs); want != got {
-		t.Errorf("Expected %d products, got %d", want, got)
+		t.Fatalf("Expected %d products, got %d", want, got)
+	}
+	if want, got := ProductID("123458"), productIDs[0]; want != got {
+		t.Errorf("Expected %s, got %s", want, got)
 	}
 
 }

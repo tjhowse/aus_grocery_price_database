@@ -39,11 +39,11 @@ func (w *Woolworths) InitBlankDB() error {
 	_, err =
 		w.db.Exec(`	CREATE TABLE IF NOT EXISTS products
 						(	productID TEXT UNIQUE,
-							Name TEXT,
-							Description TEXT,
-							Price FLOAT,
-							WeightGrams FLOAT,
-							productData TEXT,
+							name TEXT,
+							description TEXT,
+							price FLOAT,
+							weightGrams FLOAT,
+							productJSON TEXT,
 							updated DATETIME
 						)`)
 	if err != nil {
@@ -84,11 +84,15 @@ func (w *Woolworths) SaveProductInfo(productInfo WoolworthsProductInfo) error {
 
 	productInfoString := string(productInfo.RawJSON)
 
+	// TODO Is there some better way of handling passing copies of the same data?
 	result, err = w.db.Exec(`
-		INSERT INTO products (productID, productData, updated)
-		VALUES (?, ?, ?)
-		ON CONFLICT(productID) DO UPDATE SET productID = ?, productData = ?, updated = ?
-		`, productInfo.ID, productInfoString, productInfo.Updated, productInfo.ID, productInfoString, productInfo.Updated)
+		INSERT INTO products (productID, name, description, price, weightGrams, productJSON, updated)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
+		ON CONFLICT(productID) DO UPDATE SET productID = ?, name = ?, description = ?, price = ?, weightGrams = ?, productJSON = ?, updated = ?
+		`, productInfo.ID, productInfo.Info.Name, productInfo.Info.Description,
+		productInfo.Info.Offers.Price, productInfo.Info.Weight, productInfoString, productInfo.Updated,
+		productInfo.ID, productInfo.Info.Name, productInfo.Info.Description,
+		productInfo.Info.Offers.Price, productInfo.Info.Weight, productInfoString, productInfo.Updated)
 
 	if err != nil {
 		return fmt.Errorf("failed to update product info: %w", err)
@@ -129,16 +133,16 @@ func (w *Woolworths) SaveDepartment(productInfo DepartmentID) error {
 func (w *Woolworths) LoadProductInfo(productID ProductID) (ProductInfo, error) {
 	var buffer string
 	var result ProductInfo
-	err := w.db.QueryRow("SELECT productData FROM products WHERE productID = ? LIMIT 1", productID).Scan(&buffer)
+	err := w.db.QueryRow("SELECT productJSON FROM products WHERE productID = ? LIMIT 1", productID).Scan(&buffer)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return result, ErrProductMissing
 		}
-		return result, fmt.Errorf("failed to query existing productData: %w", err)
+		return result, fmt.Errorf("failed to query existing productJSON: %w", err)
 	}
 	err = json.Unmarshal([]byte(buffer), &result)
 	if err != nil {
-		return result, fmt.Errorf("failed to unmarshal productData: %w", err)
+		return result, fmt.Errorf("failed to unmarshal productJSON: %w", err)
 	}
 	return result, nil
 }
