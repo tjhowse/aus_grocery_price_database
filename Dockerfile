@@ -11,4 +11,5 @@ RUN go build -v -o /run-app .
 FROM debian:bookworm
 
 COPY --from=builder /run-app /usr/local/bin/
+RUN apt update && apt install -y ca-certificates && rm -rf /var/lib/apt/lists/*
 CMD ["run-app"]
