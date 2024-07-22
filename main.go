@@ -18,8 +18,8 @@ const VERSION = "0.0.1"
 type config struct {
 	InfluxDBURL           string `env:"INFLUXDB_URL"`
 	InfluxDBToken         string `env:"INFLUXDB_TOKEN"`
-	InfluxDBOrg           string `env:"INFLUXDB_ORG"`
-	InfluxDBBucket        string `env:"INFLUXDB_BUCKET"`
+	InfluxDBOrg           string `env:"INFLUXDB_ORG" envDefault:"groceries"`
+	InfluxDBBucket        string `env:"INFLUXDB_BUCKET" envDefault:"groceries"`
 	LocalWoolworthsDBPath string `env:"LOCAL_WOOLWORTHS_DB_PATH" envDefault:"woolworths.db3"`
 	MaxProductAgeMinutes  int    `env:"MAX_PRODUCT_AGE_MINUTES" envDefault:"1440"`
 	WoolworthsURL         string `env:"WOOLWORTHS_URL" envDefault:"https://www.woolworths.com.au"`
