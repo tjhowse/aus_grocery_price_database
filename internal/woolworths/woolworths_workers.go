@@ -166,7 +166,7 @@ func (w *Woolworths) newProductWorker(output chan<- woolworthsProductInfo) {
 // Runs up all the workers and mediates data flowing between them.
 // Currently all sqlite writes happen via this function. This may move
 // off to a separate goroutine in the future.
-func (w *Woolworths) RunScheduler(cancel chan struct{}) {
+func (w *Woolworths) Run(cancel chan struct{}) {
 
 	productInfoChannel := make(chan woolworthsProductInfo)
 	productsThatNeedAnUpdateChannel := make(chan productID)

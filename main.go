@@ -26,6 +26,13 @@ type config struct {
 	DebugLogging          string `env:"DEBUG_LOGGING" envDefault:"false"`
 }
 
+// Other stores will need to implement this interface
+type ProductInfoGetter interface {
+	Init(string, string, time.Duration)
+	Run(chan struct{})
+	GetSharedProductsUpdatedAfter(time.Time, int) ([]shared.ProductInfo, error)
+}
+
 func main() {
 
 	// Read in the environment variables
@@ -58,7 +65,7 @@ func main() {
 
 	cancel := make(chan struct{})
 	defer close(cancel)
-	go w.RunScheduler(cancel)
+	go w.Run(cancel)
 	updateTime := time.Now().Add(-1 * time.Hour)
 	for {
 		woolworthsProducts, err := w.GetSharedProductsUpdatedAfter(updateTime, 10)

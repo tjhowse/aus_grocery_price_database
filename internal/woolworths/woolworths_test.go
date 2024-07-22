@@ -24,7 +24,7 @@ func TestScheduler(t *testing.T) {
 	w := Woolworths{}
 	w.Init(woolworthsServer.URL, ":memory:", 100*time.Second)
 	cancel := make(chan struct{})
-	go w.RunScheduler(cancel)
+	go w.Run(cancel)
 
 	done := make(chan struct{})
 	go func() {
