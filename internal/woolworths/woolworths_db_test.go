@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/shopspring/decimal"
 	utils "github.com/tjhowse/aus_grocery_price_database/internal/utils"
 )
 
@@ -124,11 +125,11 @@ func TestDBFail(t *testing.T) {
 func TestGetSharedProductsUpdatedAfter(t *testing.T) {
 	w := Woolworths{}
 	w.Init(woolworthsServer.URL, ":memory:", 5*time.Second)
-	w.saveProductInfo(woolworthsProductInfo{ID: "123455", Info: productInfo{}, Updated: time.Now().Add(-5 * time.Minute)})
-	w.saveProductInfo(woolworthsProductInfo{ID: "123456", Info: productInfo{}, Updated: time.Now().Add(-4 * time.Minute)})
-	w.saveProductInfo(woolworthsProductInfo{ID: "123457", Info: productInfo{}, Updated: time.Now().Add(-3 * time.Minute)})
-	w.saveProductInfo(woolworthsProductInfo{ID: "123458", Info: productInfo{}, Updated: time.Now().Add(-1 * time.Minute)})
-	w.saveProductInfo(woolworthsProductInfo{ID: "123459", Info: productInfo{}, Updated: time.Now()})
+	w.saveProductInfo(woolworthsProductInfo{ID: "123455", Info: productInfo{Offers: offer{Price: decimal.NewFromFloat(1.5)}}, Updated: time.Now().Add(-5 * time.Minute)})
+	w.saveProductInfo(woolworthsProductInfo{ID: "123456", Info: productInfo{Offers: offer{Price: decimal.NewFromFloat(2.4)}}, Updated: time.Now().Add(-4 * time.Minute)})
+	w.saveProductInfo(woolworthsProductInfo{ID: "123457", Info: productInfo{Offers: offer{Price: decimal.NewFromFloat(3.3)}}, Updated: time.Now().Add(-3 * time.Minute)})
+	w.saveProductInfo(woolworthsProductInfo{ID: "123458", Info: productInfo{Offers: offer{Price: decimal.NewFromFloat(4.2)}}, Updated: time.Now().Add(-1 * time.Minute)})
+	w.saveProductInfo(woolworthsProductInfo{ID: "123459", Info: productInfo{Offers: offer{Price: decimal.NewFromFloat(5.1)}}, Updated: time.Now()})
 	productIDs, err := w.GetSharedProductsUpdatedAfter(time.Now().Add(-2*time.Minute), 10)
 	if err != nil {
 		t.Fatal(err)
@@ -142,6 +143,9 @@ func TestGetSharedProductsUpdatedAfter(t *testing.T) {
 	if want, got := WOOLWORTHS_ID_PREFIX+"123459", productIDs[1].ID; want != got {
 		t.Errorf("Expected %s, got %s", want, got)
 	}
+	if want, got := 510, productIDs[1].PriceCents; want != got {
+		t.Errorf("Expected %v, got %v", want, got)
+	}
 	productIDs, err = w.GetSharedProductsUpdatedAfter(time.Now().Add(-2*time.Minute), 1)
 	if err != nil {
 		t.Fatal(err)
@@ -151,6 +155,9 @@ func TestGetSharedProductsUpdatedAfter(t *testing.T) {
 	}
 	if want, got := WOOLWORTHS_ID_PREFIX+"123458", productIDs[0].ID; want != got {
 		t.Errorf("Expected %s, got %s", want, got)
+	}
+	if want, got := 420, productIDs[0].PriceCents; want != got {
+		t.Errorf("Expected %v, got %v", want, got)
 	}
 
 }

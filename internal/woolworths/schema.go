@@ -1,6 +1,10 @@
 package woolworths
 
-import "time"
+import (
+	"time"
+
+	"github.com/shopspring/decimal"
+)
 
 type JSONTime struct {
 	time.Time
@@ -162,60 +166,60 @@ type brand struct {
 }
 
 type offer struct {
-	Context                   string      `json:"@context"`
-	Type                      string      `json:"@type"`
-	ID                        interface{} `json:"@id"`
-	Name                      interface{} `json:"name"`
-	Description               interface{} `json:"description"`
-	AdditionalType            interface{} `json:"additionalType"`
-	AlternateName             interface{} `json:"alternateName"`
-	DisambiguatingDescription interface{} `json:"disambiguatingDescription"`
-	Identifier                interface{} `json:"identifier"`
-	Image                     interface{} `json:"image"`
-	MainEntityOfPage          interface{} `json:"mainEntityOfPage"`
-	PotentialAction           *buyAction  `json:"potentialAction"`
-	SameAs                    interface{} `json:"sameAs"`
-	URL                       interface{} `json:"url"`
-	AcceptedPaymentMethod     interface{} `json:"acceptedPaymentMethod"`
-	AddOn                     interface{} `json:"addOn"`
-	AdvanceBookingRequirement interface{} `json:"advanceBookingRequirement"`
-	AggregateRating           interface{} `json:"aggregateRating"`
-	AreaServed                interface{} `json:"areaServed"`
-	Availability              string      `json:"availability"`
-	AvailabilityEnds          interface{} `json:"availabilityEnds"`
-	AvailabilityStarts        interface{} `json:"availabilityStarts"`
-	AvailableAtOrFrom         interface{} `json:"availableAtOrFrom"`
-	AvailableDeliveryMethod   interface{} `json:"availableDeliveryMethod"`
-	BusinessFunction          interface{} `json:"businessFunction"`
-	Category                  interface{} `json:"category"`
-	DeliveryLeadTime          interface{} `json:"deliveryLeadTime"`
-	EligibleCustomerType      interface{} `json:"eligibleCustomerType"`
-	EligibleDuration          interface{} `json:"eligibleDuration"`
-	EligibleQuantity          interface{} `json:"eligibleQuantity"`
-	EligibleRegion            interface{} `json:"eligibleRegion"`
-	EligibleTransactionVolume interface{} `json:"eligibleTransactionVolume"`
-	Gtin12                    interface{} `json:"gtin12"`
-	Gtin13                    interface{} `json:"gtin13"`
-	Gtin14                    interface{} `json:"gtin14"`
-	Gtin8                     interface{} `json:"gtin8"`
-	IncludesObject            interface{} `json:"includesObject"`
-	IneligibleRegion          interface{} `json:"ineligibleRegion"`
-	InventoryLevel            interface{} `json:"inventoryLevel"`
-	ItemCondition             string      `json:"itemCondition"`
-	ItemOffered               interface{} `json:"itemOffered"`
-	Mpn                       interface{} `json:"mpn"`
-	OfferedBy                 interface{} `json:"offeredBy"`
-	Price                     float32     `json:"price"`
-	PriceCurrency             string      `json:"priceCurrency"`
-	PriceSpecification        interface{} `json:"priceSpecification"`
-	PriceValidUntil           interface{} `json:"priceValidUntil"`
-	Review                    interface{} `json:"review"`
-	Seller                    interface{} `json:"seller"`
-	SerialNumber              interface{} `json:"serialNumber"`
-	Sku                       interface{} `json:"sku"`
-	ValidFrom                 interface{} `json:"validFrom"`
-	ValidThrough              interface{} `json:"validThrough"`
-	Warranty                  interface{} `json:"warranty"`
+	Context                   string          `json:"@context"`
+	Type                      string          `json:"@type"`
+	ID                        interface{}     `json:"@id"`
+	Name                      interface{}     `json:"name"`
+	Description               interface{}     `json:"description"`
+	AdditionalType            interface{}     `json:"additionalType"`
+	AlternateName             interface{}     `json:"alternateName"`
+	DisambiguatingDescription interface{}     `json:"disambiguatingDescription"`
+	Identifier                interface{}     `json:"identifier"`
+	Image                     interface{}     `json:"image"`
+	MainEntityOfPage          interface{}     `json:"mainEntityOfPage"`
+	PotentialAction           *buyAction      `json:"potentialAction"`
+	SameAs                    interface{}     `json:"sameAs"`
+	URL                       interface{}     `json:"url"`
+	AcceptedPaymentMethod     interface{}     `json:"acceptedPaymentMethod"`
+	AddOn                     interface{}     `json:"addOn"`
+	AdvanceBookingRequirement interface{}     `json:"advanceBookingRequirement"`
+	AggregateRating           interface{}     `json:"aggregateRating"`
+	AreaServed                interface{}     `json:"areaServed"`
+	Availability              string          `json:"availability"`
+	AvailabilityEnds          interface{}     `json:"availabilityEnds"`
+	AvailabilityStarts        interface{}     `json:"availabilityStarts"`
+	AvailableAtOrFrom         interface{}     `json:"availableAtOrFrom"`
+	AvailableDeliveryMethod   interface{}     `json:"availableDeliveryMethod"`
+	BusinessFunction          interface{}     `json:"businessFunction"`
+	Category                  interface{}     `json:"category"`
+	DeliveryLeadTime          interface{}     `json:"deliveryLeadTime"`
+	EligibleCustomerType      interface{}     `json:"eligibleCustomerType"`
+	EligibleDuration          interface{}     `json:"eligibleDuration"`
+	EligibleQuantity          interface{}     `json:"eligibleQuantity"`
+	EligibleRegion            interface{}     `json:"eligibleRegion"`
+	EligibleTransactionVolume interface{}     `json:"eligibleTransactionVolume"`
+	Gtin12                    interface{}     `json:"gtin12"`
+	Gtin13                    interface{}     `json:"gtin13"`
+	Gtin14                    interface{}     `json:"gtin14"`
+	Gtin8                     interface{}     `json:"gtin8"`
+	IncludesObject            interface{}     `json:"includesObject"`
+	IneligibleRegion          interface{}     `json:"ineligibleRegion"`
+	InventoryLevel            interface{}     `json:"inventoryLevel"`
+	ItemCondition             string          `json:"itemCondition"`
+	ItemOffered               interface{}     `json:"itemOffered"`
+	Mpn                       interface{}     `json:"mpn"`
+	OfferedBy                 interface{}     `json:"offeredBy"`
+	Price                     decimal.Decimal `json:"price"`
+	PriceCurrency             string          `json:"priceCurrency"`
+	PriceSpecification        interface{}     `json:"priceSpecification"`
+	PriceValidUntil           interface{}     `json:"priceValidUntil"`
+	Review                    interface{}     `json:"review"`
+	Seller                    interface{}     `json:"seller"`
+	SerialNumber              interface{}     `json:"serialNumber"`
+	Sku                       interface{}     `json:"sku"`
+	ValidFrom                 interface{}     `json:"validFrom"`
+	ValidThrough              interface{}     `json:"validThrough"`
+	Warranty                  interface{}     `json:"warranty"`
 }
 
 type buyAction struct {

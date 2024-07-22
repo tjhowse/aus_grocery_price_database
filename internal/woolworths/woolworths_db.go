@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log/slog"
 	"time"
+
+	"github.com/shopspring/decimal"
 )
 
 const DB_SCHEMA_VERSION = 2
@@ -90,9 +92,9 @@ func (w *Woolworths) saveProductInfo(productInfo woolworthsProductInfo) error {
 		VALUES (?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(productID) DO UPDATE SET productID = ?, name = ?, description = ?, priceCents = ?, weightGrams = ?, productJSON = ?, updated = ?
 		`, productInfo.ID, productInfo.Info.Name, productInfo.Info.Description,
-		int(productInfo.Info.Offers.Price*100), productInfo.Info.Weight, productInfoString, productInfo.Updated,
+		productInfo.Info.Offers.Price.Mul(decimal.NewFromInt(100)).IntPart(), productInfo.Info.Weight, productInfoString, productInfo.Updated,
 		productInfo.ID, productInfo.Info.Name, productInfo.Info.Description,
-		int(productInfo.Info.Offers.Price*100), productInfo.Info.Weight, productInfoString, productInfo.Updated)
+		productInfo.Info.Offers.Price.Mul(decimal.NewFromInt(100)).IntPart(), productInfo.Info.Weight, productInfoString, productInfo.Updated)
 
 	if err != nil {
 		return fmt.Errorf("failed to update product info: %w", err)
