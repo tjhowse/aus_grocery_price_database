@@ -11,15 +11,18 @@ import (
 	woolworths "github.com/tjhowse/aus_grocery_price_database/internal/woolworths"
 )
 
+const VERSION = "0.0.1"
+
 // TODO https://github.com/influxdata/influxdb-client-go
 type config struct {
 	InfluxDBURL           string `env:"INFLUXDB_URL"`
 	InfluxDBToken         string `env:"INFLUXDB_TOKEN"`
 	InfluxDBOrg           string `env:"INFLUXDB_ORG"`
-	InfluxDBBucker        string `env:"INFLUXDB_BUCKER"`
+	InfluxDBBucket        string `env:"INFLUXDB_BUCKET"`
 	LocalWoolworthsDBPath string `env:"LOCAL_WOOLWORTHS_DB_PATH" envDefault:":memory:"`
 	MaxProductAgeMinutes  int    `env:"MAX_PRODUCT_AGE_MINUTES" envDefault:"1440"`
 	WoolworthsURL         string `env:"WOOLWORTHS_URL" envDefault:"https://www.woolworths.com.au"`
+	DebugLogging          string `env:"DEBUG_LOGGING" envDefault:"false"`
 }
 
 // Convert from woolworths.ProductInfo to main.ProductInfo
@@ -56,7 +59,7 @@ func main() {
 	influx.Init(cfg.InfluxDBURL, cfg.InfluxDBToken, cfg.InfluxDBOrg, cfg.InfluxDBBucket)
 	defer influx.Close()
 
-	products := make(chan shared.ProductInfo)
+	products := make(chan ProductInfo)
 	go influx.WriteWorker(products)
 	defer close(products)
 

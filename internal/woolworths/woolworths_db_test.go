@@ -124,11 +124,12 @@ func TestDBFail(t *testing.T) {
 func TestGetProductIDsUpdatedAfter(t *testing.T) {
 	w := Woolworths{}
 	w.Init(woolworthsServer.URL, ":memory:", 5*time.Second)
+	w.SaveProductInfo(WoolworthsProductInfo{ID: 123455, Info: ProductInfo{}, Updated: time.Now().Add(-5 * time.Minute)})
 	w.SaveProductInfo(WoolworthsProductInfo{ID: 123456, Info: ProductInfo{}, Updated: time.Now().Add(-4 * time.Minute)})
 	w.SaveProductInfo(WoolworthsProductInfo{ID: 123457, Info: ProductInfo{}, Updated: time.Now().Add(-3 * time.Minute)})
 	w.SaveProductInfo(WoolworthsProductInfo{ID: 123458, Info: ProductInfo{}, Updated: time.Now().Add(-1 * time.Minute)})
 	w.SaveProductInfo(WoolworthsProductInfo{ID: 123459, Info: ProductInfo{}, Updated: time.Now()})
-	productIDs, err := w.GetProductIDsUpdatedAfter(time.Now().Add(-2 * time.Minute))
+	productIDs, err := w.GetProductIDsUpdatedAfter(time.Now().Add(-2*time.Minute), 10)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -139,6 +140,13 @@ func TestGetProductIDsUpdatedAfter(t *testing.T) {
 		t.Errorf("Expected %d, got %d", want, got)
 	}
 	if want, got := ProductID(123459), productIDs[1]; want != got {
+		t.Errorf("Expected %d, got %d", want, got)
+	}
+	productIDs, err = w.GetProductIDsUpdatedAfter(time.Now().Add(-2*time.Minute), 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want, got := 1, len(productIDs); want != got {
 		t.Errorf("Expected %d, got %d", want, got)
 	}
 

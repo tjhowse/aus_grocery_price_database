@@ -159,9 +159,9 @@ func (w *Woolworths) LoadDepartmentIDsList() ([]DepartmentID, error) {
 }
 
 // Returns a list of product IDs that have been updated since the given time
-func (w *Woolworths) GetProductIDsUpdatedAfter(t time.Time) ([]ProductID, error) {
+func (w *Woolworths) GetProductIDsUpdatedAfter(t time.Time, count int) ([]ProductID, error) {
 	var productIDs []ProductID
-	rows, err := w.db.Query("SELECT productID FROM products WHERE updated > ?", t)
+	rows, err := w.db.Query("SELECT productID FROM products WHERE updated > ? LIMIT ?", t, count)
 	if err != nil {
 		return productIDs, fmt.Errorf("failed to query productIDs: %w", err)
 	}
