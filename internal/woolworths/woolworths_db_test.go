@@ -47,7 +47,7 @@ func ReadWoolworthsProductInfoFromFile(filename string) (WoolworthsProductInfo, 
 		return result, err
 	}
 
-	result = WoolworthsProductInfo{ID: 187314, Info: prodInfo}
+	result = WoolworthsProductInfo{ID: 187314, Info: prodInfo, RawJSON: prodInfoRaw}
 	return result, nil
 }
 

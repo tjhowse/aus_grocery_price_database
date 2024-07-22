@@ -42,6 +42,7 @@ type CategoryRequestBody struct {
 type WoolworthsProductInfo struct {
 	ID      ProductID
 	Info    ProductInfo
+	RawJSON []byte
 	Updated time.Time
 }
 

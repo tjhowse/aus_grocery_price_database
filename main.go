@@ -28,6 +28,9 @@ type config struct {
 // Convert from woolworths.ProductInfo to main.ProductInfo
 func ConvertWoolworthsProductInfo(wProductInfo woolworths.ProductInfo) ProductInfo {
 	return ProductInfo{
+		Name:        wProductInfo.Name,
+		Store:       "Woolworths",
+		Location:    "",
 		Description: wProductInfo.Description,
 		Price:       wProductInfo.Offers.Price,
 		WeightGrams: wProductInfo.Weight,

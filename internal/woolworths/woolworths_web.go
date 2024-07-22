@@ -262,12 +262,12 @@ func (w *Woolworths) GetProductInfo(productId ProductID) (WoolworthsProductInfo,
 	// Parse the response
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	result.RawJSON, err = io.ReadAll(resp.Body)
 	if err != nil {
 		return result, err
 	}
 
-	result.Info, err = UnmarshalProductInfo(body)
+	result.Info, err = UnmarshalProductInfo(result.RawJSON)
 	if err != nil {
 		return result, err
 	}

@@ -72,15 +72,7 @@ func (w *Woolworths) SaveProductInfo(productInfo WoolworthsProductInfo) error {
 	var err error
 	var result sql.Result
 
-	var productInfoBytes []byte
-
-	slog.Debug("Saving product", "name", productInfo.Info.Name)
-
-	productInfoBytes, err = json.Marshal(productInfo.Info)
-	if err != nil {
-		return fmt.Errorf("failed to marshal product info: %w", err)
-	}
-	productInfoString := string(productInfoBytes)
+	productInfoString := string(productInfo.RawJSON)
 
 	result, err = w.db.Exec(`
 		INSERT INTO products (productID, productData, updated)
