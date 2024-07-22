@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/caarlos0/env/v11"
+	shared "github.com/tjhowse/aus_grocery_price_database/internal/shared"
 	woolworths "github.com/tjhowse/aus_grocery_price_database/internal/woolworths"
 )
 
@@ -26,8 +27,8 @@ type config struct {
 }
 
 // Convert from woolworths.ProductInfo to main.ProductInfo
-func ConvertWoolworthsProductInfo(wProductInfo woolworths.ProductInfo) ProductInfo {
-	return ProductInfo{
+func ConvertWoolworthsProductInfo(wProductInfo woolworths.ProductInfo) shared.ProductInfo {
+	return shared.ProductInfo{
 		Name:        wProductInfo.Name,
 		Store:       "Woolworths",
 		Location:    "",
@@ -62,7 +63,7 @@ func main() {
 	influx.Init(cfg.InfluxDBURL, cfg.InfluxDBToken, cfg.InfluxDBOrg, cfg.InfluxDBBucket)
 	defer influx.Close()
 
-	products := make(chan ProductInfo)
+	products := make(chan shared.ProductInfo)
 	go influx.WriteWorker(products)
 	defer close(products)
 
