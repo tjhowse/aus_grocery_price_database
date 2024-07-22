@@ -68,7 +68,7 @@ func main() {
 			continue
 		}
 		for _, product := range woolworthsProducts {
-			slog.Info("Updating product data", "name", product.Name, "price", product.Price)
+			slog.Info("Updating product data", "name", product.Name, "price", product.PriceCents)
 		}
 		time.Sleep(10 * time.Second)
 		updateTime = time.Now()

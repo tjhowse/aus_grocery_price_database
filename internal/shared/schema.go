@@ -8,7 +8,7 @@ type ProductInfo struct {
 	Description string
 	Store       string
 	Location    string
-	Price       float32
-	WeightGrams float32
+	PriceCents  int
+	WeightGrams int
 	Timestamp   time.Time
 }

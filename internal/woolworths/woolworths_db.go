@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 	"time"
-
-	"github.com/tjhowse/aus_grocery_price_database/internal/shared"
 )
 
 const DB_SCHEMA_VERSION = 2
@@ -43,8 +41,8 @@ func (w *Woolworths) initBlankDB() error {
 						(	productID TEXT UNIQUE,
 							name TEXT,
 							description TEXT,
-							price FLOAT,
-							weightGrams FLOAT,
+							priceCents INTEGER,
+							weightGrams INTEGER,
 							productJSON TEXT,
 							updated DATETIME
 						)`)
@@ -88,13 +86,13 @@ func (w *Woolworths) saveProductInfo(productInfo woolworthsProductInfo) error {
 
 	// TODO Is there some better way of handling passing copies of the same data?
 	result, err = w.db.Exec(`
-		INSERT INTO products (productID, name, description, price, weightGrams, productJSON, updated)
+		INSERT INTO products (productID, name, description, priceCents, weightGrams, productJSON, updated)
 		VALUES (?, ?, ?, ?, ?, ?, ?)
-		ON CONFLICT(productID) DO UPDATE SET productID = ?, name = ?, description = ?, price = ?, weightGrams = ?, productJSON = ?, updated = ?
+		ON CONFLICT(productID) DO UPDATE SET productID = ?, name = ?, description = ?, priceCents = ?, weightGrams = ?, productJSON = ?, updated = ?
 		`, productInfo.ID, productInfo.Info.Name, productInfo.Info.Description,
-		productInfo.Info.Offers.Price, productInfo.Info.Weight, productInfoString, productInfo.Updated,
+		int(productInfo.Info.Offers.Price*100), productInfo.Info.Weight, productInfoString, productInfo.Updated,
 		productInfo.ID, productInfo.Info.Name, productInfo.Info.Description,
-		productInfo.Info.Offers.Price, productInfo.Info.Weight, productInfoString, productInfo.Updated)
+		int(productInfo.Info.Offers.Price*100), productInfo.Info.Weight, productInfoString, productInfo.Updated)
 
 	if err != nil {
 		return fmt.Errorf("failed to update product info: %w", err)
@@ -164,23 +162,4 @@ func (w *Woolworths) loadDepartmentIDsList() ([]departmentID, error) {
 		departmentIDs = append(departmentIDs, departmentID)
 	}
 	return departmentIDs, nil
-}
-
-// Returns a list of product IDs that have been updated since the given time
-func (w *Woolworths) GetSharedProductsUpdatedAfter(t time.Time, count int) ([]shared.ProductInfo, error) {
-	var productIDs []shared.ProductInfo
-	rows, err := w.db.Query("SELECT productID, name, description, price, weightGrams, updated FROM products WHERE updated > ? LIMIT ?", t, count)
-	if err != nil {
-		return productIDs, fmt.Errorf("failed to query productIDs: %w", err)
-	}
-	for rows.Next() {
-		var product shared.ProductInfo
-		err = rows.Scan(&product.ID, &product.Name, &product.Description, &product.Price, &product.WeightGrams, &product.Timestamp)
-		if err != nil {
-			return productIDs, fmt.Errorf("failed to scan productID: %w", err)
-		}
-		product.ID = WOOLWORTHS_ID_PREFIX + product.ID
-		productIDs = append(productIDs, product)
-	}
-	return productIDs, nil
 }
