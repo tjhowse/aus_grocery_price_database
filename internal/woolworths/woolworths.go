@@ -41,7 +41,7 @@ func (w *Woolworths) Init(baseURL string, dbPath string, productMaxAge time.Dura
 		Ratelimiter: rate.NewLimiter(rate.Every(50*time.Millisecond), 1),
 	}
 	w.productMaxAge = productMaxAge
-	err = w.InitDB(dbPath)
+	err = w.initDB(dbPath)
 	if err != nil {
 		return err
 	}

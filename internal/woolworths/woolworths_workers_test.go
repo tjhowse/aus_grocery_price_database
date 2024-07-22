@@ -14,9 +14,9 @@ func TestProductInfoFetchingWorker(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	productInfoChannel := make(chan WoolworthsProductInfo)
-	productsThatNeedAnUpdateChannel := make(chan ProductID)
-	go w.ProductInfoFetchingWorker(productsThatNeedAnUpdateChannel, productInfoChannel)
+	productInfoChannel := make(chan woolworthsProductInfo)
+	productsThatNeedAnUpdateChannel := make(chan productID)
+	go w.productInfoFetchingWorker(productsThatNeedAnUpdateChannel, productInfoChannel)
 
 	productsThatNeedAnUpdateChannel <- "187314"
 
@@ -57,12 +57,12 @@ func TestNewDepartmentIDWorker(t *testing.T) {
 
 	// Pre-load one existing department ID to check we're only being notified of
 	// new ones
-	w.SaveDepartment("1-E5BEE36E")
+	w.saveDepartment("1-E5BEE36E")
 
-	departmentIDChannel := make(chan DepartmentID)
-	go w.NewDepartmentIDWorker(departmentIDChannel)
+	departmentIDChannel := make(chan departmentID)
+	go w.newDepartmentIDWorker(departmentIDChannel)
 	var index int
-	var departmentIDs = []DepartmentID{"1_DEB537E", "1_D5A2236", "1_6E4F4E4"}
+	var departmentIDs = []departmentID{"1_DEB537E", "1_D5A2236", "1_6E4F4E4"}
 	select {
 	case d := <-departmentIDChannel:
 		if want, got := departmentIDs[index], d; want != got {
@@ -82,12 +82,12 @@ func TestNewProductWorker(t *testing.T) {
 	}
 
 	// Set up a department to scan products from
-	w.SaveDepartment("1-E5BEE36E")
+	w.saveDepartment("1-E5BEE36E")
 
-	productIDChannel := make(chan WoolworthsProductInfo)
-	go w.NewProductWorker(productIDChannel)
+	productIDChannel := make(chan woolworthsProductInfo)
+	go w.newProductWorker(productIDChannel)
 	var index int
-	var productIDs = []ProductID{"133211", "134034", "105919"}
+	var productIDs = []productID{"133211", "134034", "105919"}
 	select {
 	case p := <-productIDChannel:
 		if want, got := productIDs[index], p.ID; want != got {

@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-func ValidateProduct(t *testing.T, w *Woolworths, id ProductID, want string) error {
-	prod, err := w.LoadProductInfo(id)
+func ValidateProduct(t *testing.T, w *Woolworths, id productID, want string) error {
+	prod, err := w.loadProductInfo(id)
 	if err != nil {
 		return fmt.Errorf("Failed to get product ID %s: %v", id, err)
 	}

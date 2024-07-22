@@ -34,7 +34,7 @@ func TestUnmarshal(t *testing.T) {
 	}
 
 	// Unmarshal the contents of the file
-	productInfo, err := UnmarshalProductInfo(body)
+	productInfo, err := unmarshalProductInfo(body)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -76,7 +76,7 @@ func WoolworthsHTTPServer() *httptest.Server {
 		} else if strings.HasPrefix(r.URL.Path, "/shop/browse/fruit-veg") {
 			responseFilename = "data/fruit-veg.html"
 		} else if strings.HasPrefix(r.URL.Path, "/apis/ui/browse/category") {
-			var categoryRequest CategoryRequestBody
+			var categoryRequest categoryRequestBody
 			body, err := io.ReadAll(r.Body)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -108,11 +108,11 @@ func TestGetProductListPage(t *testing.T) {
 	w := Woolworths{}
 	w.Init(woolworthsServer.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
 
-	prodIDs, count, err := w.GetProductListPage("1-E5BEE36E", 1)
+	prodIDs, count, err := w.getProductListPage("1-E5BEE36E", 1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if want, got := ProductID("133211"), prodIDs[0]; want != got {
+	if want, got := productID("133211"), prodIDs[0]; want != got {
 		t.Errorf("Expected %s, got %s", want, got)
 	}
 
@@ -133,7 +133,7 @@ func TestGetProductInfo(t *testing.T) {
 
 	for id, want := range tests {
 
-		productInfo, err := w.GetProductInfo(ProductID(id))
+		productInfo, err := w.getProductInfo(productID(id))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -157,7 +157,7 @@ func TestExtractDepartmentIDs(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	departmentIDs, err := ExtractDepartmentIDs(body)
+	departmentIDs, err := extractDepartmentIDs(body)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -166,7 +166,7 @@ func TestExtractDepartmentIDs(t *testing.T) {
 		t.Errorf("Expected %d items, got %d", want, got)
 	}
 
-	if want, got := DepartmentID("1-E5BEE36E"), departmentIDs[0]; want != got {
+	if want, got := departmentID("1-E5BEE36E"), departmentIDs[0]; want != got {
 		t.Errorf("Expected %s, got %s", want, got)
 	}
 }
@@ -175,11 +175,11 @@ func TestGetDepartmentIDs(t *testing.T) {
 	w := Woolworths{}
 	w.Init(woolworthsServer.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
 
-	departmentIDs, err := w.GetDepartmentIDs()
+	departmentIDs, err := w.getDepartmentIDs()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if want, got := DepartmentID("1-E5BEE36E"), departmentIDs[0]; want != got {
+	if want, got := departmentID("1-E5BEE36E"), departmentIDs[0]; want != got {
 		t.Errorf("Expected %s, got %s", want, got)
 	}
 	if want, got := 16, len(departmentIDs); want != got {
@@ -193,7 +193,7 @@ func TestExtractTotalRecordCount(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	totalRecordCount, err := ExtractTotalRecordCount(body)
+	totalRecordCount, err := extractTotalRecordCount(body)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -211,7 +211,7 @@ func TestGetProductsFromDepartment(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	productIDs, err := w.GetProductsFromDepartment("1-E5BEE36E")
+	productIDs, err := w.getProductsFromDepartment("1-E5BEE36E")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -228,9 +228,9 @@ func TestGetProductList(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	w.SaveDepartment("1-E5BEE36E")
+	w.saveDepartment("1-E5BEE36E")
 
-	productIDs, err := w.GetProductList()
+	productIDs, err := w.getProductList()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -238,7 +238,7 @@ func TestGetProductList(t *testing.T) {
 		t.Errorf("Expected %d items, got %d", want, got)
 	}
 
-	var expectedProductIDs = []ProductID{"133211", "134034", "105919"}
+	var expectedProductIDs = []productID{"133211", "134034", "105919"}
 	for i, id := range expectedProductIDs {
 		if want, got := id, productIDs[i]; want != got {
 			t.Errorf("Expected %s, got %s", want, got)

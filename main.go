@@ -26,17 +26,6 @@ type config struct {
 	DebugLogging          string `env:"DEBUG_LOGGING" envDefault:"false"`
 }
 
-// Convert from woolworths.ProductInfo to main.ProductInfo
-func ConvertWoolworthsProductInfo(wProductInfo woolworths.ProductInfo) shared.ProductInfo {
-	return shared.ProductInfo{
-		Name:        wProductInfo.Name,
-		Store:       "Woolworths",
-		Location:    "",
-		Description: wProductInfo.Description,
-		Price:       wProductInfo.Offers.Price,
-		WeightGrams: wProductInfo.Weight,
-	}
-}
 func main() {
 
 	// Read in the environment variables

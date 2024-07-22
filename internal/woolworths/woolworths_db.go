@@ -14,7 +14,7 @@ const DB_SCHEMA_VERSION = 2
 
 // Initialises the DB with the schema. Note you must bump the DB_SCHEMA_VERSION
 // constant if you change the schema.
-func (w *Woolworths) InitBlankDB() error {
+func (w *Woolworths) initBlankDB() error {
 
 	// Drop all tables
 	for _, table := range []string{"schema", "departmentIDs", "products"} {
@@ -54,7 +54,7 @@ func (w *Woolworths) InitBlankDB() error {
 	return nil
 }
 
-func (w *Woolworths) InitDB(dbPath string) error {
+func (w *Woolworths) initDB(dbPath string) error {
 	var err error
 	dbPath += "?cache=shared"
 	w.db, err = sql.Open("sqlite3", dbPath)
@@ -69,7 +69,7 @@ func (w *Woolworths) InitDB(dbPath string) error {
 	}
 	if version != DB_SCHEMA_VERSION {
 		slog.Warn("DB schema error. Creating blank DB.", "path", dbPath, "version", DB_SCHEMA_VERSION)
-		err := w.InitBlankDB()
+		err := w.initBlankDB()
 		if err != nil {
 			return fmt.Errorf("failed to create blank DB: %w", err)
 		} else {
@@ -80,7 +80,7 @@ func (w *Woolworths) InitDB(dbPath string) error {
 }
 
 // Saves product info to the database
-func (w *Woolworths) SaveProductInfo(productInfo WoolworthsProductInfo) error {
+func (w *Woolworths) saveProductInfo(productInfo woolworthsProductInfo) error {
 	var err error
 	var result sql.Result
 
@@ -109,7 +109,7 @@ func (w *Woolworths) SaveProductInfo(productInfo WoolworthsProductInfo) error {
 }
 
 // Saves product info to the database
-func (w *Woolworths) SaveDepartment(productInfo DepartmentID) error {
+func (w *Woolworths) saveDepartment(productInfo departmentID) error {
 	var err error
 	var result sql.Result
 
@@ -132,9 +132,9 @@ func (w *Woolworths) SaveDepartment(productInfo DepartmentID) error {
 }
 
 // Loads cached product info from the database
-func (w *Woolworths) LoadProductInfo(productID ProductID) (ProductInfo, error) {
+func (w *Woolworths) loadProductInfo(productID productID) (productInfo, error) {
 	var buffer string
-	var result ProductInfo
+	var result productInfo
 	err := w.db.QueryRow("SELECT productJSON FROM products WHERE productID = ? LIMIT 1", productID).Scan(&buffer)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -149,14 +149,14 @@ func (w *Woolworths) LoadProductInfo(productID ProductID) (ProductInfo, error) {
 	return result, nil
 }
 
-func (w *Woolworths) LoadDepartmentIDsList() ([]DepartmentID, error) {
-	var departmentIDs []DepartmentID
+func (w *Woolworths) loadDepartmentIDsList() ([]departmentID, error) {
+	var departmentIDs []departmentID
 	rows, err := w.db.Query("SELECT departmentID FROM departmentIDs")
 	if err != nil {
 		return departmentIDs, fmt.Errorf("failed to query departmentIDs: %w", err)
 	}
 	for rows.Next() {
-		var departmentID DepartmentID
+		var departmentID departmentID
 		err = rows.Scan(&departmentID)
 		if err != nil {
 			return departmentIDs, fmt.Errorf("failed to scan departmentID: %w", err)

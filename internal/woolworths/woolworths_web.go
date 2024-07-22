@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-func ExtractStockCodes(body CategoryData) ([]string, error) {
+func extractStockCodes(body categoryData) ([]string, error) {
 	stockCodeRegex := regexp.MustCompile(`"Stockcode":(\d*),`)
 	stockCodeMatches := stockCodeRegex.FindAllStringSubmatch(string(body), -1)
 	if len(stockCodeMatches) == 0 {
@@ -28,24 +28,24 @@ func ExtractStockCodes(body CategoryData) ([]string, error) {
 
 // This extracts a substring out of the fruit-veg page and uses a regex to find
 // the list of department IDs within. It decodes this list as json.
-func ExtractDepartmentIDs(body FruitVegPage) ([]DepartmentID, error) {
+func extractDepartmentIDs(body fruitVegPage) ([]departmentID, error) {
 	departmentIDListRegex := regexp.MustCompile(`{"Group":"lists","Name":"includedDepartmentIds","Value":\[.*?\]}`)
 	departmentIDListMatches := departmentIDListRegex.FindAllStringSubmatch(string(body), -1)
 	if len(departmentIDListMatches) == 0 {
-		return []DepartmentID{}, fmt.Errorf("no department IDs found")
+		return []departmentID{}, fmt.Errorf("no department IDs found")
 	}
 
-	var department Department
+	var department department
 	err := json.Unmarshal([]byte(departmentIDListMatches[0][0]), &department)
 	if err != nil {
-		return []DepartmentID{}, fmt.Errorf("failed to unmarshal department information: %w", err)
+		return []departmentID{}, fmt.Errorf("failed to unmarshal department information: %w", err)
 	}
 
 	return department.Value, nil
 }
 
-func (w *Woolworths) GetDepartmentIDs() ([]DepartmentID, error) {
-	departmentIDs := []DepartmentID{}
+func (w *Woolworths) getDepartmentIDs() ([]departmentID, error) {
+	departmentIDs := []departmentID{}
 	url := fmt.Sprintf("%s/shop/browse/fruit-veg", w.baseURL)
 	if req, err := http.NewRequest("GET", url, nil); err != nil {
 		return departmentIDs, err
@@ -62,7 +62,7 @@ func (w *Woolworths) GetDepartmentIDs() ([]DepartmentID, error) {
 		if err != nil {
 			return departmentIDs, err
 		}
-		departmentIDs, err = ExtractDepartmentIDs(body)
+		departmentIDs, err = extractDepartmentIDs(body)
 		if err != nil {
 			return departmentIDs, err
 		}
@@ -70,7 +70,7 @@ func (w *Woolworths) GetDepartmentIDs() ([]DepartmentID, error) {
 	}
 }
 
-func ExtractTotalRecordCount(body CategoryData) (int, error) {
+func extractTotalRecordCount(body categoryData) (int, error) {
 	totalRecordCountRegex := regexp.MustCompile(`"TotalRecordCount":(\d*),`)
 	totalRecordCountMatches := totalRecordCountRegex.FindAllStringSubmatch(string(body), -1)
 	if len(totalRecordCountMatches) == 0 {
@@ -84,7 +84,7 @@ func ExtractTotalRecordCount(body CategoryData) (int, error) {
 	return count, nil
 }
 
-func BuildCategoryRequestBody(departmentID DepartmentID, pageNumber int) (string, error) {
+func buildCategoryRequestBody(departmentID departmentID, pageNumber int) (string, error) {
 	// Example:
 	// {
 	// 	"categoryId": "adadsf",
@@ -106,7 +106,7 @@ func BuildCategoryRequestBody(departmentID DepartmentID, pageNumber int) (string
 	// 	"groupEdmVariants": true,
 	// 	"categoryVersion": "v2"
 	// }
-	pageData := CategoryRequestBody{
+	pageData := categoryRequestBody{
 		CategoryID:                      departmentID,
 		PageNumber:                      pageNumber,
 		PageSize:                        36,
@@ -133,11 +133,11 @@ func BuildCategoryRequestBody(departmentID DepartmentID, pageNumber int) (string
 	return string(request), nil
 }
 
-func (w *Woolworths) GetProductList() ([]ProductID, error) {
+func (w *Woolworths) getProductList() ([]productID, error) {
 
-	prodIDs := []ProductID{}
+	prodIDs := []productID{}
 
-	departmentIDs, err := w.LoadDepartmentIDsList()
+	departmentIDs, err := w.loadDepartmentIDsList()
 	if err != nil {
 		return prodIDs, err
 	}
@@ -148,7 +148,7 @@ func (w *Woolworths) GetProductList() ([]ProductID, error) {
 	// concurrent workers out of politeness to the Woolworths API. We only need to refresh
 	// our product list once a day or so, so it's OK if it takes a while to run.
 	for _, departmentID := range departmentIDs {
-		ids, err := w.GetProductsFromDepartment(departmentID)
+		ids, err := w.getProductsFromDepartment(departmentID)
 		if err != nil {
 			return prodIDs, err
 		}
@@ -158,12 +158,12 @@ func (w *Woolworths) GetProductList() ([]ProductID, error) {
 	return prodIDs, nil
 }
 
-func (w *Woolworths) GetProductsFromDepartment(department DepartmentID) ([]ProductID, error) {
-	prodIDs := []ProductID{}
+func (w *Woolworths) getProductsFromDepartment(department departmentID) ([]productID, error) {
+	prodIDs := []productID{}
 	page := 1
 
 	for {
-		ids, count, err := w.GetProductListPage(department, page)
+		ids, count, err := w.getProductListPage(department, page)
 		if err != nil {
 			return prodIDs, err
 		}
@@ -177,13 +177,13 @@ func (w *Woolworths) GetProductsFromDepartment(department DepartmentID) ([]Produ
 	return prodIDs, nil
 }
 
-func (w *Woolworths) GetProductListPage(department DepartmentID, page int) ([]ProductID, int, error) {
+func (w *Woolworths) getProductListPage(department departmentID, page int) ([]productID, int, error) {
 	var url string
 	var totalCount int
 
-	prodIDs := []ProductID{}
+	prodIDs := []productID{}
 
-	requestBody, err := BuildCategoryRequestBody(department, page)
+	requestBody, err := buildCategoryRequestBody(department, page)
 	if err != nil {
 		return prodIDs, 0, err
 	}
@@ -214,18 +214,18 @@ func (w *Woolworths) GetProductListPage(department DepartmentID, page int) ([]Pr
 			return prodIDs, 0, err
 		}
 
-		totalCount, err = ExtractTotalRecordCount(body)
+		totalCount, err = extractTotalRecordCount(body)
 		if err != nil {
 			return prodIDs, 0, err
 		}
 
-		stockCodes, err := ExtractStockCodes(body)
+		stockCodes, err := extractStockCodes(body)
 		if err != nil {
 			return prodIDs, 0, err
 		}
 
 		for _, code := range stockCodes {
-			prodIDs = append(prodIDs, ProductID(code))
+			prodIDs = append(prodIDs, productID(code))
 		}
 	}
 
@@ -234,10 +234,10 @@ func (w *Woolworths) GetProductListPage(department DepartmentID, page int) ([]Pr
 
 // This queries the Woolworths API to get the product information
 // using the WOOLWORTHS_PRODUCT_URL_PREFIX prefix.
-func (w *Woolworths) GetProductInfo(productId ProductID) (WoolworthsProductInfo, error) {
+func (w *Woolworths) getProductInfo(productId productID) (woolworthsProductInfo, error) {
 	slog.Debug(fmt.Sprintf("Base URL: %s", w.baseURL))
 	url := fmt.Sprintf(WOOLWORTHS_PRODUCT_URL_FORMAT, w.baseURL, productId)
-	result := WoolworthsProductInfo{ID: productId}
+	result := woolworthsProductInfo{ID: productId}
 
 	// Create a new request
 	req, err := http.NewRequest("GET", url, nil)
@@ -262,19 +262,19 @@ func (w *Woolworths) GetProductInfo(productId ProductID) (WoolworthsProductInfo,
 		return result, err
 	}
 
-	result.Info, err = UnmarshalProductInfo(result.RawJSON)
+	result.Info, err = unmarshalProductInfo(result.RawJSON)
 	if err != nil {
 		return result, err
 	}
 	return result, nil
 }
 
-func UnmarshalProductInfo(body []byte) (ProductInfo, error) {
-	var productInfo ProductInfo
+func unmarshalProductInfo(body []byte) (productInfo, error) {
+	var pInfo productInfo
 
-	if err := json.Unmarshal(body, &productInfo); err != nil {
-		return ProductInfo{}, fmt.Errorf("failed to unmarshal product info: %w", err)
+	if err := json.Unmarshal(body, &pInfo); err != nil {
+		return productInfo{}, fmt.Errorf("failed to unmarshal product info: %w", err)
 	}
 
-	return productInfo, nil
+	return pInfo, nil
 }

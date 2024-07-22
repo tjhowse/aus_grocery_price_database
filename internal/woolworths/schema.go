@@ -6,30 +6,30 @@ type JSONTime struct {
 	time.Time
 }
 
-type Department struct {
+type department struct {
 	Group string         `json:"Group"`
 	Name  string         `json:"Name"`
-	Value []DepartmentID `json:"Value"`
+	Value []departmentID `json:"Value"`
 }
 
-type ProductID string
-type DepartmentID string
+type productID string
+type departmentID string
 
-type CategoryData []byte
-type FruitVegPage []byte
+type categoryData []byte
+type fruitVegPage []byte
 
 // Prefix for product IDs when exported outside of woolworths-world
 const WOOLWORTHS_ID_PREFIX = "woolworths_sku_"
 
-type WoolworthsProductInfo struct {
-	ID      ProductID
-	Info    ProductInfo
+type woolworthsProductInfo struct {
+	ID      productID
+	Info    productInfo
 	RawJSON []byte
 	Updated time.Time
 }
 
-type CategoryRequestBody struct {
-	CategoryID                      DepartmentID `json:"categoryId"`
+type categoryRequestBody struct {
+	CategoryID                      departmentID `json:"categoryId"`
 	PageNumber                      int          `json:"pageNumber"`
 	PageSize                        int          `json:"pageSize"`
 	SortType                        string       `json:"sortType"`
@@ -49,7 +49,7 @@ type CategoryRequestBody struct {
 	CategoryVersion                 string       `json:"categoryVersion"`
 }
 
-type ProductInfo struct {
+type productInfo struct {
 	Context                   string      `json:"@context"`
 	Type                      string      `json:"@type"`
 	ID                        interface{} `json:"@id"`
@@ -68,7 +68,7 @@ type ProductInfo struct {
 	AggregateRating           interface{} `json:"aggregateRating"`
 	Audience                  interface{} `json:"audience"`
 	Award                     interface{} `json:"award"`
-	Brand                     Brand       `json:"brand"`
+	Brand                     brand       `json:"brand"`
 	Category                  interface{} `json:"category"`
 	Color                     interface{} `json:"color"`
 	Depth                     interface{} `json:"depth"`
@@ -87,7 +87,7 @@ type ProductInfo struct {
 	Material                  interface{} `json:"material"`
 	Model                     interface{} `json:"model"`
 	Mpn                       interface{} `json:"mpn"`
-	Offers                    Offer       `json:"offers"`
+	Offers                    offer       `json:"offers"`
 	ProductID                 interface{} `json:"productID"`
 	ProductionDate            interface{} `json:"productionDate"`
 	PurchaseDate              interface{} `json:"purchaseDate"`
@@ -98,7 +98,7 @@ type ProductInfo struct {
 	Width                     interface{} `json:"width"`
 }
 
-type Brand struct {
+type brand struct {
 	Context                   string      `json:"@context"`
 	Type                      string      `json:"@type"`
 	ID                        interface{} `json:"@id"`
@@ -161,7 +161,7 @@ type Brand struct {
 	VatID                     interface{} `json:"vatID"`
 }
 
-type Offer struct {
+type offer struct {
 	Context                   string      `json:"@context"`
 	Type                      string      `json:"@type"`
 	ID                        interface{} `json:"@id"`
@@ -173,7 +173,7 @@ type Offer struct {
 	Identifier                interface{} `json:"identifier"`
 	Image                     interface{} `json:"image"`
 	MainEntityOfPage          interface{} `json:"mainEntityOfPage"`
-	PotentialAction           *BuyAction  `json:"potentialAction"`
+	PotentialAction           *buyAction  `json:"potentialAction"`
 	SameAs                    interface{} `json:"sameAs"`
 	URL                       interface{} `json:"url"`
 	AcceptedPaymentMethod     interface{} `json:"acceptedPaymentMethod"`
@@ -218,7 +218,7 @@ type Offer struct {
 	Warranty                  interface{} `json:"warranty"`
 }
 
-type BuyAction struct {
+type buyAction struct {
 	Context                   string      `json:"@context"`
 	Type                      string      `json:"@type"`
 	ID                        interface{} `json:"@id"`

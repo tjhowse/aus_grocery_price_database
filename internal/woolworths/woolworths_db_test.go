@@ -18,13 +18,13 @@ func TestUpdateProductInfo(t *testing.T) {
 	w.Init("https://www.woolworths.com.au", ":memory:", PRODUCT_INFO_MAX_AGE)
 
 	wProdInfo.Updated = time.Now()
-	err = w.SaveProductInfo(wProdInfo)
+	err = w.saveProductInfo(wProdInfo)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	var readProdInfo ProductInfo
-	readProdInfo, err = w.LoadProductInfo("187314")
+	var readProdInfo productInfo
+	readProdInfo, err = w.loadProductInfo("187314")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,21 +33,21 @@ func TestUpdateProductInfo(t *testing.T) {
 	}
 }
 
-func ReadWoolworthsProductInfoFromFile(filename string) (WoolworthsProductInfo, error) {
+func ReadWoolworthsProductInfoFromFile(filename string) (woolworthsProductInfo, error) {
 	var err error
 	var prodInfoRaw []byte
-	var result WoolworthsProductInfo
+	var result woolworthsProductInfo
 	prodInfoRaw, err = utils.ReadEntireFile(filename)
 	if err != nil {
 		return result, err
 	}
-	prodInfo := ProductInfo{}
+	prodInfo := productInfo{}
 	err = json.Unmarshal(prodInfoRaw, &prodInfo)
 	if err != nil {
 		return result, err
 	}
 
-	result = WoolworthsProductInfo{ID: "187314", Info: prodInfo, RawJSON: prodInfoRaw}
+	result = woolworthsProductInfo{ID: "187314", Info: prodInfo, RawJSON: prodInfoRaw}
 	return result, nil
 }
 
@@ -61,13 +61,13 @@ func TestProductUpdateQueueGenerator(t *testing.T) {
 	w.Init("https://www.woolworths.example.com", ":memory:", PRODUCT_INFO_MAX_AGE)
 
 	wProdInfo.Updated = time.Now().Add(-1 * time.Hour)
-	err = w.SaveProductInfo(wProdInfo)
+	err = w.saveProductInfo(wProdInfo)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	idChannel := make(chan ProductID)
-	go w.ProductUpdateQueueWorker(idChannel, 20*time.Millisecond)
+	idChannel := make(chan productID)
+	go w.productUpdateQueueWorker(idChannel, 20*time.Millisecond)
 
 	time.Sleep(50 * time.Microsecond)
 
@@ -84,7 +84,7 @@ func TestProductUpdateQueueGenerator(t *testing.T) {
 func TestMissingProduct(t *testing.T) {
 	w := Woolworths{}
 	w.Init(woolworthsServer.URL, ":memory:", 5*time.Second)
-	_, err := w.LoadProductInfo("123456")
+	_, err := w.loadProductInfo("123456")
 	if err == nil {
 		t.Fatal("Expected an error")
 	}
@@ -96,15 +96,15 @@ func TestMissingProduct(t *testing.T) {
 func TestDepartment(t *testing.T) {
 	w := Woolworths{}
 	w.Init(woolworthsServer.URL, ":memory:", 5*time.Second)
-	w.SaveDepartment("1-E5BEE36E")
-	departmentIDs, err := w.LoadDepartmentIDsList()
+	w.saveDepartment("1-E5BEE36E")
+	departmentIDs, err := w.loadDepartmentIDsList()
 	if err != nil {
 		t.Fatal(err)
 	}
 	if want, got := 1, len(departmentIDs); want != got {
 		t.Errorf("Expected %d, got %d", want, got)
 	}
-	if want, got := DepartmentID("1-E5BEE36E"), departmentIDs[0]; want != got {
+	if want, got := departmentID("1-E5BEE36E"), departmentIDs[0]; want != got {
 		t.Errorf("Expected %s, got %s", want, got)
 	}
 }
@@ -124,11 +124,11 @@ func TestDBFail(t *testing.T) {
 func TestGetSharedProductsUpdatedAfter(t *testing.T) {
 	w := Woolworths{}
 	w.Init(woolworthsServer.URL, ":memory:", 5*time.Second)
-	w.SaveProductInfo(WoolworthsProductInfo{ID: "123455", Info: ProductInfo{}, Updated: time.Now().Add(-5 * time.Minute)})
-	w.SaveProductInfo(WoolworthsProductInfo{ID: "123456", Info: ProductInfo{}, Updated: time.Now().Add(-4 * time.Minute)})
-	w.SaveProductInfo(WoolworthsProductInfo{ID: "123457", Info: ProductInfo{}, Updated: time.Now().Add(-3 * time.Minute)})
-	w.SaveProductInfo(WoolworthsProductInfo{ID: "123458", Info: ProductInfo{}, Updated: time.Now().Add(-1 * time.Minute)})
-	w.SaveProductInfo(WoolworthsProductInfo{ID: "123459", Info: ProductInfo{}, Updated: time.Now()})
+	w.saveProductInfo(woolworthsProductInfo{ID: "123455", Info: productInfo{}, Updated: time.Now().Add(-5 * time.Minute)})
+	w.saveProductInfo(woolworthsProductInfo{ID: "123456", Info: productInfo{}, Updated: time.Now().Add(-4 * time.Minute)})
+	w.saveProductInfo(woolworthsProductInfo{ID: "123457", Info: productInfo{}, Updated: time.Now().Add(-3 * time.Minute)})
+	w.saveProductInfo(woolworthsProductInfo{ID: "123458", Info: productInfo{}, Updated: time.Now().Add(-1 * time.Minute)})
+	w.saveProductInfo(woolworthsProductInfo{ID: "123459", Info: productInfo{}, Updated: time.Now()})
 	productIDs, err := w.GetSharedProductsUpdatedAfter(time.Now().Add(-2*time.Minute), 10)
 	if err != nil {
 		t.Fatal(err)
