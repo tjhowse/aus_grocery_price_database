@@ -21,5 +21,12 @@ Here's the process I went through for setting up the integration. **This is not 
     fly launch --image influxdb:2.7.7 --no-deploy --name aus-grocery-price-database-influxdb
     fly volumes create influxdb_database
     # Add the [mounts] block to the influxdb fly.toml
+    Create Dockerfile with "phase 1" uncommented, and "phase 2" commented out.
+    Edit fly.toml to use [Build] to build the image rather than using the raw influxdb one.
     fly deploy
     fly ssh console
+    mkdir /data/config
+    mkdir /data/data
+    Comment out phase 1, uncomment phase 2.
+    There was some problem with the directories in /data/data and /data/config being root-owned or something? It wouldn't start properly.
+    I added `ENTRYPOINT ["tail", "-f", "/dev/null"]` so the container would start and I could manually SSH in and `chown -R influxdb:influxdb /data/*`
