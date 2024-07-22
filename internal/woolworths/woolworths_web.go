@@ -187,7 +187,7 @@ func (w *Woolworths) getProductListPage(department departmentID, page int) ([]pr
 	if err != nil {
 		return prodIDs, 0, err
 	}
-	slog.Debug("Putting together a request", "requestBody", requestBody)
+	slog.Debug("Requesting product info page", "department", department, "page", page)
 
 	url = fmt.Sprintf("%s/apis/ui/browse/category", w.baseURL)
 	if req, err := http.NewRequest("POST", url, bytes.NewBufferString(requestBody)); err != nil {

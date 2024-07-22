@@ -59,17 +59,18 @@ func main() {
 	cancel := make(chan struct{})
 	defer close(cancel)
 	go w.RunScheduler(cancel)
-
+	updateTime := time.Now().Add(-1 * time.Hour)
 	for {
-		updateTime := time.Now()
-		_, err := w.GetSharedProductsUpdatedAfter(updateTime, 10)
+		woolworthsProducts, err := w.GetSharedProductsUpdatedAfter(updateTime, 10)
 		if err != nil {
 			slog.Error("Error getting shared products", "error", err)
 			time.Sleep(10 * time.Second)
 			continue
 		}
-		// for _, productID := range woolworthsProducts {
-
+		for _, product := range woolworthsProducts {
+			slog.Info("Updating product data", "name", product.Name, "price", product.Price)
+		}
+		time.Sleep(10 * time.Second)
+		updateTime = time.Now()
 	}
-
 }

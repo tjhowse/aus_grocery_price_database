@@ -127,17 +127,17 @@ func (w *Woolworths) newProductWorker(output chan<- woolworthsProductInfo) {
 	for {
 		departments, err := w.loadDepartmentIDsList()
 		if err != nil {
-			slog.Error(fmt.Sprintf("Error loading department IDs: %v", err))
+			slog.Error("error loading department IDs. Trying again soon.", "error", err)
 			// Try again in ten minutes.
-			time.Sleep(10 * time.Minute)
+			time.Sleep(1 * time.Minute)
 			continue
 		}
 		for _, departmentID := range departments {
 			products, err := w.getProductsFromDepartment(departmentID)
 			if err != nil {
-				slog.Error(fmt.Sprintf("Error getting products from department: %v", err))
+				slog.Error("error getting products from department. Trying again soon.", "error", err)
 				// Try again in ten minutes.
-				time.Sleep(10 * time.Minute)
+				time.Sleep(1 * time.Minute)
 				continue
 			}
 
