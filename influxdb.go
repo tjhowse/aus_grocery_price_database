@@ -22,7 +22,7 @@ func (i *influxDB) Init(url, token, org, bucket string) {
 func (i *influxDB) WriteDatapoint(info shared.ProductInfo) {
 	p := influxdb2.NewPoint("product",
 		map[string]string{"name": info.Name, "store": info.Store, "location": info.Location},
-		map[string]interface{}{"price": info.PriceCents, "weight": info.WeightGrams},
+		map[string]interface{}{"cents": info.PriceCents, "grams": info.WeightGrams},
 		info.Timestamp,
 	)
 	i.writeAPI.WritePoint(p)
