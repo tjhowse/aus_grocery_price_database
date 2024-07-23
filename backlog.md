@@ -2,14 +2,9 @@
 
 ## Basic
 
-### Egress
-* Write numbers to an influxdb database
-
 ### Devops
-* fly.io config
 * Automatic deployment from tags
 * Github ci/cd
-* Influxdb instance
 * Grafana instance
 * Register domain
 

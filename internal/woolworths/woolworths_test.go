@@ -23,6 +23,8 @@ func TestScheduler(t *testing.T) {
 
 	w := Woolworths{}
 	w.Init(woolworthsServer.URL, ":memory:", 100*time.Second)
+	w.filterDepartments = false
+	w.filterProducts = false
 	cancel := make(chan struct{})
 	go w.Run(cancel)
 

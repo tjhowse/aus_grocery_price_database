@@ -7,8 +7,6 @@ import (
 	"time"
 )
 
-const API_TEST_MODE = true
-
 func (w *Woolworths) productInfoFetchingWorker(input chan productID, output chan woolworthsProductInfo) {
 	for id := range input {
 		slog.Debug("Getting product", "id", id)
@@ -59,12 +57,11 @@ func (w *Woolworths) productUpdateQueueWorker(output chan<- productID, maxAge ti
 // These filter functions are used for the intitial integration testing against the live API.
 // We use them to restrict the departments and products to just a few items, so we can do
 // short runs and inspect the DB afterwards
-// Coincidentally these values are chosen to match what we use in the tests, so the tests
-// still pass with API_TEST_MODE=true.
 
 func (w *Woolworths) filterDepartmentIDs(departmentIDs []departmentID) []departmentID {
 	var filtered []departmentID
-	departmentSet := map[departmentID]bool{"1-E5BEE36E": true, "1_DEB537E": true, "1_D5A2236": true, "1_6E4F4E4": true}
+	// departmentSet := map[departmentID]bool{"1-E5BEE36E": true, "1_DEB537E": true, "1_D5A2236": true, "1_6E4F4E4": true}
+	departmentSet := map[departmentID]bool{"1-E5BEE36E": true}
 
 	for _, departmentID := range departmentIDs {
 		if _, ok := departmentSet[departmentID]; ok {
@@ -100,7 +97,7 @@ func (w *Woolworths) newDepartmentIDWorker(output chan<- departmentID) {
 		if err != nil {
 			slog.Error(fmt.Sprintf("Error loading department IDs from DB: %v", err))
 		}
-		if API_TEST_MODE {
+		if w.filterDepartments {
 			departmentsFromWeb = w.filterDepartmentIDs(departmentsFromWeb)
 		}
 		// Compare the two lists and output any new department IDs.
@@ -141,7 +138,7 @@ func (w *Woolworths) newProductWorker(output chan<- woolworthsProductInfo) {
 				continue
 			}
 
-			if API_TEST_MODE {
+			if w.filterProducts {
 				products = w.filterProductIDs(products)
 			}
 

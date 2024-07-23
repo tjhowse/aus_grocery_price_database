@@ -8,11 +8,7 @@ import (
 
 func TestProductInfoFetchingWorker(t *testing.T) {
 	slog.SetLogLoggerLevel(slog.LevelDebug)
-	w := Woolworths{}
-	err := w.Init(woolworthsServer.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
-	if err != nil {
-		t.Fatal(err)
-	}
+	w := getInitialisedWoolworths()
 
 	productInfoChannel := make(chan woolworthsProductInfo)
 	productsThatNeedAnUpdateChannel := make(chan productID)
@@ -49,11 +45,7 @@ func TestProductInfoFetchingWorker(t *testing.T) {
 }
 
 func TestNewDepartmentIDWorker(t *testing.T) {
-	w := Woolworths{}
-	err := w.Init(woolworthsServer.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
-	if err != nil {
-		t.Fatal(err)
-	}
+	w := getInitialisedWoolworths()
 
 	// Pre-load one existing department ID to check we're only being notified of
 	// new ones
@@ -75,11 +67,7 @@ func TestNewDepartmentIDWorker(t *testing.T) {
 }
 
 func TestNewProductWorker(t *testing.T) {
-	w := Woolworths{}
-	err := w.Init(woolworthsServer.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
-	if err != nil {
-		t.Fatal(err)
-	}
+	w := getInitialisedWoolworths()
 
 	// Set up a department to scan products from
 	w.saveDepartment("1-E5BEE36E")

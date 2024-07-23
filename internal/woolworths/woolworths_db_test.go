@@ -15,8 +15,7 @@ func TestUpdateProductInfo(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	w := Woolworths{}
-	w.Init("https://www.woolworths.com.au", ":memory:", PRODUCT_INFO_MAX_AGE)
+	w := getInitialisedWoolworths()
 
 	wProdInfo.Updated = time.Now()
 	err = w.saveProductInfo(wProdInfo)
@@ -58,8 +57,7 @@ func TestProductUpdateQueueGenerator(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	w := Woolworths{}
-	w.Init("https://www.woolworths.example.com", ":memory:", PRODUCT_INFO_MAX_AGE)
+	w := getInitialisedWoolworths()
 
 	wProdInfo.Updated = time.Now().Add(-1 * time.Hour)
 	err = w.saveProductInfo(wProdInfo)
@@ -83,8 +81,7 @@ func TestProductUpdateQueueGenerator(t *testing.T) {
 }
 
 func TestMissingProduct(t *testing.T) {
-	w := Woolworths{}
-	w.Init(woolworthsServer.URL, ":memory:", 5*time.Second)
+	w := getInitialisedWoolworths()
 	_, err := w.loadProductInfo("123456")
 	if err == nil {
 		t.Fatal("Expected an error")
@@ -95,8 +92,7 @@ func TestMissingProduct(t *testing.T) {
 }
 
 func TestDepartment(t *testing.T) {
-	w := Woolworths{}
-	w.Init(woolworthsServer.URL, ":memory:", 5*time.Second)
+	w := getInitialisedWoolworths()
 	w.saveDepartment("1-E5BEE36E")
 	departmentIDs, err := w.loadDepartmentIDsList()
 	if err != nil {
@@ -125,6 +121,8 @@ func TestDBFail(t *testing.T) {
 func TestGetSharedProductsUpdatedAfter(t *testing.T) {
 	w := Woolworths{}
 	w.Init(woolworthsServer.URL, ":memory:", 5*time.Second)
+	w.filterDepartments = false
+	w.filterProducts = false
 	w.saveProductInfo(woolworthsProductInfo{ID: "123455", Info: productInfo{Offers: offer{Price: decimal.NewFromFloat(1.5)}}, Updated: time.Now().Add(-5 * time.Minute)})
 	w.saveProductInfo(woolworthsProductInfo{ID: "123456", Info: productInfo{Offers: offer{Price: decimal.NewFromFloat(2.4)}}, Updated: time.Now().Add(-4 * time.Minute)})
 	w.saveProductInfo(woolworthsProductInfo{ID: "123457", Info: productInfo{Offers: offer{Price: decimal.NewFromFloat(3.3)}}, Updated: time.Now().Add(-3 * time.Minute)})

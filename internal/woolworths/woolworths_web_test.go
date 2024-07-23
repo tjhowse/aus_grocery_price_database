@@ -17,6 +17,17 @@ import (
 
 var woolworthsServer = WoolworthsHTTPServer()
 
+func getInitialisedWoolworths() Woolworths {
+	w := Woolworths{}
+	err := w.Init(woolworthsServer.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
+	if err != nil {
+		slog.Error("Failed to initialise Woolworths", "error", err)
+	}
+	w.filterDepartments = false
+	w.filterProducts = false
+	return w
+}
+
 func TestUnmarshal(t *testing.T) {
 	// Read in the contents of data/example_product_info.json
 	// and unmarshal it into a ProductInfo struct
@@ -105,8 +116,7 @@ func WoolworthsHTTPServer() *httptest.Server {
 }
 
 func TestGetProductListPage(t *testing.T) {
-	w := Woolworths{}
-	w.Init(woolworthsServer.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
+	w := getInitialisedWoolworths()
 
 	prodIDs, count, err := w.getProductListPage("1-E5BEE36E", 1)
 	if err != nil {
@@ -122,8 +132,7 @@ func TestGetProductListPage(t *testing.T) {
 }
 
 func TestGetProductInfo(t *testing.T) {
-	w := Woolworths{}
-	w.Init(woolworthsServer.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
+	w := getInitialisedWoolworths()
 
 	tests := map[string]string{
 		"187314": "Woolworths Broccolini Bunch  Each",
@@ -172,8 +181,7 @@ func TestExtractDepartmentIDs(t *testing.T) {
 }
 
 func TestGetDepartmentIDs(t *testing.T) {
-	w := Woolworths{}
-	w.Init(woolworthsServer.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
+	w := getInitialisedWoolworths()
 
 	departmentIDs, err := w.getDepartmentIDs()
 	if err != nil {
@@ -205,11 +213,7 @@ func TestExtractTotalRecordCount(t *testing.T) {
 
 func TestGetProductsFromDepartment(t *testing.T) {
 
-	w := Woolworths{}
-	err := w.Init(woolworthsServer.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
-	if err != nil {
-		t.Fatal(err)
-	}
+	w := getInitialisedWoolworths()
 
 	productIDs, err := w.getProductsFromDepartment("1-E5BEE36E")
 	if err != nil {
@@ -222,11 +226,7 @@ func TestGetProductsFromDepartment(t *testing.T) {
 
 func TestGetProductList(t *testing.T) {
 
-	w := Woolworths{}
-	err := w.Init(woolworthsServer.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
-	if err != nil {
-		t.Fatal(err)
-	}
+	w := getInitialisedWoolworths()
 
 	w.saveDepartment("1-E5BEE36E")
 
