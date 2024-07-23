@@ -24,7 +24,8 @@
         must be taken to handle the initial-startup state, where everything
         might appear very stale and we scale too many workers. Perhaps just
         set a 20-ish cap on the number of workers.
-* Add persistence to last-checked time.
+* Add persistence to last-checked time. Store it in the grocery data provider. GetProductsSinceLastCheck(maxcount int).
+* Set up a public frontpage to grafana that works without logging in and shows a dashboard.
 
 ## Further work
 
