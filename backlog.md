@@ -7,6 +7,8 @@
 * Github ci/cd
 * Grafana instance
 * Register domain
+* Set up private network between services.
+* Add some performance telemetry to report to influxdb.
 
 ### General
 * Add timeouts to all http requests
@@ -22,6 +24,7 @@
         must be taken to handle the initial-startup state, where everything
         might appear very stale and we scale too many workers. Perhaps just
         set a 20-ish cap on the number of workers.
+* Add persistence to last-checked time.
 
 ## Further work
 

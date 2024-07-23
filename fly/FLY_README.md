@@ -40,3 +40,12 @@ Here's the process I went through for setting up the integration. **This is not 
     There was some problem with the directories in /data/data and /data/config being root-owned or something? It wouldn't start properly.
     I added `ENTRYPOINT ["tail", "-f", "/dev/null"]` so the container would start and I could manually SSH in and `chown -R influxdb:influxdb /data/*`
     This probably wouldn't happen if I had everything set up properly the first time around.
+    fly launch --image grafana/grafana:10.0.0 --no-deploy --name aus-grocery-price-database-grafana
+    Similar problems with permissions on /data. It looks like the permissions on fly.io volumes are set based on the launch user,
+    and don't handle the services dropping out of root after init. Tweak the dockerfile to get a console and set permissions in the volume.
+    fly ssh console
+    mkdir -p /data/usr/share/grafana
+    mkdir -p /data/var/log/grafana
+    mkdir -p /data/var/lib/grafana/plugins
+    mkdir -p /data/etc/grafana/provisioning
+    chown -R grafana /data
