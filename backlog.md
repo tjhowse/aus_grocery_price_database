@@ -28,7 +28,7 @@
         set a 20-ish cap on the number of workers.
 * Add persistence to last-checked time. Store it in the grocery data provider. GetProductsSinceLastCheck(maxcount int).
 * Set up a public frontpage to grafana that works without logging in and shows a dashboard.
-
+* Export grafana config/dashboards/etc to repo. Embed as a part of dockerfile (?)
 
 ## Further work
 
