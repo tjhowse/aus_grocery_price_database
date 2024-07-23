@@ -14,7 +14,6 @@ import (
 
 const VERSION = "0.0.1"
 
-// TODO https://github.com/influxdata/influxdb-client-go
 type config struct {
 	InfluxDBURL           string `env:"INFLUXDB_URL"`
 	InfluxDBToken         string `env:"INFLUXDB_TOKEN"`
