@@ -48,6 +48,8 @@ Here's the process I went through for setting up the integration. **This is not 
     mkdir -p /data/var/log/grafana
     mkdir -p /data/var/lib/grafana/plugins
     mkdir -p /data/etc/grafana/provisioning
+    # This next line may copy from /grafana.ini, rather than using the default shipped with grafana. Watch this space.
+    cp /etc/grafana/grafana.ini /data/etc/grafana/grafana.ini
     chown -R grafana /data
     Generate a read-only token in influxdb, configure a connector in grafana.
     Use "Authorization" cookie, contents "Token <influx token here>".
