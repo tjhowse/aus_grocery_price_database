@@ -9,6 +9,8 @@
 * Register domain
 * Set up private network between services.
 * Add some performance telemetry to report to influxdb.
+* Try to transfer auscost.com.au to cloudflare.
+* Fix domain name to map to the grafana service rather than redirecting the domain name.
 
 ### General
 * Add timeouts to all http requests
@@ -26,6 +28,7 @@
         set a 20-ish cap on the number of workers.
 * Add persistence to last-checked time. Store it in the grocery data provider. GetProductsSinceLastCheck(maxcount int).
 * Set up a public frontpage to grafana that works without logging in and shows a dashboard.
+
 
 ## Further work
 
