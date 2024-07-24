@@ -12,7 +12,7 @@ import (
 	woolworths "github.com/tjhowse/aus_grocery_price_database/internal/woolworths"
 )
 
-const VERSION = "0.0.11"
+const VERSION = "0.0.12"
 
 type config struct {
 	InfluxDBURL                 string `env:"INFLUXDB_URL"`
