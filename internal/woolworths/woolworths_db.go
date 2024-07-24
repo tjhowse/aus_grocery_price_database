@@ -178,22 +178,6 @@ func (w *Woolworths) checkIfKnownProductID(productID productID) (bool, error) {
 	return count > 0, nil
 }
 
-func (w *Woolworths) loadDepartmentIDsList() ([]departmentID, error) {
-	var departmentIDs []departmentID
-	rows, err := w.db.Query("SELECT departmentID FROM departmentIDs")
-	if err != nil {
-		return departmentIDs, fmt.Errorf("failed to query departmentIDs: %w", err)
-	}
-	for rows.Next() {
-		var departmentID departmentID
-		err = rows.Scan(&departmentID)
-		if err != nil {
-			return departmentIDs, fmt.Errorf("failed to scan departmentID: %w", err)
-		}
-		departmentIDs = append(departmentIDs, departmentID)
-	}
-	return departmentIDs, nil
-}
 func (w *Woolworths) loadDepartmentInfoList() ([]departmentInfo, error) {
 	var departmentInfos []departmentInfo
 	rows, err := w.db.Query("SELECT departmentID, description FROM departmentIDs")

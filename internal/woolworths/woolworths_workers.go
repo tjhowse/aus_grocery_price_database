@@ -76,7 +76,7 @@ func (w *Woolworths) newDepartmentInfoWorker(output chan<- departmentInfo) {
 		}
 
 		// Read the department list from the DB.
-		departmentsFromDB, err := w.loadDepartmentIDsList()
+		departmentInfosFromDB, err := w.loadDepartmentInfoList()
 		if err != nil {
 			slog.Error(fmt.Sprintf("Error loading department IDs from DB: %v", err))
 		}
@@ -84,8 +84,8 @@ func (w *Woolworths) newDepartmentInfoWorker(output chan<- departmentInfo) {
 		// Compare the two lists and output any new department IDs.
 		for _, webDepartmentID := range departmentsFromWeb {
 			found := false
-			for _, dbDepartmentID := range departmentsFromDB {
-				if webDepartmentID.NodeID == dbDepartmentID {
+			for _, departmentInfoFromDB := range departmentInfosFromDB {
+				if webDepartmentID.NodeID == departmentInfoFromDB.NodeID {
 					found = true
 					break
 				}

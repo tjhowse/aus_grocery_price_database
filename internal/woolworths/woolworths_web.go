@@ -198,6 +198,9 @@ func (w *Woolworths) getProductsFromDepartment(department departmentID) ([]produ
 	return prodIDs, nil
 }
 
+// This queries the Woolworths API to get the product list for a department. It reads
+// the specified page of that department's product list, returning the list of product
+// IDs and the total number of products in the department.
 func (w *Woolworths) getProductListPage(department departmentID, page int) ([]productID, int, error) {
 	var url string
 	var totalCount int
