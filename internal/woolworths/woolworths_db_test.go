@@ -123,11 +123,12 @@ func TestGetSharedProductsUpdatedAfter(t *testing.T) {
 	w.Init(woolworthsServer.URL, ":memory:", 5*time.Second)
 	w.filterDepartments = false
 	w.filterProducts = false
-	w.saveProductInfo(woolworthsProductInfo{ID: "123455", Info: productInfo{Offers: offer{Price: decimal.NewFromFloat(1.5)}}, Updated: time.Now().Add(-5 * time.Minute)})
-	w.saveProductInfo(woolworthsProductInfo{ID: "123456", Info: productInfo{Offers: offer{Price: decimal.NewFromFloat(2.4)}}, Updated: time.Now().Add(-4 * time.Minute)})
-	w.saveProductInfo(woolworthsProductInfo{ID: "123457", Info: productInfo{Offers: offer{Price: decimal.NewFromFloat(3.3)}}, Updated: time.Now().Add(-3 * time.Minute)})
-	w.saveProductInfo(woolworthsProductInfo{ID: "123458", Info: productInfo{Offers: offer{Price: decimal.NewFromFloat(4.2)}}, Updated: time.Now().Add(-1 * time.Minute)})
-	w.saveProductInfo(woolworthsProductInfo{ID: "123459", Info: productInfo{Offers: offer{Price: decimal.NewFromFloat(5.1)}}, Updated: time.Now()})
+	w.saveProductInfo(woolworthsProductInfo{ID: "123455", Info: productInfo{Name: "1", Offers: offer{Price: decimal.NewFromFloat(1.5)}}, Updated: time.Now().Add(-5 * time.Minute)})
+	w.saveProductInfo(woolworthsProductInfo{ID: "123456", Info: productInfo{Name: "1", Offers: offer{Price: decimal.NewFromFloat(2.4)}}, Updated: time.Now().Add(-4 * time.Minute)})
+	w.saveProductInfo(woolworthsProductInfo{ID: "123457", Info: productInfo{Name: "1", Offers: offer{Price: decimal.NewFromFloat(3.3)}}, Updated: time.Now().Add(-3 * time.Minute)})
+	w.saveProductInfo(woolworthsProductInfo{ID: "123458", Info: productInfo{Name: "1", Offers: offer{Price: decimal.NewFromFloat(4.2)}}, Updated: time.Now().Add(-1 * time.Minute)})
+	w.saveProductInfo(woolworthsProductInfo{ID: "123459", Info: productInfo{Name: "1", Offers: offer{Price: decimal.NewFromFloat(5.1)}}, Updated: time.Now()})
+	w.saveProductInfo(woolworthsProductInfo{ID: "123460", Info: productInfo{Offers: offer{Price: decimal.NewFromFloat(6.0)}}, Updated: time.Now()})
 	productIDs, err := w.GetSharedProductsUpdatedAfter(time.Now().Add(-2*time.Minute), 10)
 	if err != nil {
 		t.Fatal(err)

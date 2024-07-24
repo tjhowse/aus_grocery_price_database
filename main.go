@@ -12,7 +12,7 @@ import (
 	woolworths "github.com/tjhowse/aus_grocery_price_database/internal/woolworths"
 )
 
-const VERSION = "0.0.3"
+const VERSION = "0.0.4"
 
 type config struct {
 	InfluxDBURL           string `env:"INFLUXDB_URL"`
@@ -86,6 +86,10 @@ func main() {
 			updateTime = time.Now()
 		}
 		for _, product := range woolworthsProducts {
+			if product.Name == "" {
+				slog.Warn("Product has no name", "product", product)
+				continue
+			}
 			slog.Info("Updating product data", "name", product.Name, "price", product.PriceCents)
 			products <- product
 		}
