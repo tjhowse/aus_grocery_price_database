@@ -2,7 +2,6 @@ package woolworths
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"time"
@@ -142,18 +141,23 @@ func (w *Woolworths) saveDepartment(departmentInfo departmentInfo) error {
 // Loads cached product info from the database
 func (w *Woolworths) loadProductInfo(productID productID) (woolworthsProductInfo, error) {
 	var wProdInfo woolworthsProductInfo
-	row := w.db.QueryRow("SELECT (productID, name, description, priceCents, weightGrams, productJSON, departmentID, departmentDescription, updated) FROM products WHERE productID = ? LIMIT 1", productID)
-	err := row.Scan(&wProdInfo.ID, &wProdInfo.Info.Name, &wProdInfo.Info.Description, &wProdInfo.Info.Offers.Price, &wProdInfo.Info.Weight, &wProdInfo.RawJSON, &wProdInfo.departmentID, &wProdInfo.departmentDescription, &wProdInfo.Updated)
+	row := w.db.QueryRow(`SELECT
+		productID, name, description, priceCents, weightGrams, departmentID, departmentDescription, updated
+		FROM products WHERE productID = ? LIMIT 1`, productID)
+	err := row.Scan(
+		&wProdInfo.ID,
+		&wProdInfo.Info.Name,
+		&wProdInfo.Info.Description,
+		&wProdInfo.Info.Offers.Price,
+		&wProdInfo.Info.Weight,
+		&wProdInfo.departmentID,
+		&wProdInfo.departmentDescription,
+		&wProdInfo.Updated)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return wProdInfo, ErrProductMissing
 		}
-		return wProdInfo, fmt.Errorf("failed to query existing productJSON: %w", err)
-	}
-	// TODO reconsider reading and unmarshalling the JSON here.
-	err = json.Unmarshal([]byte(wProdInfo.RawJSON), &wProdInfo.Info)
-	if err != nil {
-		return wProdInfo, fmt.Errorf("failed to unmarshal productJSON: %w", err)
+		return wProdInfo, fmt.Errorf("failed to query existing product info: %w", err)
 	}
 
 	return wProdInfo, nil

@@ -214,7 +214,7 @@ func TestSaveProductInfo(t *testing.T) {
 	if want, got := inProduct.Info.Name, outProduct.Info.Name; want != got {
 		t.Errorf("Expected %s, got %s", want, got)
 	}
-	if want, got := inProduct.Info.Offers.Price, outProduct.Info.Offers.Price; want.Cmp(got) != 0 {
+	if want, got := inProduct.Info.Offers.Price.Mul(decimal.NewFromInt(100)), outProduct.Info.Offers.Price; want.Cmp(got) != 0 {
 		t.Errorf("Expected %v, got %v", want, got)
 	}
 	if want, got := inProduct.departmentID, outProduct.departmentID; want != got {
