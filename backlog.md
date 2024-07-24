@@ -4,12 +4,15 @@
 
 ### Devops
 * Add some performance telemetry to report to influxdb.
+    * Version
+    * Product updates per second?
 * Automatic deployment from tags
 * Github ci/cd
 * Set up private network between services.
 
 ### General
 * Add persistence to last-checked time. Store it in the grocery data provider. GetProductsSinceLastCheck(maxcount int).
+    * Not sure if this is a great idea. Maybe persist the last-checked time in a main-level DB.
 * Calculate $/g where possible
 * Create DB backup on invalid schema, rather than deleting the old one.
 * Tune the max product age to roughly the time it takes for a full DB update.

@@ -12,7 +12,7 @@ import (
 	woolworths "github.com/tjhowse/aus_grocery_price_database/internal/woolworths"
 )
 
-const VERSION = "0.0.2"
+const VERSION = "0.0.3"
 
 type config struct {
 	InfluxDBURL           string `env:"INFLUXDB_URL"`
@@ -24,6 +24,8 @@ type config struct {
 	WoolworthsURL         string `env:"WOOLWORTHS_URL" envDefault:"https://www.woolworths.com.au"`
 	DebugLogging          string `env:"DEBUG_LOGGING" envDefault:"false"`
 }
+
+const INFLUX_UPDATE_RATE_SECONDS = 10
 
 // Other stores will need to implement this interface
 type ProductInfoGetter interface {
@@ -58,6 +60,8 @@ func main() {
 	influx.Init(cfg.InfluxDBURL, cfg.InfluxDBToken, cfg.InfluxDBOrg, cfg.InfluxDBBucket)
 	defer influx.Close()
 
+	influx.WriteArbitrarySystemDatapoint(SYSTEM_VERSION_FIELD, VERSION)
+
 	products := make(chan shared.ProductInfo)
 	go influx.WriteWorker(products)
 	defer close(products)
@@ -66,9 +70,13 @@ func main() {
 	defer close(cancel)
 	go w.Run(cancel)
 
-	updateTime := time.Now().Add(-1 * time.Hour)
+	var systemStatus SystemStatusDatapoint
+
+	// Assume we were shut down for half an hour.
+	// TODO Store the last update time in a main-level database.
+	updateTime := time.Now().Add(-30 * time.Minute)
 	for {
-		woolworthsProducts, err := w.GetSharedProductsUpdatedAfter(updateTime, 10)
+		woolworthsProducts, err := w.GetSharedProductsUpdatedAfter(updateTime, 100)
 		if err != nil {
 			slog.Error("Error getting shared products", "error", err)
 			time.Sleep(10 * time.Second)
@@ -81,6 +89,9 @@ func main() {
 			slog.Info("Updating product data", "name", product.Name, "price", product.PriceCents)
 			products <- product
 		}
-		time.Sleep(10 * time.Second)
+		systemStatus.ProductsPerSecond = float64(len(woolworthsProducts)) / INFLUX_UPDATE_RATE_SECONDS
+		systemStatus.RAMUtilisationPercent = GetRAMUtilisationPercent()
+		influx.WriteSystemDatapoint(systemStatus)
+		time.Sleep(INFLUX_UPDATE_RATE_SECONDS * time.Second)
 	}
 }
