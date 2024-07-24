@@ -42,6 +42,8 @@ func (w *Woolworths) initBlankDB() error {
 		w.db.Exec(`	CREATE TABLE IF NOT EXISTS products
 						(	productID TEXT UNIQUE,
 							name TEXT,
+							departmentID TEXT,
+							departmentDescription TEXT,
 							description TEXT,
 							priceCents INTEGER,
 							weightGrams INTEGER,

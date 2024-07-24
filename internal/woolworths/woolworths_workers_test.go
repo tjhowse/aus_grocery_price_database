@@ -53,7 +53,7 @@ func TestNewDepartmentIDWorker(t *testing.T) {
 	w.saveDepartment(dept)
 
 	departmentIDChannel := make(chan departmentInfo)
-	go w.newDepartmentIDWorker(departmentIDChannel)
+	go w.newDepartmentInfoWorker(departmentIDChannel)
 	var index int
 	// var departmentIDs = []departmentID{"1_DEB537E", "1_D5A2236", "1_6E4F4E4"}
 	var departmentIDs = []departmentID{"specialsgroup", "1_DEF0CCD", "1_D5A2236"}
@@ -82,6 +82,9 @@ func TestNewProductWorker(t *testing.T) {
 	select {
 	case p := <-productIDChannel:
 		if want, got := productIDs[index], p.ID; want != got {
+			t.Errorf("Expected %s, got %s", want, got)
+		}
+		if want, got := "Fruit & Vegetables", p.departmentDescription; want != got {
 			t.Errorf("Expected %s, got %s", want, got)
 		}
 		index++

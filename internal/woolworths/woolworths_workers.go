@@ -67,7 +67,7 @@ func (w *Woolworths) filterProductIDs(productIDs []productID) []productID {
 	return filtered
 }
 
-func (w *Woolworths) newDepartmentIDWorker(output chan<- departmentInfo) {
+func (w *Woolworths) newDepartmentInfoWorker(output chan<- departmentInfo) {
 	for {
 		// Read the department list from the web...
 		departmentsFromWeb, err := w.getDepartmentInfos()
@@ -109,19 +109,17 @@ func (w *Woolworths) newDepartmentIDWorker(output chan<- departmentInfo) {
 // This worker emits product IDs that don't currently exist in the local DB.
 func (w *Woolworths) newProductWorker(output chan<- woolworthsProductInfo) {
 	for {
-		departments, err := w.loadDepartmentIDsList()
+		departmentInfos, err := w.loadDepartmentInfoList()
 		if err != nil {
 			slog.Error("error loading department IDs. Trying again soon.", "error", err)
 			// Try again in ten minutes.
 			time.Sleep(1 * time.Minute)
 			continue
 		}
-		for _, departmentID := range departments {
-			products, err := w.getProductsFromDepartment(departmentID)
+		for _, departmentInfo := range departmentInfos {
+			products, err := w.getProductsFromDepartment(departmentInfo.NodeID)
 			if err != nil {
-				slog.Error("error getting products from department. Trying again soon.", "error", err)
-				// Try again in ten minutes.
-				time.Sleep(1 * time.Minute)
+				slog.Error("error getting products from department. Trying again later.", "error", err)
 				continue
 			}
 
@@ -139,13 +137,14 @@ func (w *Woolworths) newProductWorker(output chan<- woolworthsProductInfo) {
 					continue
 				}
 				output <- woolworthsProductInfo{
-					ID:           productID,
-					departmentID: departmentID,
-					Info:         productInfo{},
-					Updated:      time.Now().Add(-2 * w.productMaxAge)}
+					ID:                    productID,
+					departmentID:          departmentInfo.NodeID,
+					departmentDescription: departmentInfo.Description,
+					Info:                  productInfo{},
+					Updated:               time.Now().Add(-2 * w.productMaxAge)}
 			}
 		}
-		if len(departments) > 0 {
+		if len(departmentInfos) > 0 {
 			// If we have bootstrapped we don't need to check for new departments very often.
 			time.Sleep(1 * time.Hour)
 		} else {
@@ -168,7 +167,7 @@ func (w *Woolworths) Run(cancel chan struct{}) {
 	}
 	go w.productUpdateQueueWorker(productsThatNeedAnUpdateChannel, w.productMaxAge)
 	go w.newProductWorker(productInfoChannel)
-	go w.newDepartmentIDWorker(newDepartmentInfoChannel)
+	go w.newDepartmentInfoWorker(newDepartmentInfoChannel)
 
 	for {
 		slog.Debug("Heartbeat")
@@ -180,10 +179,10 @@ func (w *Woolworths) Run(cancel chan struct{}) {
 			if err != nil {
 				slog.Error(fmt.Sprintf("Error saving product info: %v", err))
 			}
-		case newDepartmentID := <-newDepartmentInfoChannel:
-			slog.Debug(fmt.Sprintf("New department ID: %v", newDepartmentID))
+		case newDepartmentInfo := <-newDepartmentInfoChannel:
+			slog.Debug("New department", "ID", newDepartmentInfo.NodeID, "Description", newDepartmentInfo.Description)
 			// Update the departmentIDs table with the new department ID
-			err := w.saveDepartment(newDepartmentID)
+			err := w.saveDepartment(newDepartmentInfo)
 			if err != nil {
 				slog.Error(fmt.Sprintf("Error saving department ID: %v", err))
 			}
