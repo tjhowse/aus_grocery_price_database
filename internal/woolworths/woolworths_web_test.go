@@ -223,25 +223,3 @@ func TestGetProductsFromDepartment(t *testing.T) {
 		t.Errorf("Expected %d items, got %d", want, got)
 	}
 }
-
-func TestGetProductList(t *testing.T) {
-
-	w := getInitialisedWoolworths()
-
-	w.saveDepartment("1-E5BEE36E")
-
-	productIDs, err := w.getProductList()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if want, got := 38, len(productIDs); want != got {
-		t.Errorf("Expected %d items, got %d", want, got)
-	}
-
-	var expectedProductIDs = []productID{"133211", "134034", "105919"}
-	for i, id := range expectedProductIDs {
-		if want, got := id, productIDs[i]; want != got {
-			t.Errorf("Expected %s, got %s", want, got)
-		}
-	}
-}

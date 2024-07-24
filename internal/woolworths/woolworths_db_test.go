@@ -160,3 +160,22 @@ func TestGetSharedProductsUpdatedAfter(t *testing.T) {
 	}
 
 }
+
+func TestCheckIfKnownProductID(t *testing.T) {
+	w := getInitialisedWoolworths()
+	w.saveProductInfo(woolworthsProductInfo{ID: "123456", Info: productInfo{Name: "1", Offers: offer{Price: decimal.NewFromFloat(1.5)}}, Updated: time.Now().Add(-5 * time.Minute)})
+	found, err := w.checkIfKnownProductID("123456")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !found {
+		t.Fatal("Didn't find a product as expected")
+	}
+	found, err = w.checkIfKnownProductID("123457")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if found {
+		t.Fatal("Found a product we weren't expecting to find.")
+	}
+}

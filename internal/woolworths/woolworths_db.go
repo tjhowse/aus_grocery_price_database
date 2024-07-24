@@ -149,6 +149,21 @@ func (w *Woolworths) loadProductInfo(productID productID) (productInfo, error) {
 	return result, nil
 }
 
+// Returns true if the product ID exists in the DB already.
+// This exists separately to loadProductInfo because the productJSON is quite big.
+// This should be faster.
+func (w *Woolworths) checkIfKnownProductID(productID productID) (bool, error) {
+	var count int
+	err := w.db.QueryRow("SELECT COUNT(productID) FROM products WHERE productID = ? LIMIT 1", productID).Scan(&count)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to check for existing product: %w", err)
+	}
+	return count > 0, nil
+}
+
 func (w *Woolworths) loadDepartmentIDsList() ([]departmentID, error) {
 	var departmentIDs []departmentID
 	rows, err := w.db.Query("SELECT departmentID FROM departmentIDs")

@@ -133,32 +133,6 @@ func buildCategoryRequestBody(departmentID departmentID, pageNumber int) (string
 	return string(request), nil
 }
 
-// TODO Can I delete this?
-func (w *Woolworths) getProductList() ([]productID, error) {
-
-	prodIDs := []productID{}
-
-	departmentIDs, err := w.loadDepartmentIDsList()
-	if err != nil {
-		return prodIDs, err
-	}
-
-	slog.Debug(fmt.Sprintf("Got department IDs: %v", departmentIDs))
-
-	// This is a long-running process. We probably don't want to split it into multiple
-	// concurrent workers out of politeness to the Woolworths API. We only need to refresh
-	// our product list once a day or so, so it's OK if it takes a while to run.
-	for _, departmentID := range departmentIDs {
-		ids, err := w.getProductsFromDepartment(departmentID)
-		if err != nil {
-			return prodIDs, err
-		}
-		prodIDs = append(prodIDs, ids...)
-	}
-
-	return prodIDs, nil
-}
-
 func (w *Woolworths) getProductsFromDepartment(department departmentID) ([]productID, error) {
 	prodIDs := []productID{}
 	page := 1

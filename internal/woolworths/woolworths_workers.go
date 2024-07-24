@@ -143,8 +143,12 @@ func (w *Woolworths) newProductWorker(output chan<- woolworthsProductInfo) {
 			}
 
 			for _, productID := range products {
-				_, err := w.loadProductInfo(productID)
-				if err != ErrProductMissing {
+				alreadyExists, err := w.checkIfKnownProductID(productID)
+				if err != nil {
+					slog.Error("error checking if known product ID", "error", err)
+					continue
+				}
+				if alreadyExists {
 					continue
 				}
 				output <- woolworthsProductInfo{
