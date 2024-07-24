@@ -153,33 +153,6 @@ func TestGetProductInfo(t *testing.T) {
 	}
 }
 
-func TestExtractDepartmentIDs(t *testing.T) {
-	f, err := os.Open("data/fruit-veg.html")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer f.Close()
-
-	// Read the contents of the file
-	body, err := io.ReadAll(f)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	departmentIDs, err := extractDepartmentIDs(body)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if want, got := 16, len(departmentIDs); want != got {
-		t.Errorf("Expected %d items, got %d", want, got)
-	}
-
-	if want, got := departmentID("1-E5BEE36E"), departmentIDs[0]; want != got {
-		t.Errorf("Expected %s, got %s", want, got)
-	}
-}
-
 func TestExtractDepartmentInfos(t *testing.T) {
 	f, err := os.Open("data/fruit-veg.html")
 	if err != nil {
@@ -207,24 +180,6 @@ func TestExtractDepartmentInfos(t *testing.T) {
 	}
 	if want, got := departmentID("1_DEF0CCD"), departmentIDs[1].NodeID; want != got {
 		t.Errorf("Expected %s, got %s", want, got)
-	}
-}
-
-func TestGetDepartmentIDs(t *testing.T) {
-	w := getInitialisedWoolworths()
-
-	departmentIDs, err := w.getDepartmentIDs()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if want, got := departmentID("1-E5BEE36E"), departmentIDs[0]; want != got {
-		t.Errorf("Expected %s, got %s", want, got)
-	}
-	if want, got := 16, len(departmentIDs); want != got {
-		t.Errorf("Expected %d departments, got %d", want, got)
-	}
-	for _, departmentInfo := range departmentIDs {
-		fmt.Println(departmentInfo)
 	}
 }
 

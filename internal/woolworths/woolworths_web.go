@@ -27,24 +27,6 @@ func extractStockCodes(body categoryData) ([]string, error) {
 }
 
 // This extracts a substring out of the fruit-veg page and uses a regex to find
-// the list of department IDs within. It decodes this list as json.
-func extractDepartmentIDs(body fruitVegPage) ([]departmentID, error) {
-	departmentIDListRegex := regexp.MustCompile(`{"Group":"lists","Name":"includedDepartmentIds","Value":\[.*?\]}`)
-	departmentIDListMatches := departmentIDListRegex.FindAllStringSubmatch(string(body), -1)
-	if len(departmentIDListMatches) == 0 {
-		return []departmentID{}, fmt.Errorf("no department IDs found")
-	}
-
-	var department department
-	err := json.Unmarshal([]byte(departmentIDListMatches[0][0]), &department)
-	if err != nil {
-		return []departmentID{}, fmt.Errorf("failed to unmarshal department information: %w", err)
-	}
-
-	return department.Value, nil
-}
-
-// This extracts a substring out of the fruit-veg page and uses a regex to find
 // the list of department information within. It decodes this list as json.
 func extractDepartmentInfos(body fruitVegPage) ([]departmentInfo, error) {
 	// departmentInfoListRegex := regexp.MustCompile(`{"Group":"lists","Name":"includedDepartmentIds","Value":\[.*?\]}`)
@@ -61,32 +43,6 @@ func extractDepartmentInfos(body fruitVegPage) ([]departmentInfo, error) {
 	}
 
 	return departmentList.Categories, nil
-}
-
-func (w *Woolworths) getDepartmentIDs() ([]departmentID, error) {
-	departmentIDs := []departmentID{}
-	url := fmt.Sprintf("%s/shop/browse/fruit-veg", w.baseURL)
-	if req, err := http.NewRequest("GET", url, nil); err != nil {
-		return departmentIDs, err
-	} else {
-		resp, err := w.client.Do(req)
-		if err != nil {
-			return departmentIDs, err
-		}
-		defer resp.Body.Close()
-		if resp.StatusCode != http.StatusOK {
-			return departmentIDs, fmt.Errorf("failed to get category data: %s", resp.Status)
-		}
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return departmentIDs, err
-		}
-		departmentIDs, err = extractDepartmentIDs(body)
-		if err != nil {
-			return departmentIDs, err
-		}
-		return departmentIDs, nil
-	}
 }
 
 func (w *Woolworths) getDepartmentInfos() ([]departmentInfo, error) {

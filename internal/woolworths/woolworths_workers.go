@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+// This worker reads productIDs from the input channel, fetches the product info from the web,
+// and writes the product info to the output channel.
 func (w *Woolworths) productInfoFetchingWorker(input chan productID, output chan woolworthsProductInfo) {
 	for id := range input {
 		slog.Debug("Getting product", "id", id)
@@ -67,6 +69,7 @@ func (w *Woolworths) filterProductIDs(productIDs []productID) []productID {
 	return filtered
 }
 
+// This worker emits a stream of new department IDs that don't currently exist in the database.
 func (w *Woolworths) newDepartmentInfoWorker(output chan<- departmentInfo) {
 	for {
 		// Read the department list from the web...
