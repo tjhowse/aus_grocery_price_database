@@ -89,17 +89,41 @@ func (w *Woolworths) saveProductInfo(productInfo woolworthsProductInfo) error {
 
 	// TODO Is there some better way of handling passing copies of the same data?
 	result, err = w.db.Exec(`
-		INSERT INTO products (productID, name, description, priceCents, weightGrams, productJSON, departmentID, departmentDescription, updated)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-		ON CONFLICT(productID) DO UPDATE SET productID = ?, name = ?, description = ?, priceCents = ?, weightGrams = ?, productJSON = ?, departmentID = ?, departmentDescription = ?, updated = ?
-		`,
+		INSERT INTO products (productID, name, description, priceCents, weightGrams, productJSON, updated)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
+		ON CONFLICT(productID) DO UPDATE SET productID = ?, name = ?, description = ?, priceCents = ?, weightGrams = ?, productJSON = ?, updated = ?`,
 		productInfo.ID, productInfo.Info.Name, productInfo.Info.Description,
 		productInfo.Info.Offers.Price.Mul(decimal.NewFromInt(100)).IntPart(),
-		productInfo.Info.Weight, productInfoString, productInfo.departmentID, productInfo.departmentDescription, productInfo.Updated,
+		productInfo.Info.Weight, productInfoString, productInfo.Updated,
 
 		productInfo.ID, productInfo.Info.Name, productInfo.Info.Description,
 		productInfo.Info.Offers.Price.Mul(decimal.NewFromInt(100)).IntPart(),
-		productInfo.Info.Weight, productInfoString, productInfo.departmentID, productInfo.departmentDescription, productInfo.Updated)
+		productInfo.Info.Weight, productInfoString, productInfo.Updated)
+
+	if err != nil {
+		return fmt.Errorf("failed to update product info: %w", err)
+	}
+	if rowsAffected, err := result.RowsAffected(); err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	} else if rowsAffected == 0 {
+		slog.Warn("Product info not updated.")
+	}
+
+	return nil
+}
+
+// Saves product department info to the database
+func (w *Woolworths) saveProductDepartment(productInfo woolworthsProductInfo) error {
+	var err error
+	var result sql.Result
+
+	// TODO Is there some better way of handling passing copies of the same data?
+	result, err = w.db.Exec(`
+		INSERT INTO products (productID, departmentID, departmentDescription, updated)
+		VALUES (?, ?, ?, ?)
+		ON CONFLICT(productID) DO UPDATE SET productID = ?, departmentID = ?, departmentDescription = ?, updated = ?`,
+		productInfo.ID, productInfo.departmentID, productInfo.departmentDescription, productInfo.Updated,
+		productInfo.ID, productInfo.departmentID, productInfo.departmentDescription, productInfo.Updated)
 
 	if err != nil {
 		return fmt.Errorf("failed to update product info: %w", err)

@@ -170,12 +170,21 @@ func (w *Woolworths) Run(cancel chan struct{}) {
 	go w.newDepartmentInfoWorker(newDepartmentInfoChannel)
 
 	for {
+		var err error
 		slog.Debug("Heartbeat")
 		select {
 		case productInfoUpdate := <-productInfoChannel:
 			slog.Debug("Read from productInfoChannel", "name", productInfoUpdate.Info.Name)
 			// Update the product info in the DB
-			err := w.saveProductInfo(productInfoUpdate)
+			if productInfoUpdate.departmentID == "" {
+				// This product update came from a product page scan, so we have no department
+				// information.
+				err = w.saveProductInfo(productInfoUpdate)
+			} else {
+				// This information came from a department scan, so it has the department information
+				// available.
+				err = w.saveProductDepartment(productInfoUpdate)
+			}
 			if err != nil {
 				slog.Error(fmt.Sprintf("Error saving product info: %v", err))
 			}
