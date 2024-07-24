@@ -3,17 +3,13 @@
 ## Basic
 
 ### Devops
+* Add some performance telemetry to report to influxdb.
 * Automatic deployment from tags
 * Github ci/cd
-* Grafana instance
-* Register domain
 * Set up private network between services.
-* Add some performance telemetry to report to influxdb.
-* Try to transfer auscost.com.au to cloudflare.
-* Fix domain name to map to the grafana service rather than redirecting the domain name.
 
 ### General
-* Add timeouts to all http requests
+* Add persistence to last-checked time. Store it in the grocery data provider. GetProductsSinceLastCheck(maxcount int).
 * Calculate $/g where possible
 * Create DB backup on invalid schema, rather than deleting the old one.
 * Tune the max product age to roughly the time it takes for a full DB update.
@@ -26,8 +22,6 @@
         must be taken to handle the initial-startup state, where everything
         might appear very stale and we scale too many workers. Perhaps just
         set a 20-ish cap on the number of workers.
-* Add persistence to last-checked time. Store it in the grocery data provider. GetProductsSinceLastCheck(maxcount int).
-* Set up a public frontpage to grafana that works without logging in and shows a dashboard.
 * Export grafana config/dashboards/etc to repo. Embed as a part of dockerfile (?)
 
 ## Further work

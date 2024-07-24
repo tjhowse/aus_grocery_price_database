@@ -63,7 +63,8 @@ func (w *Woolworths) Init(baseURL string, dbPath string, productMaxAge time.Dura
 	w.baseURL = baseURL
 	w.client = &RLHTTPClient{
 		client: &http.Client{
-			Jar: w.cookieJar,
+			Jar:     w.cookieJar,
+			Timeout: 5 * time.Second,
 		},
 		Ratelimiter: rate.NewLimiter(rate.Every(50*time.Millisecond), 1),
 	}
