@@ -87,7 +87,7 @@ func run(running *bool, cfg *config, tsDB timeseriesDB, w ProductInfoGetter) {
 
 	// Assume we were shut down for half an hour.
 	// TODO Store the last update time in a main-level database.
-	updateTime := time.Now().Add(-30 * time.Minute)
+	updateTime := time.Now().Add(-1 * time.Minute)
 	statusReportDeadline := time.Now().Add(-30 * time.Minute)
 	for *running {
 		woolworthsProducts, err := w.GetSharedProductsUpdatedAfter(updateTime, 100)
