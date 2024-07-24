@@ -18,10 +18,6 @@ func TestUpdateProductInfo(t *testing.T) {
 	w := getInitialisedWoolworths()
 
 	wProdInfo.Updated = time.Now()
-	err = w.saveProductDepartment(wProdInfo)
-	if err != nil {
-		t.Fatal(err)
-	}
 	err = w.saveProductInfo(wProdInfo)
 	if err != nil {
 		t.Fatal(err)
@@ -64,10 +60,6 @@ func TestProductUpdateQueueGenerator(t *testing.T) {
 	w := getInitialisedWoolworths()
 
 	wProdInfo.Updated = time.Now().Add(-1 * time.Hour)
-	err = w.saveProductDepartment(wProdInfo)
-	if err != nil {
-		t.Fatal(err)
-	}
 	err = w.saveProductInfo(wProdInfo)
 	if err != nil {
 		t.Fatal(err)
@@ -144,7 +136,6 @@ func TestGetSharedProductsUpdatedAfter(t *testing.T) {
 	infoList = append(infoList, woolworthsProductInfo{ID: "123460", Info: productInfo{Offers: offer{Price: decimal.NewFromFloat(6.0)}}, Updated: time.Now()})
 
 	for _, info := range infoList {
-		w.saveProductDepartment(info)
 		w.saveProductInfo(info)
 	}
 	productIDs, err := w.GetSharedProductsUpdatedAfter(time.Now().Add(-2*time.Minute), 10)
@@ -201,11 +192,8 @@ func TestCheckIfKnownProductID(t *testing.T) {
 func TestSaveProductInfo(t *testing.T) {
 	w := getInitialisedWoolworths()
 	inProduct := woolworthsProductInfo{ID: "123456", departmentID: "abc", departmentDescription: "cba", Info: productInfo{Name: "1", Offers: offer{Price: decimal.NewFromFloat(1.5)}}, Updated: time.Now()}
-	err := w.saveProductDepartment(inProduct)
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = w.saveProductInfo(inProduct)
+
+	err := w.saveProductInfo(inProduct)
 	if err != nil {
 		t.Fatal(err)
 	}

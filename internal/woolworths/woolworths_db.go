@@ -9,7 +9,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-const DB_SCHEMA_VERSION = 3
+const DB_SCHEMA_VERSION = 4
 
 // Initialises the DB with the schema. Note you must bump the DB_SCHEMA_VERSION
 // constant if you change the schema.
@@ -45,8 +45,8 @@ func (w *Woolworths) initBlankDB() error {
 							priceCents INTEGER,
 							weightGrams INTEGER,
 							productJSON TEXT,
-							departmentID TEXT,
-							departmentDescription TEXT,
+							departmentID TEXT DEFAULT "",
+							departmentDescription TEXT DEFAULT "",
 							updated DATETIME
 						)`)
 	if err != nil {
@@ -88,10 +88,34 @@ func (w *Woolworths) saveProductInfo(productInfo woolworthsProductInfo) error {
 	productInfoString := string(productInfo.RawJSON)
 
 	// TODO Is there some better way of handling passing copies of the same data?
+	// TODO I bet a real SQL wizard could combine these two statements such that the department
+	// 		info is only written to the DB if it is not empty in the productInfo struct.
+	if productInfo.departmentID != "" {
+		// If we have department info, this data must've come from a department update.
+		// Only save the department info and leave the rest alone.
+
+		result, err = w.db.Exec(`
+			INSERT INTO products (productID, departmentID, departmentDescription, updated)
+			VALUES (?, ?, ?, ?)
+			ON CONFLICT(productID) DO UPDATE SET productID = ?, departmentID = ?, departmentDescription = ?, updated = ?`,
+			productInfo.ID, productInfo.departmentID, productInfo.departmentDescription, productInfo.Updated,
+			productInfo.ID, productInfo.departmentID, productInfo.departmentDescription, productInfo.Updated)
+
+		if err != nil {
+			return fmt.Errorf("failed to update product info: %w", err)
+		}
+		if rowsAffected, err := result.RowsAffected(); err != nil {
+			return fmt.Errorf("failed to get rows affected: %w", err)
+		} else if rowsAffected == 0 {
+			slog.Warn("Product department info not updated.")
+		}
+
+	}
+
 	result, err = w.db.Exec(`
-		INSERT INTO products (productID, name, description, priceCents, weightGrams, productJSON, updated)
-		VALUES (?, ?, ?, ?, ?, ?, ?)
-		ON CONFLICT(productID) DO UPDATE SET productID = ?, name = ?, description = ?, priceCents = ?, weightGrams = ?, productJSON = ?, updated = ?`,
+			INSERT INTO products (productID, name, description, priceCents, weightGrams, productJSON, updated)
+			VALUES (?, ?, ?, ?, ?, ?, ?)
+			ON CONFLICT(productID) DO UPDATE SET productID = ?, name = ?, description = ?, priceCents = ?, weightGrams = ?, productJSON = ?, updated = ?`,
 		productInfo.ID, productInfo.Info.Name, productInfo.Info.Description,
 		productInfo.Info.Offers.Price.Mul(decimal.NewFromInt(100)).IntPart(),
 		productInfo.Info.Weight, productInfoString, productInfo.Updated,
@@ -99,31 +123,6 @@ func (w *Woolworths) saveProductInfo(productInfo woolworthsProductInfo) error {
 		productInfo.ID, productInfo.Info.Name, productInfo.Info.Description,
 		productInfo.Info.Offers.Price.Mul(decimal.NewFromInt(100)).IntPart(),
 		productInfo.Info.Weight, productInfoString, productInfo.Updated)
-
-	if err != nil {
-		return fmt.Errorf("failed to update product info: %w", err)
-	}
-	if rowsAffected, err := result.RowsAffected(); err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
-	} else if rowsAffected == 0 {
-		slog.Warn("Product info not updated.")
-	}
-
-	return nil
-}
-
-// Saves product department info to the database
-func (w *Woolworths) saveProductDepartment(productInfo woolworthsProductInfo) error {
-	var err error
-	var result sql.Result
-
-	// TODO Is there some better way of handling passing copies of the same data?
-	result, err = w.db.Exec(`
-		INSERT INTO products (productID, departmentID, departmentDescription, updated)
-		VALUES (?, ?, ?, ?)
-		ON CONFLICT(productID) DO UPDATE SET productID = ?, departmentID = ?, departmentDescription = ?, updated = ?`,
-		productInfo.ID, productInfo.departmentID, productInfo.departmentDescription, productInfo.Updated,
-		productInfo.ID, productInfo.departmentID, productInfo.departmentDescription, productInfo.Updated)
 
 	if err != nil {
 		return fmt.Errorf("failed to update product info: %w", err)
