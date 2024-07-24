@@ -16,6 +16,26 @@ type department struct {
 	Value []departmentID `json:"Value"`
 }
 
+type woolworthsDepartmentCategory struct {
+	NodeID              departmentID `json:"NodeId"`
+	Description         string       `json:"Description"`
+	NodeLevel           int          `json:"NodeLevel"`
+	ParentNodeID        *string      `json:"ParentNodeId"`
+	DisplayOrder        int          `json:"DisplayOrder"`
+	IsRestricted        bool         `json:"IsRestricted"`
+	ProductCount        int          `json:"ProductCount"`
+	IsSortEnabled       bool         `json:"IsSortEnabled"`
+	IsPaginationEnabled bool         `json:"IsPaginationEnabled"`
+	UrlFriendlyName     string       `json:"UrlFriendlyName"`
+	IsSpecial           bool         `json:"IsSpecial"`
+	RichRelevanceID     *string      `json:"RichRelevanceId"`
+	IsBundle            bool         `json:"IsBundle"`
+}
+
+type DepartmentCategoriesList struct {
+	Categories []woolworthsDepartmentCategory `json:"Categories"`
+}
+
 type productID string
 type departmentID string
 

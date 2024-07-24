@@ -44,6 +44,25 @@ func extractDepartmentIDs(body fruitVegPage) ([]departmentID, error) {
 	return department.Value, nil
 }
 
+// This extracts a substring out of the fruit-veg page and uses a regex to find
+// the list of department information within. It decodes this list as json.
+func extractDepartmentInfos(body fruitVegPage) ([]woolworthsDepartmentCategory, error) {
+	// departmentInfoListRegex := regexp.MustCompile(`{"Group":"lists","Name":"includedDepartmentIds","Value":\[.*?\]}`)
+	departmentInfoListRegex := regexp.MustCompile(`{"Categories":\[{"NodeId":"specialsgroup","Description":"Specials".*?]}`)
+	departmentIDListMatches := departmentInfoListRegex.FindAllStringSubmatch(string(body), -1)
+	if len(departmentIDListMatches) == 0 {
+		return []woolworthsDepartmentCategory{}, fmt.Errorf("no department IDs found")
+	}
+
+	var departmentList DepartmentCategoriesList
+	err := json.Unmarshal([]byte(departmentIDListMatches[0][0]), &departmentList)
+	if err != nil {
+		return []woolworthsDepartmentCategory{}, fmt.Errorf("failed to unmarshal department information: %w", err)
+	}
+
+	return departmentList.Categories, nil
+}
+
 func (w *Woolworths) getDepartmentIDs() ([]departmentID, error) {
 	departmentIDs := []departmentID{}
 	url := fmt.Sprintf("%s/shop/browse/fruit-veg", w.baseURL)
@@ -67,6 +86,33 @@ func (w *Woolworths) getDepartmentIDs() ([]departmentID, error) {
 			return departmentIDs, err
 		}
 		return departmentIDs, nil
+	}
+}
+
+func (w *Woolworths) getDepartmentInfos() ([]woolworthsDepartmentCategory, error) {
+	departmentInfo := []woolworthsDepartmentCategory{}
+
+	url := fmt.Sprintf("%s/shop/browse/fruit-veg", w.baseURL)
+	if req, err := http.NewRequest("GET", url, nil); err != nil {
+		return departmentInfo, err
+	} else {
+		resp, err := w.client.Do(req)
+		if err != nil {
+			return departmentInfo, err
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			return departmentInfo, fmt.Errorf("failed to get category data: %s", resp.Status)
+		}
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return departmentInfo, err
+		}
+		departmentInfo, err = extractDepartmentInfos(body)
+		if err != nil {
+			return departmentInfo, err
+		}
+		return departmentInfo, nil
 	}
 }
 
