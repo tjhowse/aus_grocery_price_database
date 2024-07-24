@@ -16,6 +16,7 @@ primary_region = 'syd'
   MAX_PRODUCT_AGE_MINUTES = 120
   WOOLWORTHS_URL = 'https://www.woolworths.com.au'
   INFLUXDB_UPDATE_RATE_SECONDS = 2
+  DEBUG_LOGGING = 'true'
 
 
 [[vm]]
