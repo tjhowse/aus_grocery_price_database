@@ -16,7 +16,7 @@ const DB_SCHEMA_VERSION = 3
 func (w *Woolworths) initBlankDB() error {
 
 	// Drop all tables
-	for _, table := range []string{"schema", "departmentIDs", "products"} {
+	for _, table := range []string{"schema", "departments", "products"} {
 		// Mildly confused by why this doesn't work? TODO investigate
 		// _, err := w.db.Exec("DROP TABLE IF EXISTS ?", table)
 		_, err := w.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", table))
@@ -33,7 +33,7 @@ func (w *Woolworths) initBlankDB() error {
 	if err != nil {
 		return err
 	}
-	_, err = w.db.Exec("CREATE TABLE IF NOT EXISTS departmentIDs (departmentID TEXT UNIQUE, description TEXT, updated DATETIME)")
+	_, err = w.db.Exec("CREATE TABLE IF NOT EXISTS departments (departmentID TEXT UNIQUE, description TEXT, updated DATETIME)")
 	if err != nil {
 		return err
 	}
@@ -119,7 +119,7 @@ func (w *Woolworths) saveDepartment(departmentInfo departmentInfo) error {
 	var result sql.Result
 
 	result, err = w.db.Exec(`
-		INSERT INTO departmentIDs (departmentID, description, updated)
+		INSERT INTO departments (departmentID, description, updated)
 		VALUES (?, ?, ?)
 		ON CONFLICT(departmentID) DO UPDATE SET departmentID = ?, description = ?, updated = ?
 		`,
@@ -180,7 +180,7 @@ func (w *Woolworths) checkIfKnownProductID(productID productID) (bool, error) {
 
 func (w *Woolworths) loadDepartmentInfoList() ([]departmentInfo, error) {
 	var departmentInfos []departmentInfo
-	rows, err := w.db.Query("SELECT departmentID, description FROM departmentIDs")
+	rows, err := w.db.Query("SELECT departmentID, description FROM departments")
 	if err != nil {
 		return departmentInfos, fmt.Errorf("failed to query departmentIDs: %w", err)
 	}
