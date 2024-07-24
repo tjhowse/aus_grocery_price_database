@@ -171,7 +171,6 @@ func (w *Woolworths) Run(cancel chan struct{}) {
 
 	for {
 		var err error
-		slog.Debug("Heartbeat")
 		select {
 		case productInfoUpdate := <-productInfoChannel:
 			slog.Debug("Read from productInfoChannel", "name", productInfoUpdate.Info.Name)

@@ -12,7 +12,7 @@ import (
 	woolworths "github.com/tjhowse/aus_grocery_price_database/internal/woolworths"
 )
 
-const VERSION = "0.0.9"
+const VERSION = "0.0.10"
 
 type config struct {
 	InfluxDBURL                 string `env:"INFLUXDB_URL"`
@@ -88,6 +88,7 @@ func run(running *bool, cfg *config, tsDB timeseriesDB, w ProductInfoGetter) {
 	// Assume we were shut down for half an hour.
 	// TODO Store the last update time in a main-level database.
 	updateTime := time.Now().Add(-30 * time.Minute)
+	statusReportDeadline := time.Now().Add(-30 * time.Minute)
 	for *running {
 		woolworthsProducts, err := w.GetSharedProductsUpdatedAfter(updateTime, 100)
 		if err != nil {
@@ -106,9 +107,13 @@ func run(running *bool, cfg *config, tsDB timeseriesDB, w ProductInfoGetter) {
 			slog.Info("Updating product data", "name", product.Name, "price", product.PriceCents)
 			products <- product
 		}
-		systemStatus.ProductsPerSecond = float64(len(woolworthsProducts)) / float64(cfg.InfluxUpdateIntervalSeconds)
-		systemStatus.RAMUtilisationPercent = GetRAMUtilisationPercent()
-		tsDB.WriteSystemDatapoint(systemStatus)
+		if time.Now().After(statusReportDeadline) {
+			systemStatus.ProductsPerSecond = float64(len(woolworthsProducts)) / float64(cfg.InfluxUpdateIntervalSeconds)
+			systemStatus.RAMUtilisationPercent = GetRAMUtilisationPercent()
+			tsDB.WriteSystemDatapoint(systemStatus)
+			statusReportDeadline = time.Now().Add(1 * time.Minute)
+		}
 		time.Sleep(time.Duration(cfg.InfluxUpdateIntervalSeconds) * time.Second)
+		slog.Debug("Heartbeat")
 	}
 }
