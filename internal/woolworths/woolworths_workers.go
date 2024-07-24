@@ -54,23 +54,6 @@ func (w *Woolworths) productUpdateQueueWorker(output chan<- productID, maxAge ti
 	}
 }
 
-// These filter functions are used for the intitial integration testing against the live API.
-// We use them to restrict the departments and products to just a few items, so we can do
-// short runs and inspect the DB afterwards
-
-func (w *Woolworths) filterDepartmentIDs(departmentIDs []departmentID) []departmentID {
-	var filtered []departmentID
-	// departmentSet := map[departmentID]bool{"1-E5BEE36E": true, "1_DEB537E": true, "1_D5A2236": true, "1_6E4F4E4": true}
-	departmentSet := map[departmentID]bool{"1-E5BEE36E": true}
-
-	for _, departmentID := range departmentIDs {
-		if _, ok := departmentSet[departmentID]; ok {
-			filtered = append(filtered, departmentID)
-		}
-	}
-	return filtered
-}
-
 func (w *Woolworths) filterProductIDs(productIDs []productID) []productID {
 	var filtered []productID
 
@@ -84,10 +67,10 @@ func (w *Woolworths) filterProductIDs(productIDs []productID) []productID {
 	return filtered
 }
 
-func (w *Woolworths) newDepartmentIDWorker(output chan<- departmentID) {
+func (w *Woolworths) newDepartmentIDWorker(output chan<- departmentInfo) {
 	for {
 		// Read the department list from the web...
-		departmentsFromWeb, err := w.getDepartmentIDs()
+		departmentsFromWeb, err := w.getDepartmentInfos()
 		if err != nil {
 			slog.Error(fmt.Sprintf("Error getting department IDs from web: %v", err))
 		}
@@ -97,14 +80,12 @@ func (w *Woolworths) newDepartmentIDWorker(output chan<- departmentID) {
 		if err != nil {
 			slog.Error(fmt.Sprintf("Error loading department IDs from DB: %v", err))
 		}
-		if w.filterDepartments {
-			departmentsFromWeb = w.filterDepartmentIDs(departmentsFromWeb)
-		}
+
 		// Compare the two lists and output any new department IDs.
 		for _, webDepartmentID := range departmentsFromWeb {
 			found := false
 			for _, dbDepartmentID := range departmentsFromDB {
-				if webDepartmentID == dbDepartmentID {
+				if webDepartmentID.NodeID == dbDepartmentID {
 					found = true
 					break
 				}
@@ -112,6 +93,12 @@ func (w *Woolworths) newDepartmentIDWorker(output chan<- departmentID) {
 			if found {
 				continue
 			}
+			if w.filterDepartments {
+				if !w.filteredDepartmentIDsSet[webDepartmentID.NodeID] {
+					continue
+				}
+			}
+
 			output <- webDepartmentID
 		}
 		// We don't need to check for departments very often.
@@ -175,13 +162,13 @@ func (w *Woolworths) Run(cancel chan struct{}) {
 
 	productInfoChannel := make(chan woolworthsProductInfo)
 	productsThatNeedAnUpdateChannel := make(chan productID)
-	newDepartmentIDsChannel := make(chan departmentID)
+	newDepartmentInfoChannel := make(chan departmentInfo)
 	for i := 0; i < PRODUCT_INFO_WORKER_COUNT; i++ {
 		go w.productInfoFetchingWorker(productsThatNeedAnUpdateChannel, productInfoChannel)
 	}
 	go w.productUpdateQueueWorker(productsThatNeedAnUpdateChannel, w.productMaxAge)
 	go w.newProductWorker(productInfoChannel)
-	go w.newDepartmentIDWorker(newDepartmentIDsChannel)
+	go w.newDepartmentIDWorker(newDepartmentInfoChannel)
 
 	for {
 		slog.Debug("Heartbeat")
@@ -193,8 +180,8 @@ func (w *Woolworths) Run(cancel chan struct{}) {
 			if err != nil {
 				slog.Error(fmt.Sprintf("Error saving product info: %v", err))
 			}
-		case newDepartmentID := <-newDepartmentIDsChannel:
-			slog.Debug(fmt.Sprintf("New department ID: %s", newDepartmentID))
+		case newDepartmentID := <-newDepartmentInfoChannel:
+			slog.Debug(fmt.Sprintf("New department ID: %v", newDepartmentID))
 			// Update the departmentIDs table with the new department ID
 			err := w.saveDepartment(newDepartmentID)
 			if err != nil {

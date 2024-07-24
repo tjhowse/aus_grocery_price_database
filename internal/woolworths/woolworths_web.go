@@ -46,18 +46,18 @@ func extractDepartmentIDs(body fruitVegPage) ([]departmentID, error) {
 
 // This extracts a substring out of the fruit-veg page and uses a regex to find
 // the list of department information within. It decodes this list as json.
-func extractDepartmentInfos(body fruitVegPage) ([]woolworthsDepartmentCategory, error) {
+func extractDepartmentInfos(body fruitVegPage) ([]departmentInfo, error) {
 	// departmentInfoListRegex := regexp.MustCompile(`{"Group":"lists","Name":"includedDepartmentIds","Value":\[.*?\]}`)
 	departmentInfoListRegex := regexp.MustCompile(`{"Categories":\[{"NodeId":"specialsgroup","Description":"Specials".*?]}`)
 	departmentIDListMatches := departmentInfoListRegex.FindAllStringSubmatch(string(body), -1)
 	if len(departmentIDListMatches) == 0 {
-		return []woolworthsDepartmentCategory{}, fmt.Errorf("no department IDs found")
+		return []departmentInfo{}, fmt.Errorf("no department IDs found")
 	}
 
 	var departmentList DepartmentCategoriesList
 	err := json.Unmarshal([]byte(departmentIDListMatches[0][0]), &departmentList)
 	if err != nil {
-		return []woolworthsDepartmentCategory{}, fmt.Errorf("failed to unmarshal department information: %w", err)
+		return []departmentInfo{}, fmt.Errorf("failed to unmarshal department information: %w", err)
 	}
 
 	return departmentList.Categories, nil
@@ -89,8 +89,8 @@ func (w *Woolworths) getDepartmentIDs() ([]departmentID, error) {
 	}
 }
 
-func (w *Woolworths) getDepartmentInfos() ([]woolworthsDepartmentCategory, error) {
-	departmentInfo := []woolworthsDepartmentCategory{}
+func (w *Woolworths) getDepartmentInfos() ([]departmentInfo, error) {
+	departmentInfo := []departmentInfo{}
 
 	url := fmt.Sprintf("%s/shop/browse/fruit-veg", w.baseURL)
 	if req, err := http.NewRequest("GET", url, nil); err != nil {

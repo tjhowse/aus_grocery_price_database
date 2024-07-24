@@ -10,7 +10,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-const DB_SCHEMA_VERSION = 2
+const DB_SCHEMA_VERSION = 3
 
 // Initialises the DB with the schema. Note you must bump the DB_SCHEMA_VERSION
 // constant if you change the schema.
@@ -34,7 +34,7 @@ func (w *Woolworths) initBlankDB() error {
 	if err != nil {
 		return err
 	}
-	_, err = w.db.Exec("CREATE TABLE IF NOT EXISTS departmentIDs (departmentID TEXT UNIQUE, updated DATETIME)")
+	_, err = w.db.Exec("CREATE TABLE IF NOT EXISTS departmentIDs (departmentID TEXT UNIQUE, description TEXT, updated DATETIME)")
 	if err != nil {
 		return err
 	}
@@ -109,15 +109,17 @@ func (w *Woolworths) saveProductInfo(productInfo woolworthsProductInfo) error {
 }
 
 // Saves product info to the database
-func (w *Woolworths) saveDepartment(productInfo departmentID) error {
+func (w *Woolworths) saveDepartment(departmentInfo departmentInfo) error {
 	var err error
 	var result sql.Result
 
 	result, err = w.db.Exec(`
-		INSERT INTO departmentIDs (departmentID, updated)
-		VALUES (?, ?)
-		ON CONFLICT(departmentID) DO UPDATE SET departmentID = ?, updated = ?
-		`, productInfo, time.Now(), productInfo, time.Now())
+		INSERT INTO departmentIDs (departmentID, description, updated)
+		VALUES (?, ?, ?)
+		ON CONFLICT(departmentID) DO UPDATE SET departmentID = ?, description = ?, updated = ?
+		`,
+		departmentInfo.NodeID, departmentInfo.Description, time.Now(),
+		departmentInfo.NodeID, departmentInfo.Description, time.Now())
 
 	if err != nil {
 		return fmt.Errorf("failed to update department ID info: %w", err)
@@ -179,4 +181,20 @@ func (w *Woolworths) loadDepartmentIDsList() ([]departmentID, error) {
 		departmentIDs = append(departmentIDs, departmentID)
 	}
 	return departmentIDs, nil
+}
+func (w *Woolworths) loadDepartmentInfoList() ([]departmentInfo, error) {
+	var departmentInfos []departmentInfo
+	rows, err := w.db.Query("SELECT departmentID, description FROM departmentIDs")
+	if err != nil {
+		return departmentInfos, fmt.Errorf("failed to query departmentIDs: %w", err)
+	}
+	for rows.Next() {
+		var deptInfo departmentInfo
+		err = rows.Scan(&deptInfo.NodeID, &deptInfo.Description)
+		if err != nil {
+			return departmentInfos, fmt.Errorf("failed to scan departmentID: %w", err)
+		}
+		departmentInfos = append(departmentInfos, deptInfo)
+	}
+	return departmentInfos, nil
 }

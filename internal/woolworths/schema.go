@@ -16,7 +16,7 @@ type department struct {
 	Value []departmentID `json:"Value"`
 }
 
-type woolworthsDepartmentCategory struct {
+type departmentInfo struct {
 	NodeID              departmentID `json:"NodeId"`
 	Description         string       `json:"Description"`
 	NodeLevel           int          `json:"NodeLevel"`
@@ -33,7 +33,7 @@ type woolworthsDepartmentCategory struct {
 }
 
 type DepartmentCategoriesList struct {
-	Categories []woolworthsDepartmentCategory `json:"Categories"`
+	Categories []departmentInfo `json:"Categories"`
 }
 
 type productID string

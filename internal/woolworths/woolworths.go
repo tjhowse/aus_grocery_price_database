@@ -21,13 +21,14 @@ const PRODUCT_INFO_MAX_AGE = 6 * time.Hour
 var ErrProductMissing = errors.New("no product found")
 
 type Woolworths struct {
-	baseURL           string
-	client            *RLHTTPClient
-	cookieJar         *cookiejar.Jar // TODO This might not be threadsafe.
-	db                *sql.DB
-	productMaxAge     time.Duration
-	filterDepartments bool // These are used to limit the departments and products for gradual testing.
-	filterProducts    bool
+	baseURL                  string
+	client                   *RLHTTPClient
+	cookieJar                *cookiejar.Jar // TODO This might not be threadsafe.
+	db                       *sql.DB
+	productMaxAge            time.Duration
+	filterDepartments        bool // These are used to limit the departments and products for gradual testing.
+	filterProducts           bool
+	filteredDepartmentIDsSet map[departmentID]bool
 }
 
 // Returns a list of product IDs that have been updated since the given time
@@ -74,5 +75,6 @@ func (w *Woolworths) Init(baseURL string, dbPath string, productMaxAge time.Dura
 	if err != nil {
 		return err
 	}
+	w.filteredDepartmentIDsSet = map[departmentID]bool{"1-E5BEE36E": true}
 	return nil
 }

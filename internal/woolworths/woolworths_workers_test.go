@@ -49,15 +49,17 @@ func TestNewDepartmentIDWorker(t *testing.T) {
 
 	// Pre-load one existing department ID to check we're only being notified of
 	// new ones
-	w.saveDepartment("1-E5BEE36E")
+	dept := departmentInfo{NodeID: "1-E5BEE36E", Description: "Fruit & Vegetables"}
+	w.saveDepartment(dept)
 
-	departmentIDChannel := make(chan departmentID)
+	departmentIDChannel := make(chan departmentInfo)
 	go w.newDepartmentIDWorker(departmentIDChannel)
 	var index int
-	var departmentIDs = []departmentID{"1_DEB537E", "1_D5A2236", "1_6E4F4E4"}
+	// var departmentIDs = []departmentID{"1_DEB537E", "1_D5A2236", "1_6E4F4E4"}
+	var departmentIDs = []departmentID{"specialsgroup", "1_DEF0CCD", "1_D5A2236"}
 	select {
 	case d := <-departmentIDChannel:
-		if want, got := departmentIDs[index], d; want != got {
+		if want, got := departmentIDs[index], d.NodeID; want != got {
 			t.Errorf("Expected %s, got %s", want, got)
 		}
 		index++
@@ -70,7 +72,8 @@ func TestNewProductWorker(t *testing.T) {
 	w := getInitialisedWoolworths()
 
 	// Set up a department to scan products from
-	w.saveDepartment("1-E5BEE36E")
+	dept := departmentInfo{NodeID: "1-E5BEE36E", Description: "Fruit & Vegetables"}
+	w.saveDepartment(dept)
 
 	productIDChannel := make(chan woolworthsProductInfo)
 	go w.newProductWorker(productIDChannel)

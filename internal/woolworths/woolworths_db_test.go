@@ -93,7 +93,8 @@ func TestMissingProduct(t *testing.T) {
 
 func TestDepartment(t *testing.T) {
 	w := getInitialisedWoolworths()
-	w.saveDepartment("1-E5BEE36E")
+	dept := departmentInfo{NodeID: "1-E5BEE36E", Description: "Fruit & Veg"}
+	w.saveDepartment(dept)
 	departmentIDs, err := w.loadDepartmentIDsList()
 	if err != nil {
 		t.Fatal(err)
@@ -102,6 +103,25 @@ func TestDepartment(t *testing.T) {
 		t.Errorf("Expected %d, got %d", want, got)
 	}
 	if want, got := departmentID("1-E5BEE36E"), departmentIDs[0]; want != got {
+		t.Errorf("Expected %s, got %s", want, got)
+	}
+}
+
+func TestDepartmentInfo(t *testing.T) {
+	w := getInitialisedWoolworths()
+	dept := departmentInfo{NodeID: "1-E5BEE36E", Description: "Fruit & Veg"}
+	w.saveDepartment(dept)
+	departmentIDs, err := w.loadDepartmentInfoList()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want, got := 1, len(departmentIDs); want != got {
+		t.Errorf("Expected %d, got %d", want, got)
+	}
+	if want, got := departmentID("1-E5BEE36E"), departmentIDs[0].NodeID; want != got {
+		t.Errorf("Expected %s, got %s", want, got)
+	}
+	if want, got := "Fruit & Veg", departmentIDs[0].Description; want != got {
 		t.Errorf("Expected %s, got %s", want, got)
 	}
 }
