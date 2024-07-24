@@ -75,6 +75,6 @@ func (w *Woolworths) Init(baseURL string, dbPath string, productMaxAge time.Dura
 	if err != nil {
 		return err
 	}
-	w.filteredDepartmentIDsSet = map[departmentID]bool{"1-E5BEE36E": true}
+	w.filteredDepartmentIDsSet = map[departmentID]bool{"1-E5BEE36E": true, "1_DEB537E": true}
 	return nil
 }
