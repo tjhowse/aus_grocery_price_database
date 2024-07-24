@@ -44,6 +44,7 @@ func (w *Woolworths) GetSharedProductsUpdatedAfter(t time.Time, count int) ([]sh
 			return productIDs, fmt.Errorf("failed to scan productID: %w", err)
 		}
 		product.ID = WOOLWORTHS_ID_PREFIX + product.ID
+		product.Store = "Woolworths"
 		productIDs = append(productIDs, product)
 	}
 	return productIDs, nil

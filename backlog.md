@@ -3,12 +3,9 @@
 ## Basic
 
 ### Devops
-* Add some performance telemetry to report to influxdb.
-    * Version
-    * Product updates per second?
-* Automatic deployment from tags
 * Github ci/cd
 * Set up private network between services.
+* Monitor disk utilisation
 
 ### General
 * Add persistence to last-checked time. Store it in the grocery data provider. GetProductsSinceLastCheck(maxcount int).

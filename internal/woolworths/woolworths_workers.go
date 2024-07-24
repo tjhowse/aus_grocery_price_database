@@ -147,7 +147,11 @@ func (w *Woolworths) newProductWorker(output chan<- woolworthsProductInfo) {
 				if err != ErrProductMissing {
 					continue
 				}
-				output <- woolworthsProductInfo{ID: productID, Info: productInfo{}, Updated: time.Now().Add(-2 * w.productMaxAge)}
+				output <- woolworthsProductInfo{
+					ID:           productID,
+					departmentID: departmentID,
+					Info:         productInfo{},
+					Updated:      time.Now().Add(-2 * w.productMaxAge)}
 			}
 		}
 		if len(departments) > 0 {

@@ -133,6 +133,7 @@ func buildCategoryRequestBody(departmentID departmentID, pageNumber int) (string
 	return string(request), nil
 }
 
+// TODO Can I delete this?
 func (w *Woolworths) getProductList() ([]productID, error) {
 
 	prodIDs := []productID{}
