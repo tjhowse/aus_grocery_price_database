@@ -12,8 +12,8 @@ func ValidateProduct(t *testing.T, w *Woolworths, id productID, want string) err
 	if err != nil {
 		return fmt.Errorf("Failed to get product ID %s: %v", id, err)
 	}
-	if prod.Name != want {
-		return fmt.Errorf("Expected %s, got %s", want, prod.Name)
+	if prod.Info.Name != want {
+		return fmt.Errorf("Expected %s, got %s", want, prod.Info.Name)
 	}
 	return nil
 }

@@ -42,12 +42,12 @@ func (w *Woolworths) initBlankDB() error {
 		w.db.Exec(`	CREATE TABLE IF NOT EXISTS products
 						(	productID TEXT UNIQUE,
 							name TEXT,
-							departmentID TEXT,
-							departmentDescription TEXT,
 							description TEXT,
 							priceCents INTEGER,
 							weightGrams INTEGER,
 							productJSON TEXT,
+							departmentID TEXT,
+							departmentDescription TEXT,
 							updated DATETIME
 						)`)
 	if err != nil {
@@ -90,13 +90,17 @@ func (w *Woolworths) saveProductInfo(productInfo woolworthsProductInfo) error {
 
 	// TODO Is there some better way of handling passing copies of the same data?
 	result, err = w.db.Exec(`
-		INSERT INTO products (productID, name, description, priceCents, weightGrams, productJSON, updated)
-		VALUES (?, ?, ?, ?, ?, ?, ?)
-		ON CONFLICT(productID) DO UPDATE SET productID = ?, name = ?, description = ?, priceCents = ?, weightGrams = ?, productJSON = ?, updated = ?
-		`, productInfo.ID, productInfo.Info.Name, productInfo.Info.Description,
-		productInfo.Info.Offers.Price.Mul(decimal.NewFromInt(100)).IntPart(), productInfo.Info.Weight, productInfoString, productInfo.Updated,
+		INSERT INTO products (productID, name, description, priceCents, weightGrams, productJSON, departmentID, departmentDescription, updated)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+		ON CONFLICT(productID) DO UPDATE SET productID = ?, name = ?, description = ?, priceCents = ?, weightGrams = ?, productJSON = ?, departmentID = ?, departmentDescription = ?, updated = ?
+		`,
 		productInfo.ID, productInfo.Info.Name, productInfo.Info.Description,
-		productInfo.Info.Offers.Price.Mul(decimal.NewFromInt(100)).IntPart(), productInfo.Info.Weight, productInfoString, productInfo.Updated)
+		productInfo.Info.Offers.Price.Mul(decimal.NewFromInt(100)).IntPart(),
+		productInfo.Info.Weight, productInfoString, productInfo.departmentID, productInfo.departmentDescription, productInfo.Updated,
+
+		productInfo.ID, productInfo.Info.Name, productInfo.Info.Description,
+		productInfo.Info.Offers.Price.Mul(decimal.NewFromInt(100)).IntPart(),
+		productInfo.Info.Weight, productInfoString, productInfo.departmentID, productInfo.departmentDescription, productInfo.Updated)
 
 	if err != nil {
 		return fmt.Errorf("failed to update product info: %w", err)
@@ -136,21 +140,23 @@ func (w *Woolworths) saveDepartment(departmentInfo departmentInfo) error {
 }
 
 // Loads cached product info from the database
-func (w *Woolworths) loadProductInfo(productID productID) (productInfo, error) {
-	var buffer string
-	var result productInfo
-	err := w.db.QueryRow("SELECT productJSON FROM products WHERE productID = ? LIMIT 1", productID).Scan(&buffer)
+func (w *Woolworths) loadProductInfo(productID productID) (woolworthsProductInfo, error) {
+	var wProdInfo woolworthsProductInfo
+	row := w.db.QueryRow("SELECT (productID, name, description, priceCents, weightGrams, productJSON, departmentID, departmentDescription, updated) FROM products WHERE productID = ? LIMIT 1", productID)
+	err := row.Scan(&wProdInfo.ID, &wProdInfo.Info.Name, &wProdInfo.Info.Description, &wProdInfo.Info.Offers.Price, &wProdInfo.Info.Weight, &wProdInfo.RawJSON, &wProdInfo.departmentID, &wProdInfo.departmentDescription, &wProdInfo.Updated)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return result, ErrProductMissing
+			return wProdInfo, ErrProductMissing
 		}
-		return result, fmt.Errorf("failed to query existing productJSON: %w", err)
+		return wProdInfo, fmt.Errorf("failed to query existing productJSON: %w", err)
 	}
-	err = json.Unmarshal([]byte(buffer), &result)
+	// TODO reconsider reading and unmarshalling the JSON here.
+	err = json.Unmarshal([]byte(wProdInfo.RawJSON), &wProdInfo.Info)
 	if err != nil {
-		return result, fmt.Errorf("failed to unmarshal productJSON: %w", err)
+		return wProdInfo, fmt.Errorf("failed to unmarshal productJSON: %w", err)
 	}
-	return result, nil
+
+	return wProdInfo, nil
 }
 
 // Returns true if the product ID exists in the DB already.

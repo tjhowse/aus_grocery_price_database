@@ -23,13 +23,13 @@ func TestUpdateProductInfo(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var readProdInfo productInfo
+	var readProdInfo woolworthsProductInfo
 	readProdInfo, err = w.loadProductInfo("187314")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if readProdInfo.Description != wProdInfo.Info.Description {
-		t.Errorf("Expected %v, got %v", wProdInfo.Info.Description, readProdInfo.Description)
+	if readProdInfo.Info.Description != wProdInfo.Info.Description {
+		t.Errorf("Expected %v, got %v", wProdInfo.Info.Description, readProdInfo.Info.Description)
 	}
 }
 
@@ -198,4 +198,30 @@ func TestCheckIfKnownProductID(t *testing.T) {
 	if found {
 		t.Fatal("Found a product we weren't expecting to find.")
 	}
+}
+
+func TestSaveProductInfo(t *testing.T) {
+	w := getInitialisedWoolworths()
+	inProduct := woolworthsProductInfo{ID: "123456", departmentID: "abc", departmentDescription: "cba", Info: productInfo{Name: "1", Offers: offer{Price: decimal.NewFromFloat(1.5)}}, Updated: time.Now()}
+	err := w.saveProductInfo(inProduct)
+	if err != nil {
+		t.Fatal(err)
+	}
+	outProduct, err := w.loadProductInfo("123456")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want, got := inProduct.Info.Name, outProduct.Info.Name; want != got {
+		t.Errorf("Expected %s, got %s", want, got)
+	}
+	if want, got := inProduct.Info.Offers.Price, outProduct.Info.Offers.Price; want.Cmp(got) != 0 {
+		t.Errorf("Expected %v, got %v", want, got)
+	}
+	if want, got := inProduct.departmentID, outProduct.departmentID; want != got {
+		t.Errorf("Expected %s, got %s", want, got)
+	}
+	if want, got := inProduct.departmentDescription, outProduct.departmentDescription; want != got {
+		t.Errorf("Expected %s, got %s", want, got)
+	}
+
 }

@@ -46,6 +46,7 @@ func (w *Woolworths) GetSharedProductsUpdatedAfter(t time.Time, count int) ([]sh
 		}
 		product.ID = WOOLWORTHS_ID_PREFIX + product.ID
 		product.Store = "Woolworths"
+		// product.Department =
 		productIDs = append(productIDs, product)
 	}
 	return productIDs, nil
