@@ -8,6 +8,9 @@
 * Monitor disk utilisation
 
 ### General
+* Extract barcode from category page along with the stockcode, E.G. "Stockcode":134034,"Barcode":"0263151000002"
+    * See internal/woolworths/junk/product_info_from_category_page.json
+* Also consider extracting ALL product information from the category page. It would simplify things hugely.
 * Add persistence to last-checked time. Store it in the grocery data provider. GetProductsSinceLastCheck(maxcount int).
     * Not sure if this is a great idea. Maybe persist the last-checked time in a main-level DB.
 * Calculate $/g where possible
