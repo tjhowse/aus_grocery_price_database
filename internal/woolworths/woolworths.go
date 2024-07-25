@@ -68,7 +68,7 @@ func (w *Woolworths) Init(baseURL string, dbPath string, productMaxAge time.Dura
 			Jar:     w.cookieJar,
 			Timeout: 30 * time.Second,
 		},
-		Ratelimiter: rate.NewLimiter(rate.Every(100*time.Millisecond), 1),
+		Ratelimiter: rate.NewLimiter(rate.Every(50*time.Millisecond), 1),
 	}
 	w.productMaxAge = productMaxAge
 	err = w.initDB(dbPath)
