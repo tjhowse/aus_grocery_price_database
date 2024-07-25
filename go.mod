@@ -7,6 +7,7 @@ require (
 	github.com/influxdata/influxdb-client-go/v2 v2.13.0
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/shopspring/decimal v1.4.0
+	golang.org/x/sys v0.22.0
 	golang.org/x/time v0.5.0
 )
 

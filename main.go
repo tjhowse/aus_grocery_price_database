@@ -12,7 +12,7 @@ import (
 	woolworths "github.com/tjhowse/aus_grocery_price_database/internal/woolworths"
 )
 
-const VERSION = "0.0.15"
+const VERSION = "0.0.16"
 
 type config struct {
 	InfluxDBURL                 string `env:"INFLUXDB_URL"`
@@ -113,10 +113,14 @@ func run(running *bool, cfg *config, tsDB timeseriesDB, w ProductInfoGetter) {
 			systemStatus.ProductsPerSecond = float64(updateCountSinceLastStatusReport) / 60
 			updateCountSinceLastStatusReport = 0
 			systemStatus.RAMUtilisationPercent = GetRAMUtilisationPercent()
+			systemStatus.HDDBytesFree, err = GetHDDBytesFree()
+			if err != nil {
+				slog.Error("Error getting HDD free space", "error", err)
+			}
 			tsDB.WriteSystemDatapoint(systemStatus)
 			statusReportDeadline = time.Now().Add(1 * time.Minute)
+			slog.Debug("Heartbeat")
 		}
 		time.Sleep(time.Duration(cfg.InfluxUpdateIntervalSeconds) * time.Second)
-		slog.Debug("Heartbeat")
 	}
 }
