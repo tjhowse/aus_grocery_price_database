@@ -14,9 +14,7 @@ import (
 )
 
 const WOOLWORTHS_PRODUCT_URL_FORMAT = "%s/api/v3/ui/schemaorg/product/%s"
-const PRODUCT_INFO_WORKER_COUNT = 10
-
-const PRODUCT_INFO_MAX_AGE = 6 * time.Hour
+const PRODUCT_INFO_WORKER_COUNT = 15
 
 var ErrProductMissing = errors.New("no product found")
 

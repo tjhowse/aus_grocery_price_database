@@ -10,6 +10,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 	utils "github.com/tjhowse/aus_grocery_price_database/internal/utils"
@@ -19,7 +20,7 @@ var woolworthsServer = WoolworthsHTTPServer()
 
 func getInitialisedWoolworths() Woolworths {
 	w := Woolworths{}
-	err := w.Init(woolworthsServer.URL, ":memory:", PRODUCT_INFO_MAX_AGE)
+	err := w.Init(woolworthsServer.URL, ":memory:", 10*time.Minute)
 	if err != nil {
 		slog.Error("Failed to initialise Woolworths", "error", err)
 	}
