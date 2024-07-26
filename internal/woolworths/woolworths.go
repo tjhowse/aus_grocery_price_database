@@ -49,6 +49,15 @@ func (w *Woolworths) GetSharedProductsUpdatedAfter(t time.Time, count int) ([]sh
 	return productIDs, nil
 }
 
+func (w *Woolworths) GetTotalProductCount() (int, error) {
+	var count int
+	err := w.db.QueryRow("SELECT COUNT(*) FROM products").Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("failed to query product count: %w", err)
+	}
+	return count, nil
+}
+
 func (w *Woolworths) Init(baseURL string, dbPath string, productMaxAge time.Duration) error {
 	var err error
 

@@ -90,6 +90,10 @@ func (m *MockGroceryStore) GetSharedProductsUpdatedAfter(cutoff time.Time, count
 	return productIDs, nil
 }
 
+func (m *MockGroceryStore) GetTotalProductCount() (int, error) {
+	return 100, nil
+}
+
 func TestRun(t *testing.T) {
 	mockGroceryStore := MockGroceryStore{}
 	mockInfluxDB := MockInfluxDB{}
@@ -171,6 +175,10 @@ func TestRun(t *testing.T) {
 
 	if want, got := 1, len(mockInfluxDB.writtenArbitrarySystemDatapoints); want != got {
 		t.Fatalf("Expected %d items, got %d", want, got)
+	}
+
+	if want, got := 100, mockInfluxDB.writtenSystemDatapoints[0].TotalProductCount; want != got {
+		t.Errorf("Expected %v, got %v", want, got)
 	}
 
 }

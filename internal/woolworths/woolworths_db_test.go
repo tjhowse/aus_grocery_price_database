@@ -168,6 +168,14 @@ func TestGetSharedProductsUpdatedAfter(t *testing.T) {
 		t.Errorf("Expected %v, got %v", want, got)
 	}
 
+	if total, err := w.GetTotalProductCount(); err != nil {
+		t.Fatal(err)
+	} else {
+		if want, got := 6, total; want != got {
+			t.Errorf("Expected %d, got %d", want, got)
+		}
+	}
+
 }
 
 func TestCheckIfKnownProductID(t *testing.T) {
