@@ -86,8 +86,8 @@ func (w *Woolworths) Init(baseURL string, dbPath string, productMaxAge time.Dura
 		"1-E5BEE36E": true, // Fruit & Veg
 		"1_DEB537E":  true, // Bakery
 		"1_D5A2236":  true, // Meat
-		"1_6E4F4E4":  true, // Dairy, Eggs & Fridge
-		"1_39FD49C":  true, // Pantry
+		// "1_6E4F4E4":  true, // Dairy, Eggs & Fridge
+		// "1_39FD49C":  true, // Pantry
 	}
 	return nil
 }

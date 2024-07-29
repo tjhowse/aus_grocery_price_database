@@ -2,6 +2,9 @@
 
 ## Basic
 
+### Optimisations
+* Use transactions for all multi-part SQL operations
+
 ### Devops
 * Github ci/cd
 * Set up private network between services.

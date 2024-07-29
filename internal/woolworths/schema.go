@@ -10,12 +10,6 @@ type JSONTime struct {
 	time.Time
 }
 
-type department struct {
-	Group string         `json:"Group"`
-	Name  string         `json:"Name"`
-	Value []departmentID `json:"Value"`
-}
-
 type departmentInfo struct {
 	NodeID              departmentID `json:"NodeId"`
 	Description         string       `json:"Description"`

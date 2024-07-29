@@ -25,14 +25,20 @@ func (w *Woolworths) productInfoFetchingWorker(input chan productID, output chan
 }
 
 // This produces a stream of product IDs that are expired and need an update.
-func (w *Woolworths) productUpdateQueueWorker(output chan<- productID, maxAge time.Duration) {
-	updatesQueued := make(map[productID]time.Time)
+func (w *Woolworths) productUpdateQueueWorker(output chan<- productID, maxAge time.Duration, batchSize int) {
+	var err error
 	for {
 		var productIDs []productID
-		rows, err := w.db.Query(`	SELECT productID FROM products
+		var rows *sql.Rows
+		var transaction *sql.Tx
+		transaction, err = w.db.Begin()
+		if err != nil {
+			slog.Error(fmt.Sprintf("Error starting transaction: %v", err))
+		}
+		rows, err = transaction.Query(`	SELECT productID FROM products
 									WHERE updated < ?
 									ORDER BY updated ASC
-									LIMIT 20`, time.Now().Add(-maxAge))
+									LIMIT ?`, time.Now().Add(-maxAge), batchSize)
 		if err != nil {
 			if err != sql.ErrNoRows {
 				slog.Error(fmt.Sprintf("Error getting product ID: %v", err))
@@ -44,34 +50,28 @@ func (w *Woolworths) productUpdateQueueWorker(output chan<- productID, maxAge ti
 				if err != nil {
 					slog.Error(fmt.Sprintf("Error scanning product ID: %v", err))
 				}
-				if _, queued := updatesQueued[productID]; queued {
-					continue
-				}
-				// Don't try to update this product for 5 minutes. This will give the
-				// productInfoFetchingWorkers time to update the updated field,
-				// so the above SQL query will stop returning it.
-				updatesQueued[productID] = time.Now().Add(5 * time.Minute)
 				slog.Debug("Product ID needs an update", "productID", productID)
 				productIDs = append(productIDs, productID)
-				// We have our batch of product IDs, bail out.
-				if len(productIDs) >= 10 {
-					break
-				}
 			}
+		}
+
+		// Set the updated time for the selected products to now.
+		// TODO see if this can be done with a productID IN (list) query.
+		// I tried and failed, then used a transaction instead.
+		for _, productID := range productIDs {
+			_, err = transaction.Exec(`UPDATE products SET updated = ? WHERE productID = ?`, time.Now(), productID)
+			if err != nil {
+				slog.Error(fmt.Sprintf("Error updating product info: %v", err))
+			}
+		}
+
+		err = transaction.Commit()
+		if err != nil {
+			slog.Error(fmt.Sprintf("Error committing transaction: %v", err))
 		}
 
 		for _, productID := range productIDs {
-			slog.Debug("Feeding a product ID out of ProductUpdateQueueWorker", "productID", productID)
 			output <- productID
-		}
-
-		// Clean up the updatesQueued map.
-		for productID, updateDeadline := range updatesQueued {
-			// Yes, according to "For statements with range clause" it is kosher to delete
-			// from a map while iterating over it. https://go.dev/ref/spec#For_range
-			if time.Now().After(updateDeadline) {
-				delete(updatesQueued, productID)
-			}
 		}
 	}
 }
@@ -177,6 +177,8 @@ func (w *Woolworths) newProductWorker(output chan<- woolworthsProductInfo) {
 	}
 }
 
+const DEFAULT_PRODUCT_UPDATE_BATCH_SIZE = 10
+
 // Runs up all the workers and mediates data flowing between them.
 // Currently all sqlite writes happen via this function. This may move
 // off to a separate goroutine in the future.
@@ -188,7 +190,7 @@ func (w *Woolworths) Run(cancel chan struct{}) {
 	for i := 0; i < PRODUCT_INFO_WORKER_COUNT; i++ {
 		go w.productInfoFetchingWorker(productsThatNeedAnUpdateChannel, productInfoChannel)
 	}
-	go w.productUpdateQueueWorker(productsThatNeedAnUpdateChannel, w.productMaxAge)
+	go w.productUpdateQueueWorker(productsThatNeedAnUpdateChannel, w.productMaxAge, DEFAULT_PRODUCT_UPDATE_BATCH_SIZE)
 	go w.newProductWorker(productInfoChannel)
 	go w.newDepartmentInfoWorker(newDepartmentInfoChannel)
 
