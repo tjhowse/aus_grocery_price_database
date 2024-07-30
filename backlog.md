@@ -4,6 +4,7 @@
 
 ### Optimisations
 * Use transactions for all multi-part SQL operations
+* Smear updated times a bit to flatten out request rate peaks.
 
 ### Devops
 * Github ci/cd

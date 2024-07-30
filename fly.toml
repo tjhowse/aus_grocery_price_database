@@ -20,7 +20,7 @@ primary_region = 'syd'
 
 
 [[vm]]
-  memory_mb = 256
+  memory_mb = 512
   cpu_kind = 'shared'
   cpus = 1
 
