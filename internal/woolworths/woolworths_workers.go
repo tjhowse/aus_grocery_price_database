@@ -143,6 +143,7 @@ func (w *Woolworths) newProductWorker(output chan<- woolworthsProductInfo) {
 			products, err := w.getProductsFromDepartment(departmentInfo.NodeID)
 			if err != nil {
 				slog.Error("error getting products from department. Trying again later.", "error", err)
+				time.Sleep(5 * time.Second)
 				continue
 			}
 
@@ -169,7 +170,7 @@ func (w *Woolworths) newProductWorker(output chan<- woolworthsProductInfo) {
 		}
 		if len(departmentInfos) > 0 {
 			// If we have bootstrapped we don't need to check for new departments very often.
-			time.Sleep(1 * time.Hour)
+			time.Sleep(1 * time.Minute)
 		} else {
 			time.Sleep(1 * time.Second)
 		}
