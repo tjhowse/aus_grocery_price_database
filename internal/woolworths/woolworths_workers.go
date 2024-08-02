@@ -59,7 +59,7 @@ func (w *Woolworths) productUpdateQueueWorker(output chan<- productID, maxAge ti
 				}
 				slog.Debug("Product ID needs an update", "productID", productID)
 				productIDs = append(productIDs, productID)
-				actualUpdateInterval = updateTime.Sub(productUpdateTime)
+				actualUpdateInterval += updateTime.Sub(productUpdateTime)
 			}
 		}
 		if len(productIDs) > 0 {
