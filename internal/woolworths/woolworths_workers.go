@@ -34,14 +34,16 @@ func (w *Woolworths) productUpdateQueueWorker(output chan<- productID, maxAge ti
 		transaction, err = w.db.Begin()
 		if err != nil {
 			slog.Error(fmt.Sprintf("Error starting transaction: %v", err))
+			time.Sleep(10 * time.Second)
+			continue
 		}
 		rows, err = transaction.Query(`	SELECT productID FROM products
-									WHERE updated < ?
-									ORDER BY updated ASC
-									LIMIT ?`, time.Now().Add(-maxAge), batchSize)
+										WHERE updated < ?
+										ORDER BY updated ASC
+										LIMIT ?`, time.Now().Add(-maxAge), batchSize)
 		if err != nil {
 			if err != sql.ErrNoRows {
-				slog.Error(fmt.Sprintf("Error getting product ID: %v", err))
+				slog.Error(fmt.Sprintf("Error getting productIDs due an update: %v", err))
 			}
 		} else {
 			for rows.Next() {
@@ -49,6 +51,7 @@ func (w *Woolworths) productUpdateQueueWorker(output chan<- productID, maxAge ti
 				err = rows.Scan(&productID)
 				if err != nil {
 					slog.Error(fmt.Sprintf("Error scanning product ID: %v", err))
+					continue
 				}
 				slog.Debug("Product ID needs an update", "productID", productID)
 				productIDs = append(productIDs, productID)
@@ -62,6 +65,7 @@ func (w *Woolworths) productUpdateQueueWorker(output chan<- productID, maxAge ti
 			_, err = transaction.Exec(`UPDATE products SET updated = ? WHERE productID = ?`, time.Now(), productID)
 			if err != nil {
 				slog.Error(fmt.Sprintf("Error updating product info: %v", err))
+				continue
 			}
 		}
 
