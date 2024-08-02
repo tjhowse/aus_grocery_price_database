@@ -32,6 +32,10 @@
         set a 20-ish cap on the number of workers.
 * Export grafana config/dashboards/etc to repo. Embed as a part of dockerfile (?)
 
+### Cleanup
+* I'm sure there are cases in which we're unintentionally shadowing error variables.
+    Run `go vet` with a shadowing thingo to find them. I tried the obvious and it didn't work.
+
 ## Further work
 
 ### Other storefronts
