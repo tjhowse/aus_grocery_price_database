@@ -89,19 +89,6 @@ func (w *Woolworths) productUpdateQueueWorker(output chan<- productID, maxAge ti
 	}
 }
 
-func (w *Woolworths) filterProductIDs(productIDs []productID) []productID {
-	var filtered []productID
-
-	productSet := map[productID]bool{"133211": true, "134034": true, "105919": true, "144607": true, "208895": true, "135306": true, "144329": true, "134681": true, "170225": true, "169438": true, "135344": true, "120080": true, "135369": true, "829107": true, "144497": true, "130935": true, "149864": true, "149620": true, "147071": true, "137102": true, "137130": true, "157649": true, "120384": true, "259450": true, "155003": true, "314075": true, "713429": true, "727144": true, "147603": true, "144336": true, "829360": true, "165262": true, "310968": true, "154340": true, "187314": true, "262783": true}
-
-	for _, productID := range productIDs {
-		if _, ok := productSet[productID]; ok {
-			filtered = append(filtered, productID)
-		}
-	}
-	return filtered
-}
-
 // This worker emits a stream of new department IDs that don't currently exist in the database.
 func (w *Woolworths) newDepartmentInfoWorker(output chan<- departmentInfo) {
 	for {
@@ -158,10 +145,6 @@ func (w *Woolworths) newProductWorker(output chan<- woolworthsProductInfo) {
 				slog.Error("error getting products from department. Trying again later.", "error", err)
 				time.Sleep(5 * time.Second)
 				continue
-			}
-
-			if w.filterProducts {
-				products = w.filterProductIDs(products)
 			}
 
 			for _, productID := range products {

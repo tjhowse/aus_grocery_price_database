@@ -25,7 +25,6 @@ func getInitialisedWoolworths() Woolworths {
 		slog.Error("Failed to initialise Woolworths", "error", err)
 	}
 	w.filterDepartments = false
-	w.filterProducts = false
 	return w
 }
 

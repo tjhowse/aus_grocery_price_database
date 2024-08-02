@@ -28,7 +28,6 @@ func TestScheduler(t *testing.T) {
 		"1_DEB537E":  true, // Bakery
 	}
 	w.filterDepartments = true
-	w.filterProducts = false
 	cancel := make(chan struct{})
 	go w.Run(cancel)
 

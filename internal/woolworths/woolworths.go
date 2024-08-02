@@ -25,7 +25,6 @@ type Woolworths struct {
 	db                       *sql.DB
 	productMaxAge            time.Duration
 	filterDepartments        bool // These are used to limit the departments and products for gradual testing.
-	filterProducts           bool
 	filteredDepartmentIDsSet map[departmentID]bool
 }
 
@@ -63,7 +62,6 @@ func (w *Woolworths) Init(baseURL string, dbPath string, productMaxAge time.Dura
 
 	// These are overridden by tests for now.
 	w.filterDepartments = true
-	w.filterProducts = false
 
 	w.cookieJar, err = cookiejar.New(nil)
 	if err != nil {

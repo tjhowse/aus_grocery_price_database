@@ -152,7 +152,6 @@ func TestGetSharedProductsUpdatedAfter(t *testing.T) {
 	w := Woolworths{}
 	w.Init(woolworthsServer.URL, ":memory:", 5*time.Second)
 	w.filterDepartments = false
-	w.filterProducts = false
 	var infoList []woolworthsProductInfo
 	infoList = append(infoList, woolworthsProductInfo{ID: "123455", Info: productInfo{Name: "1", Offers: offer{Price: decimal.NewFromFloat(1.5)}}, Updated: time.Now().Add(-5 * time.Minute)})
 	infoList = append(infoList, woolworthsProductInfo{ID: "123456", Info: productInfo{Name: "1", Offers: offer{Price: decimal.NewFromFloat(2.4)}}, Updated: time.Now().Add(-4 * time.Minute)})
