@@ -23,7 +23,11 @@ func TestScheduler(t *testing.T) {
 
 	w := Woolworths{}
 	w.Init(woolworthsServer.URL, ":memory:", 100*time.Second)
-	w.filterDepartments = false
+	w.filteredDepartmentIDsSet = map[departmentID]bool{
+		"1-E5BEE36E": true, // Fruit & Veg
+		"1_DEB537E":  true, // Bakery
+	}
+	w.filterDepartments = true
 	w.filterProducts = false
 	cancel := make(chan struct{})
 	go w.Run(cancel)

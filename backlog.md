@@ -10,7 +10,7 @@
 * Github ci/cd
 * Set up private network between services.
 * Set up health check for AGPD container. Touch /tmp/heartbeat or something.
-* Report total products in DB.
+* Report delta between actual product max age and target.
 
 ### General
 * Extract barcode from category page along with the stockcode, E.G. "Stockcode":134034,"Barcode":"0263151000002"
