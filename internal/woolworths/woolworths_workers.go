@@ -31,13 +31,16 @@ func (w *Woolworths) productUpdateQueueWorker(output chan<- productID, maxAge ti
 		var productIDs []productID
 		var rows *sql.Rows
 		var transaction *sql.Tx
+		var actualUpdateInterval time.Duration
+		updateTime := time.Now()
+
 		transaction, err = w.db.Begin()
 		if err != nil {
 			slog.Error(fmt.Sprintf("Error starting transaction: %v", err))
 			time.Sleep(10 * time.Second)
 			continue
 		}
-		rows, err = transaction.Query(`	SELECT productID FROM products
+		rows, err = transaction.Query(`	SELECT productID, updated FROM products
 										WHERE updated < ?
 										ORDER BY updated ASC
 										LIMIT ?`, time.Now().Add(-maxAge), batchSize)
@@ -48,21 +51,27 @@ func (w *Woolworths) productUpdateQueueWorker(output chan<- productID, maxAge ti
 		} else {
 			for rows.Next() {
 				var productID productID
-				err = rows.Scan(&productID)
+				var productUpdateTime time.Time
+				err = rows.Scan(&productID, &productUpdateTime)
 				if err != nil {
 					slog.Error(fmt.Sprintf("Error scanning product ID: %v", err))
 					continue
 				}
 				slog.Debug("Product ID needs an update", "productID", productID)
 				productIDs = append(productIDs, productID)
+				actualUpdateInterval = updateTime.Sub(productUpdateTime)
 			}
+		}
+		if len(productIDs) > 0 {
+			actualUpdateInterval /= time.Duration(len(productIDs))
+			slog.Info("Actual update interval", "interval", actualUpdateInterval)
 		}
 
 		// Set the updated time for the selected products to now.
 		// TODO see if this can be done with a productID IN (list) query.
 		// I tried and failed, then used a transaction instead.
 		for _, productID := range productIDs {
-			_, err = transaction.Exec(`UPDATE products SET updated = ? WHERE productID = ?`, time.Now(), productID)
+			_, err = transaction.Exec(`UPDATE products SET updated = ? WHERE productID = ?`, updateTime, productID)
 			if err != nil {
 				slog.Error(fmt.Sprintf("Error updating product info: %v", err))
 				continue
