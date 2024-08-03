@@ -35,6 +35,8 @@
 ### Cleanup
 * I'm sure there are cases in which we're unintentionally shadowing error variables.
     Run `go vet` with a shadowing thingo to find them. I tried the obvious and it didn't work.
+* Patch grafana in the dockerfile (???) to change the AppTitle and icon for previews
+    https://github.com/VolkovLabs/volkovlabs-app/blob/main/Dockerfile
 
 ## Further work
 
@@ -44,3 +46,6 @@
 
 ### Hosting
 * Write a docker-compose.yaml for non-fly.io hosting.
+
+### Features
+* Scan a barcode to see the price history of that item.
