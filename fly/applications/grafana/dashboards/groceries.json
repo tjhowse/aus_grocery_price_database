@@ -27,12 +27,206 @@
           "type": "influxdb",
           "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
         },
-        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
         "gridPos": {
-          "h": 7,
-          "w": 19,
+          "h": 11,
+          "w": 24,
           "x": 0,
           "y": 0
+        },
+        "id": 5,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "targets": [
+          {
+            "alias": "$UserSelectedProduct",
+            "datasource": {
+              "type": "influxdb",
+              "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
+            },
+            "groupBy": [
+              {
+                "params": [
+                  "$__interval"
+                ],
+                "type": "time"
+              },
+              {
+                "params": [
+                  "previous"
+                ],
+                "type": "fill"
+              }
+            ],
+            "hide": true,
+            "measurement": "product",
+            "orderByTime": "ASC",
+            "policy": "autogen",
+            "query": "SELECT mean(\"cents\")  / 100 FROM \"autogen\".\"product\" WHERE (\"name\"::tag =~ /^$UserSelectedProduct$/) AND $timeFilter GROUP BY time($__interval) fill(previous)",
+            "rawQuery": false,
+            "refId": "A",
+            "resultFormat": "time_series",
+            "select": [
+              [
+                {
+                  "params": [
+                    "cents"
+                  ],
+                  "type": "field"
+                },
+                {
+                  "params": [],
+                  "type": "mean"
+                },
+                {
+                  "params": [
+                    " / 100"
+                  ],
+                  "type": "math"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "name::tag",
+                "operator": "=~",
+                "value": "/^$UserSelectedProduct$/"
+              }
+            ]
+          },
+          {
+            "alias": "$tag_name",
+            "datasource": {
+              "type": "influxdb",
+              "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
+            },
+            "groupBy": [
+              {
+                "params": [
+                  "$__interval"
+                ],
+                "type": "time"
+              },
+              {
+                "params": [
+                  "price::field"
+                ],
+                "type": "tag"
+              }
+            ],
+            "hide": false,
+            "measurement": "product",
+            "orderByTime": "ASC",
+            "policy": "autogen",
+            "query": "SELECT mean(\"cents\")  / 100 FROM \"autogen\".\"product\" WHERE (\"name\"::tag =~ /^$UserSelectedProduct$/) AND $timeFilter GROUP BY *, time($__interval) fill(linear)",
+            "rawQuery": true,
+            "refId": "B",
+            "resultFormat": "time_series",
+            "select": [
+              [
+                {
+                  "params": [
+                    "cents"
+                  ],
+                  "type": "field"
+                },
+                {
+                  "params": [],
+                  "type": "mean"
+                },
+                {
+                  "params": [
+                    " / 100"
+                  ],
+                  "type": "math"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "name::tag",
+                "operator": "=~",
+                "value": "/^$UserSelectedProduct$/"
+              }
+            ]
+          }
+        ],
+        "title": "Price over time of selected products",
+        "transformations": [],
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "influxdb",
+          "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
+        },
+        "description": "",
+        "gridPos": {
+          "h": 10,
+          "w": 10,
+          "x": 0,
+          "y": 11
         },
         "id": 2,
         "options": {
@@ -67,7 +261,7 @@
                 },
                 {
                   "color": "red",
-                  "value": 5000
+                  "value": 20000
                 }
               ]
             }
@@ -75,10 +269,10 @@
           "overrides": []
         },
         "gridPos": {
-          "h": 7,
-          "w": 5,
-          "x": 19,
-          "y": 0
+          "h": 10,
+          "w": 14,
+          "x": 10,
+          "y": 11
         },
         "id": 4,
         "options": {
@@ -174,7 +368,7 @@
           "h": 15,
           "w": 24,
           "x": 0,
-          "y": 7
+          "y": 21
         },
         "id": 3,
         "options": {
@@ -559,7 +753,43 @@
     "style": "dark",
     "tags": [],
     "templating": {
-      "list": []
+      "list": [
+        {
+          "current": {
+            "selected": true,
+            "text": [
+              " Bananas Kids  5 Pack",
+              " Beans Round  Per Kg",
+              " Beetroot Loose  Each",
+              " Blueberries Punnet 125g Punnet"
+            ],
+            "value": [
+              " Bananas Kids  5 Pack",
+              " Beans Round  Per Kg",
+              " Beetroot Loose  Each",
+              " Blueberries Punnet 125g Punnet"
+            ]
+          },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
+          },
+          "definition": "show tag values from \"product\" WITH key = \"name\"",
+          "description": "Products selected for the custom plot",
+          "hide": 0,
+          "includeAll": false,
+          "label": "Select products to plot",
+          "multi": true,
+          "name": "UserSelectedProduct",
+          "options": [],
+          "query": "show tag values from \"product\" WITH key = \"name\"",
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 0,
+          "type": "query"
+        }
+      ]
     },
     "time": {
       "from": "2024-07-24T11:58:47.000Z",
@@ -569,6 +799,6 @@
     "timezone": "",
     "title": "Groceries",
     "uid": "dd34eddb-26fc-48ce-88fb-19ef7b18734e",
-    "version": 10,
+    "version": 16,
     "weekStart": ""
   }
