@@ -11,6 +11,7 @@
 * Set up private network between services.
 * Set up health check for AGPD container. Touch /tmp/heartbeat or something.
 * Report delta between actual product max age and target.
+* Periodic backups of timeseries DB to S3/other block storage. Possibly just clone fly.io volume?
 
 ### General
 * Extract barcode from category page along with the stockcode, E.G. "Stockcode":134034,"Barcode":"0263151000002"
