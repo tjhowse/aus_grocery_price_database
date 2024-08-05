@@ -66,7 +66,7 @@ func WoolworthsHTTPServer() *httptest.Server {
 		"data/524336.json",
 		"data/category_1-E5BEE36E_1.json",
 		"data/category_1-E5BEE36E_2.json",
-		"data/fruit-veg.html",
+		"data/fruit-veg.html.file",
 	}
 	fileContents := make(map[string][]byte)
 	for _, filename := range filesToLoad {
@@ -85,7 +85,7 @@ func WoolworthsHTTPServer() *httptest.Server {
 			}
 			responseFilename = fmt.Sprintf("data/%d.json", productID)
 		} else if strings.HasPrefix(r.URL.Path, "/shop/browse/fruit-veg") {
-			responseFilename = "data/fruit-veg.html"
+			responseFilename = "data/fruit-veg.html.file"
 		} else if strings.HasPrefix(r.URL.Path, "/apis/ui/browse/category") {
 			var categoryRequest categoryRequestBody
 			body, err := io.ReadAll(r.Body)
@@ -154,7 +154,7 @@ func TestGetProductInfo(t *testing.T) {
 }
 
 func TestExtractDepartmentInfos(t *testing.T) {
-	f, err := os.Open("data/fruit-veg.html")
+	f, err := os.Open("data/fruit-veg.html.file")
 	if err != nil {
 		t.Fatal(err)
 	}
