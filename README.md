@@ -2,7 +2,7 @@
 
 https://auscost.com.au
 
-This service grocery prices from Woolworth's website to an influxdb timeseries database.
+This service reads grocery prices from Woolworth's website to an influxdb timeseries database.
 
 In the future it could read from other Australian grocers, based on time, motivation, etc.
 

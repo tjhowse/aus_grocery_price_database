@@ -13,6 +13,7 @@ import (
 )
 
 const VERSION = "0.0.27"
+const SYSTEM_STATUS_UPDATE_INTERVAL_SECONDS = 60
 
 type config struct {
 	InfluxDBURL                 string `env:"INFLUXDB_URL"`
@@ -76,21 +77,21 @@ func run(running *bool, cfg *config, tsDB timeseriesDB, w ProductInfoGetter) {
 
 	tsDB.WriteArbitrarySystemDatapoint(SYSTEM_VERSION_FIELD, VERSION)
 
-	products := make(chan shared.ProductInfo)
-	go tsDB.WriteWorker(products)
-	defer close(products)
+	productInfoUpdateChannel := make(chan shared.ProductInfo)
+	go tsDB.WriteWorker(productInfoUpdateChannel)
+	defer close(productInfoUpdateChannel)
 
 	cancel := make(chan struct{})
 	defer close(cancel)
 	go w.Run(cancel)
 
-	var systemStatus SystemStatusDatapoint
-
-	// Assume we were shut down for half an hour.
-	// TODO Store the last update time in a main-level database.
 	updateTime := time.Now().Add(-1 * time.Minute)
 	var updateCountSinceLastStatusReport int
+
+	var systemStatus SystemStatusDatapoint
+	// Ensure a status update is sent out immediately.
 	statusReportDeadline := time.Now().Add(-30 * time.Minute)
+
 	for *running {
 		woolworthsProducts, err := w.GetSharedProductsUpdatedAfter(updateTime, 100)
 		if err != nil {
@@ -101,29 +102,34 @@ func run(running *bool, cfg *config, tsDB timeseriesDB, w ProductInfoGetter) {
 		if len(woolworthsProducts) != 0 {
 			updateTime = time.Now()
 		}
-		for _, product := range woolworthsProducts {
-			if product.Name == "" {
-				slog.Warn("Product has no name", "product", product)
+		for _, newProductInfo := range woolworthsProducts {
+			if newProductInfo.Name == "" {
+				slog.Warn("Product has no name", "product", newProductInfo)
 				continue
 			}
-			slog.Info("Updating product data", "name", product.Name, "price", product.PriceCents)
-			products <- product
+			slog.Info("Updating product data", "name", newProductInfo.Name, "price", newProductInfo.PriceCents)
+			productInfoUpdateChannel <- newProductInfo
 		}
+
 		updateCountSinceLastStatusReport += len(woolworthsProducts)
+
+		// Send a system status update if required.
 		if time.Now().After(statusReportDeadline) {
-			systemStatus.ProductsPerSecond = float64(updateCountSinceLastStatusReport) / 60
+			systemStatus.ProductsPerSecond = float64(updateCountSinceLastStatusReport) / SYSTEM_STATUS_UPDATE_INTERVAL_SECONDS
 			updateCountSinceLastStatusReport = 0
+
 			systemStatus.RAMUtilisationPercent = GetRAMUtilisationPercent()
 			systemStatus.HDDBytesFree, err = GetHDDBytesFree()
 			if err != nil {
 				slog.Error("Error getting HDD free space", "error", err)
 			}
+
 			systemStatus.TotalProductCount, err = w.GetTotalProductCount()
 			if err != nil {
 				slog.Error("Error getting total product count", "error", err)
 			}
 			tsDB.WriteSystemDatapoint(systemStatus)
-			statusReportDeadline = time.Now().Add(1 * time.Minute)
+			statusReportDeadline = time.Now().Add(SYSTEM_STATUS_UPDATE_INTERVAL_SECONDS * time.Second)
 			slog.Debug("Heartbeat")
 		}
 		time.Sleep(time.Duration(cfg.InfluxUpdateIntervalSeconds) * time.Second)
