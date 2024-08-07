@@ -7,7 +7,6 @@
 * Smear updated times a bit to flatten out request rate peaks.
 
 ### Devops
-* Github ci/cd
 * Set up private network between services.
 * Set up health check for AGPD container. Touch /tmp/heartbeat or something.
 * Report delta between actual product max age and target.
