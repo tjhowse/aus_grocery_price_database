@@ -137,6 +137,37 @@ func (w *Woolworths) saveProductInfo(productInfo woolworthsProductInfo) error {
 }
 
 // Saves product info to the database
+func (w *Woolworths) saveProductInfoExtended(productInfo woolworthsProductInfoExtended) error {
+	var err error
+	var result sql.Result
+
+	productInfoString := "raw json todo"
+
+	result, err = w.db.Exec(`
+			INSERT INTO products (productID, name, description, priceCents, weightGrams, productJSON, updated)
+			VALUES (?, ?, ?, ?, ?, ?, ?)
+			ON CONFLICT(productID) DO UPDATE SET productID = ?, name = ?, description = ?, priceCents = ?, weightGrams = ?, productJSON = ?, updated = ?`,
+		productInfo.ID, productInfo.Info.Name, productInfo.Info.Description,
+		productInfo.Info.Price.Mul(decimal.NewFromInt(100)).IntPart(),
+		productInfo.Info.UnitWeightInGrams, productInfoString, productInfo.Updated,
+
+		productInfo.ID, productInfo.Info.Name, productInfo.Info.Description,
+		productInfo.Info.Price.Mul(decimal.NewFromInt(100)).IntPart(),
+		productInfo.Info.UnitWeightInGrams, productInfoString, productInfo.Updated)
+
+	if err != nil {
+		return fmt.Errorf("failed to update product info: %w", err)
+	}
+	if rowsAffected, err := result.RowsAffected(); err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	} else if rowsAffected == 0 {
+		slog.Warn("Product info not updated.")
+	}
+
+	return nil
+}
+
+// Saves product info to the database
 func (w *Woolworths) saveDepartment(departmentInfo departmentInfo) error {
 	var err error
 	var result sql.Result

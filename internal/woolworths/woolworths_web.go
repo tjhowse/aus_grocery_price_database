@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"time"
 )
 
 func extractStockCodes(body categoryData) ([]string, error) {
@@ -140,7 +141,7 @@ func (w *Woolworths) getProductsFromDepartment(department departmentID) ([]produ
 	page := 1
 
 	for {
-		ids, count, err := w.getProductIDsCountFromListPage(department, page)
+		ids, count, err := w.getProductIDsAndCountFromListPage(department, page)
 		if err != nil {
 			return prodIDs, err
 		}
@@ -154,6 +155,34 @@ func (w *Woolworths) getProductsFromDepartment(department departmentID) ([]produ
 	return prodIDs, nil
 }
 
+func (w *Woolworths) extractProductInfoFromProductListPage(body []byte) ([]woolworthsProductInfoExtended, error) {
+	productInfos := []woolworthsProductInfoExtended{}
+
+	// Unmarshal body into a productListPage
+	var productListPage productListPage
+	if err := json.Unmarshal(body, &productListPage); err != nil {
+		return productInfos, fmt.Errorf("failed to unmarshal product list page: %w", err)
+	}
+
+	// // Extract the product info from the productListPage
+	for _, products := range productListPage.Bundles {
+		if len(products.Products) != 1 {
+			return productInfos, fmt.Errorf("expected 1 product in bundle, got %d", len(products.Products))
+		}
+		product := products.Products[0]
+		productInfos = append(productInfos, woolworthsProductInfoExtended{
+			ID:                    productID(strconv.Itoa(product.Stockcode)),
+			departmentID:          departmentID(product.AdditionalAttributes.PiesProductDepartmentNodeID),
+			departmentDescription: product.AdditionalAttributes.Sapdepartmentname,
+			Info:                  product,
+			Updated:               time.Now(),
+		})
+	}
+
+	return productInfos, nil
+}
+
+// getProductListPage returns the bytes of the product list page for the given department and page number.
 func (w *Woolworths) getProductListPage(department departmentID, page int) ([]byte, error) {
 
 	var url string
@@ -195,7 +224,7 @@ func (w *Woolworths) getProductListPage(department departmentID, page int) ([]by
 // This queries the Woolworths API to get the product list for a department. It reads
 // the specified page of that department's product list, returning the list of product
 // IDs and the total number of products in the department.
-func (w *Woolworths) getProductIDsCountFromListPage(department departmentID, page int) ([]productID, int, error) {
+func (w *Woolworths) getProductIDsAndCountFromListPage(department departmentID, page int) ([]productID, int, error) {
 	var totalCount int
 
 	prodIDs := []productID{}
@@ -218,6 +247,20 @@ func (w *Woolworths) getProductIDsCountFromListPage(department departmentID, pag
 		prodIDs = append(prodIDs, productID(code))
 	}
 	return prodIDs, totalCount, nil
+}
+
+// getProductInfoFromListPage returns the product information from the department list page
+func (w *Woolworths) getProductInfoExtendedFromListPage(department departmentID, page int) ([]woolworthsProductInfoExtended, error) {
+	productInfos := []woolworthsProductInfoExtended{}
+	var body []byte
+	var err error
+
+	body, err = w.getProductListPage(department, page)
+	if err != nil {
+		return productInfos, err
+	}
+
+	return w.extractProductInfoFromProductListPage(body)
 }
 
 // This queries the Woolworths API to get the product information

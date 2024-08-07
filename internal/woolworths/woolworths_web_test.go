@@ -13,6 +13,7 @@ import (
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/shopspring/decimal"
 	utils "github.com/tjhowse/aus_grocery_price_database/internal/utils"
 )
 
@@ -118,7 +119,7 @@ func WoolworthsHTTPServer() *httptest.Server {
 func TestGetProductListPage(t *testing.T) {
 	w := getInitialisedWoolworths()
 
-	prodIDs, count, err := w.getProductIDsCountFromListPage("1-E5BEE36E", 1)
+	prodIDs, count, err := w.getProductIDsAndCountFromListPage("1-E5BEE36E", 1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -228,4 +229,45 @@ func TestGetProductsFromDepartment(t *testing.T) {
 	if want, got := 38, len(productIDs); want != got {
 		t.Errorf("Expected %d items, got %d", want, got)
 	}
+	for _, productID := range productIDs {
+		fmt.Println("Product ID:", productID)
+	}
+}
+
+func TestGetProductInfoExtendedFromListPage(t *testing.T) {
+
+	w := getInitialisedWoolworths()
+
+	productInfo, err := w.getProductInfoExtendedFromListPage("1-E5BEE36E", 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want, got := 36, len(productInfo); want != got {
+		t.Errorf("Expected %d items, got %d", want, got)
+	}
+
+	if want, got := "Cavendish Bananas Each", productInfo[0].Info.DisplayName; want != got {
+		t.Errorf("Expected %s, got %s", want, got)
+	}
+
+	if want, got := decimal.NewFromFloat(0.72), productInfo[0].Info.Price; !want.Equal(got) {
+		t.Errorf("Expected %s, got %s", want, got)
+	}
+
+	if want, got := "0264011000002", productInfo[0].Info.Barcode; want != got {
+		t.Errorf("Expected %s, got %s", want, got)
+	}
+
+	if want, got := "Woolworths Washed Potatoes Bag 2kg", productInfo[35].Info.DisplayName; want != got {
+		t.Errorf("Expected %s, got %s", want, got)
+	}
+
+	if want, got := decimal.NewFromFloat(4), productInfo[35].Info.Price; !want.Equal(got) {
+		t.Errorf("Expected %s, got %s", want, got)
+	}
+
+	if want, got := "9300633050559", productInfo[35].Info.Barcode; want != got {
+		t.Errorf("Expected %s, got %s", want, got)
+	}
+
 }

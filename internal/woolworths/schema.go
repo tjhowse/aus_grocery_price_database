@@ -48,6 +48,16 @@ type woolworthsProductInfo struct {
 	Updated               time.Time
 }
 
+// This will eventually supplant woolworthsProductInfo
+type woolworthsProductInfoExtended struct {
+	ID                    productID
+	departmentID          departmentID
+	departmentDescription string
+	Info                  productListPageProduct
+	RawJSON               []byte
+	Updated               time.Time
+}
+
 type categoryRequestBody struct {
 	CategoryID                      departmentID `json:"categoryId"`
 	PageNumber                      int          `json:"pageNumber"`
@@ -264,4 +274,317 @@ type buyAction struct {
 	Result                    interface{} `json:"result"`
 	StartTime                 interface{} `json:"startTime"`
 	Target                    interface{} `json:"target"`
+}
+
+type productListPageProduct struct {
+	TileID                    int             `json:"TileID"`
+	Stockcode                 int             `json:"Stockcode"`
+	Barcode                   string          `json:"Barcode"`
+	GtinFormat                int             `json:"GtinFormat"`
+	CupPrice                  float64         `json:"CupPrice"`
+	InstoreCupPrice           float64         `json:"InstoreCupPrice"`
+	CupMeasure                string          `json:"CupMeasure"`
+	CupString                 string          `json:"CupString"`
+	InstoreCupString          string          `json:"InstoreCupString"`
+	HasCupPrice               bool            `json:"HasCupPrice"`
+	InstoreHasCupPrice        bool            `json:"InstoreHasCupPrice"`
+	Price                     decimal.Decimal `json:"Price"`
+	InstorePrice              float64         `json:"InstorePrice"`
+	Name                      string          `json:"Name"`
+	DisplayName               string          `json:"DisplayName"`
+	URLFriendlyName           string          `json:"UrlFriendlyName"`
+	Description               string          `json:"Description"`
+	SmallImageFile            string          `json:"SmallImageFile"`
+	MediumImageFile           string          `json:"MediumImageFile"`
+	LargeImageFile            string          `json:"LargeImageFile"`
+	IsNew                     bool            `json:"IsNew"`
+	IsHalfPrice               bool            `json:"IsHalfPrice"`
+	IsOnlineOnly              bool            `json:"IsOnlineOnly"`
+	IsOnSpecial               bool            `json:"IsOnSpecial"`
+	InstoreIsOnSpecial        bool            `json:"InstoreIsOnSpecial"`
+	IsEdrSpecial              bool            `json:"IsEdrSpecial"`
+	SavingsAmount             float64         `json:"SavingsAmount"`
+	InstoreSavingsAmount      float64         `json:"InstoreSavingsAmount"`
+	WasPrice                  float64         `json:"WasPrice"`
+	InstoreWasPrice           float64         `json:"InstoreWasPrice"`
+	QuantityInTrolley         int             `json:"QuantityInTrolley"`
+	Unit                      string          `json:"Unit"`
+	MinimumQuantity           int             `json:"MinimumQuantity"`
+	HasBeenBoughtBefore       bool            `json:"HasBeenBoughtBefore"`
+	IsInTrolley               bool            `json:"IsInTrolley"`
+	Source                    string          `json:"Source"`
+	SupplyLimit               int             `json:"SupplyLimit"`
+	ProductLimit              int             `json:"ProductLimit"`
+	MaxSupplyLimitMessage     string          `json:"MaxSupplyLimitMessage"`
+	IsRanged                  bool            `json:"IsRanged"`
+	IsInStock                 bool            `json:"IsInStock"`
+	PackageSize               string          `json:"PackageSize"`
+	IsPmDelivery              bool            `json:"IsPmDelivery"`
+	IsForCollection           bool            `json:"IsForCollection"`
+	IsForDelivery             bool            `json:"IsForDelivery"`
+	IsForExpress              bool            `json:"IsForExpress"`
+	ProductRestrictionMessage interface{}     `json:"ProductRestrictionMessage"`
+	ProductWarningMessage     interface{}     `json:"ProductWarningMessage"`
+	CentreTag                 struct {
+		TagContent                      interface{} `json:"TagContent"`
+		TagLink                         interface{} `json:"TagLink"`
+		FallbackText                    interface{} `json:"FallbackText"`
+		TagType                         string      `json:"TagType"`
+		MultibuyData                    interface{} `json:"MultibuyData"`
+		MemberPriceData                 interface{} `json:"MemberPriceData"`
+		TagContentText                  interface{} `json:"TagContentText"`
+		DualImageTagContent             interface{} `json:"DualImageTagContent"`
+		PromotionType                   string      `json:"PromotionType"`
+		IsRegisteredRewardCardPromotion bool        `json:"IsRegisteredRewardCardPromotion"`
+	} `json:"CentreTag"`
+	IsCentreTag bool `json:"IsCentreTag"`
+	ImageTag    struct {
+		TagContent                      string      `json:"TagContent"`
+		TagLink                         interface{} `json:"TagLink"`
+		FallbackText                    string      `json:"FallbackText"`
+		TagType                         string      `json:"TagType"`
+		MultibuyData                    interface{} `json:"MultibuyData"`
+		MemberPriceData                 interface{} `json:"MemberPriceData"`
+		TagContentText                  interface{} `json:"TagContentText"`
+		DualImageTagContent             interface{} `json:"DualImageTagContent"`
+		PromotionType                   string      `json:"PromotionType"`
+		IsRegisteredRewardCardPromotion bool        `json:"IsRegisteredRewardCardPromotion"`
+	} `json:"ImageTag"`
+	HeaderTag                    interface{} `json:"HeaderTag"`
+	HasHeaderTag                 bool        `json:"HasHeaderTag"`
+	UnitWeightInGrams            int         `json:"UnitWeightInGrams"`
+	SupplyLimitMessage           string      `json:"SupplyLimitMessage"`
+	SmallFormatDescription       string      `json:"SmallFormatDescription"`
+	FullDescription              string      `json:"FullDescription"`
+	IsAvailable                  bool        `json:"IsAvailable"`
+	InstoreIsAvailable           bool        `json:"InstoreIsAvailable"`
+	IsPurchasable                bool        `json:"IsPurchasable"`
+	InstoreIsPurchasable         bool        `json:"InstoreIsPurchasable"`
+	AgeRestricted                bool        `json:"AgeRestricted"`
+	DisplayQuantity              int         `json:"DisplayQuantity"`
+	RichDescription              interface{} `json:"RichDescription"`
+	HideWasSavedPrice            bool        `json:"HideWasSavedPrice"`
+	SapCategories                interface{} `json:"SapCategories"`
+	Brand                        interface{} `json:"Brand"`
+	IsRestrictedByDeliveryMethod bool        `json:"IsRestrictedByDeliveryMethod"`
+	FooterTag                    struct {
+		TagContent                      interface{} `json:"TagContent"`
+		TagLink                         interface{} `json:"TagLink"`
+		FallbackText                    interface{} `json:"FallbackText"`
+		TagType                         string      `json:"TagType"`
+		MultibuyData                    interface{} `json:"MultibuyData"`
+		MemberPriceData                 interface{} `json:"MemberPriceData"`
+		TagContentText                  interface{} `json:"TagContentText"`
+		DualImageTagContent             interface{} `json:"DualImageTagContent"`
+		PromotionType                   string      `json:"PromotionType"`
+		IsRegisteredRewardCardPromotion bool        `json:"IsRegisteredRewardCardPromotion"`
+	} `json:"FooterTag"`
+	IsFooterEnabled      bool        `json:"IsFooterEnabled"`
+	Diagnostics          string      `json:"Diagnostics"`
+	IsBundle             bool        `json:"IsBundle"`
+	IsInFamily           bool        `json:"IsInFamily"`
+	ChildProducts        interface{} `json:"ChildProducts"`
+	URLOverride          interface{} `json:"UrlOverride"`
+	AdditionalAttributes struct {
+		Boxedcontents                interface{} `json:"boxedcontents"`
+		Addedvitaminsandminerals     string      `json:"addedvitaminsandminerals"`
+		Sapdepartmentname            string      `json:"sapdepartmentname"`
+		Spf                          interface{} `json:"spf"`
+		Haircolour                   interface{} `json:"haircolour"`
+		Lifestyleanddietarystatement interface{} `json:"lifestyleanddietarystatement"`
+		Sapcategoryname              string      `json:"sapcategoryname"`
+		Skintype                     interface{} `json:"skintype"`
+		Importantinformation         interface{} `json:"importantinformation"`
+		Allergystatement             interface{} `json:"allergystatement"`
+		Productdepthmm               interface{} `json:"productdepthmm"`
+		Skincondition                interface{} `json:"skincondition"`
+		Ophthalmologistapproved      interface{} `json:"ophthalmologistapproved"`
+		Healthstarrating             string      `json:"healthstarrating"`
+		Hairtype                     interface{} `json:"hairtype"`
+		FragranceFree                interface{} `json:"fragrance-free"`
+		Sapsegmentname               string      `json:"sapsegmentname"`
+		Suitablefor                  interface{} `json:"suitablefor"`
+		PiesProductDepartmentsjson   string      `json:"PiesProductDepartmentsjson"`
+		Piessubcategorynamesjson     string      `json:"piessubcategorynamesjson"`
+		Sapsegmentno                 string      `json:"sapsegmentno"`
+		Productwidthmm               interface{} `json:"productwidthmm"`
+		Contains                     interface{} `json:"contains"`
+		Sapsubcategoryname           string      `json:"sapsubcategoryname"`
+		Dermatologisttested          interface{} `json:"dermatologisttested"`
+		WoolProductpackaging         interface{} `json:"wool_productpackaging"`
+		Dermatologicallyapproved     interface{} `json:"dermatologicallyapproved"`
+		Specialsgroupid              interface{} `json:"specialsgroupid"`
+		Productimages                string      `json:"productimages"`
+		Productheightmm              interface{} `json:"productheightmm"`
+		RRHidereviews                interface{} `json:"r&r_hidereviews"`
+		Microwavesafe                string      `json:"microwavesafe"`
+		PabaFree                     interface{} `json:"paba-free"`
+		Lifestyleclaim               interface{} `json:"lifestyleclaim"`
+		Alcoholfree                  interface{} `json:"alcoholfree"`
+		Tgawarning                   interface{} `json:"tgawarning"`
+		Activeconstituents           interface{} `json:"activeconstituents"`
+		Microwaveable                string      `json:"microwaveable"`
+		SoapFree                     interface{} `json:"soap-free"`
+		Countryoforigin              interface{} `json:"countryoforigin"`
+		Isexcludedfromsubstitution   string      `json:"isexcludedfromsubstitution"`
+		Productimagecount            string      `json:"productimagecount"`
+		RRLoggedinreviews            interface{} `json:"r&r_loggedinreviews"`
+		AntiDandruff                 interface{} `json:"anti-dandruff"`
+		ServingsizeTotalNip          interface{} `json:"servingsize-total-nip"`
+		Tgahealthwarninglink         interface{} `json:"tgahealthwarninglink"`
+		Allergenmaybepresent         interface{} `json:"allergenmaybepresent"`
+		PiesProductDepartmentNodeID  string      `json:"PiesProductDepartmentNodeId"`
+		Parabenfree                  string      `json:"parabenfree"`
+		Vendorarticleid              interface{} `json:"vendorarticleid"`
+		Containsgluten               string      `json:"containsgluten"`
+		Containsnuts                 string      `json:"containsnuts"`
+		Ingredients                  interface{} `json:"ingredients"`
+		Colour                       interface{} `json:"colour"`
+		Manufacturer                 interface{} `json:"manufacturer"`
+		Sapcategoryno                string      `json:"sapcategoryno"`
+		Storageinstructions          interface{} `json:"storageinstructions"`
+		Tgawarnings                  interface{} `json:"tgawarnings"`
+		Piesdepartmentnamesjson      string      `json:"piesdepartmentnamesjson"`
+		Brand                        interface{} `json:"brand"`
+		Oilfree                      interface{} `json:"oilfree"`
+		Fragrance                    interface{} `json:"fragrance"`
+		Antibacterial                string      `json:"antibacterial"`
+		NonComedogenic               interface{} `json:"non-comedogenic"`
+		Antiseptic                   string      `json:"antiseptic"`
+		Bpafree                      string      `json:"bpafree"`
+		Vendorcostprice              interface{} `json:"vendorcostprice"`
+		Description                  string      `json:"description"`
+		Sweatresistant               interface{} `json:"sweatresistant"`
+		Sapsubcategoryno             string      `json:"sapsubcategoryno"`
+		Antioxidant                  string      `json:"antioxidant"`
+		Claims                       interface{} `json:"claims"`
+		Phbalanced                   interface{} `json:"phbalanced"`
+		WoolDietaryclaim             interface{} `json:"wool_dietaryclaim"`
+		Ophthalmologisttested        interface{} `json:"ophthalmologisttested"`
+		Sulfatefree                  string      `json:"sulfatefree"`
+		Piescategorynamesjson        string      `json:"piescategorynamesjson"`
+		ServingsperpackTotalNip      interface{} `json:"servingsperpack-total-nip"`
+		Nutritionalinformation       interface{} `json:"nutritionalinformation"`
+		Ovencook                     string      `json:"ovencook"`
+		Vegetarian                   string      `json:"vegetarian"`
+		HypoAllergenic               interface{} `json:"hypo-allergenic"`
+		Timer                        interface{} `json:"timer"`
+		Dermatologistrecommended     interface{} `json:"dermatologistrecommended"`
+		Sapdepartmentno              string      `json:"sapdepartmentno"`
+		Allergencontains             interface{} `json:"allergencontains"`
+		Waterresistant               interface{} `json:"waterresistant"`
+		Friendlydisclaimer           interface{} `json:"friendlydisclaimer"`
+		Recyclableinformation        interface{} `json:"recyclableinformation"`
+		Usageinstructions            interface{} `json:"usageinstructions"`
+		Freezable                    string      `json:"freezable"`
+	} `json:"AdditionalAttributes"`
+	DetailsImagePaths []string    `json:"DetailsImagePaths"`
+	Variety           interface{} `json:"Variety"`
+	Rating            struct {
+		ReviewCount         int `json:"ReviewCount"`
+		RatingCount         int `json:"RatingCount"`
+		RatingSum           int `json:"RatingSum"`
+		OneStarCount        int `json:"OneStarCount"`
+		TwoStarCount        int `json:"TwoStarCount"`
+		ThreeStarCount      int `json:"ThreeStarCount"`
+		FourStarCount       int `json:"FourStarCount"`
+		FiveStarCount       int `json:"FiveStarCount"`
+		Average             int `json:"Average"`
+		OneStarPercentage   int `json:"OneStarPercentage"`
+		TwoStarPercentage   int `json:"TwoStarPercentage"`
+		ThreeStarPercentage int `json:"ThreeStarPercentage"`
+		FourStarPercentage  int `json:"FourStarPercentage"`
+		FiveStarPercentage  int `json:"FiveStarPercentage"`
+	} `json:"Rating"`
+	HasProductSubs        bool        `json:"HasProductSubs"`
+	IsSponsoredAd         bool        `json:"IsSponsoredAd"`
+	AdID                  interface{} `json:"AdID"`
+	AdIndex               interface{} `json:"AdIndex"`
+	AdStatus              interface{} `json:"AdStatus"`
+	IsMarketProduct       bool        `json:"IsMarketProduct"`
+	IsGiftable            bool        `json:"IsGiftable"`
+	Vendor                interface{} `json:"Vendor"`
+	Untraceable           bool        `json:"Untraceable"`
+	ThirdPartyProductInfo interface{} `json:"ThirdPartyProductInfo"`
+	MarketFeatures        interface{} `json:"MarketFeatures"`
+	MarketSpecifications  interface{} `json:"MarketSpecifications"`
+	SupplyLimitSource     string      `json:"SupplyLimitSource"`
+	Tags                  []struct {
+		Content struct {
+			Type       string `json:"Type"`
+			Position   string `json:"Position"`
+			Attributes struct {
+				ImagePath    string `json:"ImagePath"`
+				FallbackText string `json:"FallbackText"`
+			} `json:"Attributes"`
+		} `json:"Content"`
+		TemplateID interface{} `json:"TemplateId"`
+		Metadata   interface{} `json:"Metadata"`
+	} `json:"Tags"`
+	IsPersonalisedByPurchaseHistory bool        `json:"IsPersonalisedByPurchaseHistory"`
+	IsFromFacetedSearch             bool        `json:"IsFromFacetedSearch"`
+	NextAvailabilityDate            time.Time   `json:"NextAvailabilityDate"`
+	NumberOfSubstitutes             int         `json:"NumberOfSubstitutes"`
+	IsPrimaryVariant                bool        `json:"IsPrimaryVariant"`
+	VariantGroupID                  int         `json:"VariantGroupId"`
+	HasVariants                     bool        `json:"HasVariants"`
+	VariantTitle                    interface{} `json:"VariantTitle"`
+	IsTobacco                       bool        `json:"IsTobacco"`
+	IsB2BExtendedRangeSapCategory   bool        `json:"IsB2BExtendedRangeSapCategory"`
+}
+
+type productListPageProducts struct {
+	Products    []productListPageProduct `json:"Products"`
+	Name        string                   `json:"Name"`
+	DisplayName string                   `json:"DisplayName"`
+}
+
+type productListPage struct {
+	SeoMetaTags struct {
+		Title           string        `json:"Title"`
+		MetaDescription string        `json:"MetaDescription"`
+		Groups          []interface{} `json:"Groups"`
+	} `json:"SeoMetaTags"`
+	Bundles                []productListPageProducts `json:"Bundles"`
+	TotalRecordCount       int                       `json:"TotalRecordCount"`
+	UpperDynamicContent    interface{}               `json:"UpperDynamicContent"`
+	LowerDynamicContent    interface{}               `json:"LowerDynamicContent"`
+	RichRelevancePlacement struct {
+		PlacementName         interface{}   `json:"placement_name"`
+		Message               interface{}   `json:"message"`
+		Products              []interface{} `json:"Products"`
+		Items                 []interface{} `json:"Items"`
+		StockcodesForDiscover []interface{} `json:"StockcodesForDiscover"`
+	} `json:"RichRelevancePlacement"`
+	Aggregations []struct {
+		Name           string `json:"Name"`
+		DisplayName    string `json:"DisplayName"`
+		Type           string `json:"Type"`
+		FilterType     string `json:"FilterType"`
+		FilterDataType string `json:"FilterDataType"`
+		Results        []struct {
+			Name              string `json:"Name"`
+			Term              string `json:"Term"`
+			ExtraOutputFields struct {
+			} `json:"ExtraOutputFields"`
+			Min               interface{} `json:"Min"`
+			Max               interface{} `json:"Max"`
+			Applied           bool        `json:"Applied"`
+			Count             int         `json:"Count"`
+			Statement         string      `json:"Statement"`
+			DisplayCoachMarks bool        `json:"DisplayCoachMarks"`
+		} `json:"Results"`
+		ResultsGrouped    interface{} `json:"ResultsGrouped"`
+		State             string      `json:"State"`
+		Rank              int         `json:"Rank"`
+		AdditionalResults bool        `json:"AdditionalResults"`
+		DesignType        string      `json:"DesignType"`
+		ShowFilter        bool        `json:"ShowFilter"`
+		Statement         string      `json:"Statement"`
+		DisplayCoachMarks bool        `json:"DisplayCoachMarks"`
+		DisplayIcons      bool        `json:"DisplayIcons"`
+	} `json:"Aggregations"`
+	HasRewardsCard  bool `json:"HasRewardsCard"`
+	HasTobaccoItems bool `json:"HasTobaccoItems"`
+	Success         bool `json:"Success"`
 }
