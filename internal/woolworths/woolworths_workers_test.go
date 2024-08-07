@@ -93,3 +93,30 @@ func TestNewProductWorker(t *testing.T) {
 	}
 
 }
+
+func TestProductListPageWorker(t *testing.T) {
+	w := getInitialisedWoolworths()
+
+	// Set up a department to scan products from
+	dept := departmentInfo{NodeID: "1-E5BEE36E", Description: "Fruit & Vegetables"}
+	w.saveDepartment(dept)
+
+	departmentPageChannel := make(chan departmentPage)
+	go w.productListPageWorker(departmentPageChannel)
+
+	departmentPageChannel <- departmentPage{
+		ID:   "1-E5BEE36E",
+		page: 1,
+	}
+	// TODO remove this hardcoded sleep and use a loop in a goroutine with a channel for the output
+	// as I've done before in another test.
+	time.Sleep(50 * time.Millisecond)
+	readInfo, err := w.loadProductInfo("144607")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want, got := "Strawberries 250g Punnet", readInfo.Info.Name; want != got {
+		t.Errorf("Expected %s, got %s", want, got)
+	}
+
+}

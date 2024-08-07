@@ -33,6 +33,11 @@ type DepartmentCategoriesList struct {
 type productID string
 type departmentID string
 
+type departmentPage struct {
+	ID   departmentID
+	page int
+}
+
 type categoryData []byte
 type fruitVegPage []byte
 

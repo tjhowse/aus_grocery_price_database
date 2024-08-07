@@ -250,12 +250,12 @@ func (w *Woolworths) getProductIDsAndCountFromListPage(department departmentID, 
 }
 
 // getProductInfoFromListPage returns the product information from the department list page
-func (w *Woolworths) getProductInfoExtendedFromListPage(department departmentID, page int) ([]woolworthsProductInfoExtended, error) {
+func (w *Woolworths) getProductInfoExtendedFromListPage(dp departmentPage) ([]woolworthsProductInfoExtended, error) {
 	productInfos := []woolworthsProductInfoExtended{}
 	var body []byte
 	var err error
 
-	body, err = w.getProductListPage(department, page)
+	body, err = w.getProductListPage(dp.ID, dp.page)
 	if err != nil {
 		return productInfos, err
 	}

@@ -137,21 +137,24 @@ func (w *Woolworths) saveProductInfo(productInfo woolworthsProductInfo) error {
 }
 
 // Saves product info to the database
-func (w *Woolworths) saveProductInfoExtended(productInfo woolworthsProductInfoExtended) error {
+func (w *Woolworths) saveProductInfoExtended(tx *sql.Tx, productInfo woolworthsProductInfoExtended) error {
 	var err error
 	var result sql.Result
 
 	productInfoString := "raw json todo"
 
-	result, err = w.db.Exec(`
+	result, err = tx.Exec(`
 			INSERT INTO products (productID, name, description, priceCents, weightGrams, productJSON, updated)
 			VALUES (?, ?, ?, ?, ?, ?, ?)
-			ON CONFLICT(productID) DO UPDATE SET productID = ?, name = ?, description = ?, priceCents = ?, weightGrams = ?, productJSON = ?, updated = ?`,
-		productInfo.ID, productInfo.Info.Name, productInfo.Info.Description,
-		productInfo.Info.Price.Mul(decimal.NewFromInt(100)).IntPart(),
-		productInfo.Info.UnitWeightInGrams, productInfoString, productInfo.Updated,
-
-		productInfo.ID, productInfo.Info.Name, productInfo.Info.Description,
+			ON CONFLICT(productID) DO UPDATE SET
+			productID = excluded.productID,
+			name = excluded.name,
+			description = excluded.description,
+			priceCents = excluded.priceCents,
+			weightGrams = excluded.weightGrams,
+			productJSON = excluded.productJSON,
+			updated = excluded.updated`,
+		productInfo.ID, productInfo.Info.DisplayName, productInfo.Info.Description,
 		productInfo.Info.Price.Mul(decimal.NewFromInt(100)).IntPart(),
 		productInfo.Info.UnitWeightInGrams, productInfoString, productInfo.Updated)
 

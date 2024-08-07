@@ -174,6 +174,34 @@ func (w *Woolworths) newProductWorker(output chan<- woolworthsProductInfo) {
 	}
 }
 
+// productListPageWorker reads departmentPage structs from the input channel, fetches the product list page from the web,
+// and writes the updated product data to the DB, transactionfully.
+func (w *Woolworths) productListPageWorker(input <-chan departmentPage) {
+	for dp := range input {
+		products, err := w.getProductInfoExtendedFromListPage(dp)
+		if err != nil {
+			slog.Error(fmt.Sprintf("Error getting product info extended: %v", err))
+			continue
+		}
+		transaction, err := w.db.Begin()
+		if err != nil {
+			slog.Error(fmt.Sprintf("Error starting transaction: %v", err))
+			continue
+		}
+		for _, product := range products {
+			err := w.saveProductInfoExtended(transaction, product)
+			if err != nil {
+				slog.Error(fmt.Sprintf("Error inserting product info: %v", err))
+				continue
+			}
+		}
+		err = transaction.Commit()
+		if err != nil {
+			slog.Error(fmt.Sprintf("Error committing transaction: %v", err))
+		}
+	}
+}
+
 const DEFAULT_PRODUCT_UPDATE_BATCH_SIZE = 10
 
 // Runs up all the workers and mediates data flowing between them.
