@@ -12,7 +12,7 @@ import (
 	woolworths "github.com/tjhowse/aus_grocery_price_database/internal/woolworths"
 )
 
-const VERSION = "0.0.28"
+const VERSION = "0.0.29"
 const SYSTEM_STATUS_UPDATE_INTERVAL_SECONDS = 60
 
 type config struct {
@@ -107,7 +107,7 @@ func run(running *bool, cfg *config, tsDB timeseriesDB, w ProductInfoGetter) {
 				slog.Warn("Product has no name", "product", newProductInfo)
 				continue
 			}
-			slog.Info("Updating product data", "name", newProductInfo.Name, "price", newProductInfo.PriceCents)
+			slog.Info("Updating product data", "id", newProductInfo.ID, "name", newProductInfo.Name, "price", newProductInfo.PriceCents)
 			productInfoUpdateChannel <- newProductInfo
 		}
 
