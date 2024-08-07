@@ -202,6 +202,11 @@ func (w *Woolworths) productListPageWorker(input <-chan departmentPage) {
 	}
 }
 
+// departmentPageUpdateQueueWorker generates a stream of departmentPage structs that are due for an update
+func (w *Woolworths) departmentPageUpdateQueueWorker(output chan<- departmentPage, maxAge time.Duration) {
+	// TODO THis.
+}
+
 const DEFAULT_PRODUCT_UPDATE_BATCH_SIZE = 10
 
 // Runs up all the workers and mediates data flowing between them.
@@ -242,4 +247,30 @@ func (w *Woolworths) Run(cancel chan struct{}) {
 		}
 	}
 
+}
+
+func (w *Woolworths) RunExtended(cancel chan struct{}) {
+	departmentPageChannel := make(chan departmentPage)
+	newDepartmentInfoChannel := make(chan departmentInfo)
+
+	for i := 0; i < PRODUCT_INFO_WORKER_COUNT; i++ {
+		go w.productListPageWorker(departmentPageChannel)
+	}
+	go w.newDepartmentInfoWorker(newDepartmentInfoChannel)
+	go w.departmentPageUpdateQueueWorker(departmentPageChannel, w.productMaxAge)
+
+	for {
+		select {
+		case newDepartmentInfo := <-newDepartmentInfoChannel:
+			slog.Debug("New department", "ID", newDepartmentInfo.NodeID, "Description", newDepartmentInfo.Description)
+			// Update the departmentIDs table with the new department ID
+			err := w.saveDepartment(newDepartmentInfo)
+			if err != nil {
+				slog.Error(fmt.Sprintf("Error saving department ID: %v", err))
+			}
+		case <-cancel:
+			slog.Info("Exiting scheduler")
+			return
+		}
+	}
 }

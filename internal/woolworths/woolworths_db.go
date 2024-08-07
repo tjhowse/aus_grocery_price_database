@@ -145,13 +145,13 @@ func (w *Woolworths) saveProductInfoExtended(tx *sql.Tx, productInfo woolworthsP
 			INSERT INTO products (productID, name, description, priceCents, weightGrams, productJSON, updated)
 			VALUES (?, ?, ?, ?, ?, ?, ?)
 			ON CONFLICT(productID) DO UPDATE SET
-			productID = excluded.productID,
-			name = excluded.name,
-			description = excluded.description,
-			priceCents = excluded.priceCents,
-			weightGrams = excluded.weightGrams,
-			productJSON = excluded.productJSON,
-			updated = excluded.updated`,
+				productID = excluded.productID,
+				name = excluded.name,
+				description = excluded.description,
+				priceCents = excluded.priceCents,
+				weightGrams = excluded.weightGrams,
+				productJSON = excluded.productJSON,
+				updated = excluded.updated`,
 		productInfo.ID, productInfo.Info.DisplayName, productInfo.Info.Description,
 		productInfo.Info.Price.Mul(decimal.NewFromInt(100)).IntPart(),
 		productInfo.Info.UnitWeightInGrams, productInfo.RawJSON, productInfo.Updated)
@@ -176,9 +176,10 @@ func (w *Woolworths) saveDepartment(departmentInfo departmentInfo) error {
 	result, err = w.db.Exec(`
 		INSERT INTO departments (departmentID, description, updated)
 		VALUES (?, ?, ?)
-		ON CONFLICT(departmentID) DO UPDATE SET departmentID = ?, description = ?, updated = ?
-		`,
-		departmentInfo.NodeID, departmentInfo.Description, time.Now(),
+		ON CONFLICT(departmentID) DO UPDATE SET
+			departmentID = excluded.departmentID,
+			description = excluded.description,
+			updated = excluded.updated`,
 		departmentInfo.NodeID, departmentInfo.Description, time.Now())
 
 	if err != nil {
