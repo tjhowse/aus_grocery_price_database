@@ -24,7 +24,7 @@ RUN find /usr/share/grafana/public/build/ -name *.js \
 ## Update Title
     -exec sed -i 's|AppTitle="Grafana"|AppTitle="AUSCost"|g' {} \; \
 ## Update Login Title
-    -exec sed -i 's|LoginTitle="Welcome to Grafana"|LoginTitle="Welcome to AUSCost"|g' {} \; \
+    -exec sed -i 's|LoginTitle="Welcome to Grafana"|LoginTitle="Welcome to AUSCost"|g' {} \;
 
 USER grafana
 
