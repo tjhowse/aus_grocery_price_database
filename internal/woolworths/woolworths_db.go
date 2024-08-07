@@ -141,8 +141,6 @@ func (w *Woolworths) saveProductInfoExtended(tx *sql.Tx, productInfo woolworthsP
 	var err error
 	var result sql.Result
 
-	productInfoString := "raw json todo"
-
 	result, err = tx.Exec(`
 			INSERT INTO products (productID, name, description, priceCents, weightGrams, productJSON, updated)
 			VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -156,7 +154,7 @@ func (w *Woolworths) saveProductInfoExtended(tx *sql.Tx, productInfo woolworthsP
 			updated = excluded.updated`,
 		productInfo.ID, productInfo.Info.DisplayName, productInfo.Info.Description,
 		productInfo.Info.Price.Mul(decimal.NewFromInt(100)).IntPart(),
-		productInfo.Info.UnitWeightInGrams, productInfoString, productInfo.Updated)
+		productInfo.Info.UnitWeightInGrams, productInfo.RawJSON, productInfo.Updated)
 
 	if err != nil {
 		return fmt.Errorf("failed to update product info: %w", err)

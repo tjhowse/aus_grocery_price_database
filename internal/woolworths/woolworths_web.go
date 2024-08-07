@@ -170,10 +170,18 @@ func (w *Woolworths) extractProductInfoFromProductListPage(body []byte) ([]woolw
 			return productInfos, fmt.Errorf("expected 1 product in bundle, got %d", len(products.Products))
 		}
 		product := products.Products[0]
+		// Not entirely happy about this, but I don't see a better way of getting the raw JSON
+		// of just the product into the info struct.
+		encoded, err := json.Marshal(product)
+		if err != nil {
+			slog.Warn("Error encoding product back to JSON for storage", "error", err)
+			encoded = []byte("error re-encoding product")
+		}
 		productInfos = append(productInfos, woolworthsProductInfoExtended{
 			ID:                    productID(strconv.Itoa(product.Stockcode)),
 			departmentID:          departmentID(product.AdditionalAttributes.PiesProductDepartmentNodeID),
 			departmentDescription: product.AdditionalAttributes.Sapdepartmentname,
+			RawJSON:               encoded,
 			Info:                  product,
 			Updated:               time.Now(),
 		})
