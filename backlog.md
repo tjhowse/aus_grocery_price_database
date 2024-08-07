@@ -38,8 +38,7 @@
 ### Cleanup
 * I'm sure there are cases in which we're unintentionally shadowing error variables.
     Run `go vet` with a shadowing thingo to find them. I tried the obvious and it didn't work.
-* Patch grafana in the dockerfile (???) to change the AppTitle and icon for previews
-    https://github.com/VolkovLabs/volkovlabs-app/blob/main/Dockerfile
+* Create a logo and favicon for grafana. Uncomment the stuff in fly/applications/grafana/Dockerfile and deploy
 
 ## Further work
 
