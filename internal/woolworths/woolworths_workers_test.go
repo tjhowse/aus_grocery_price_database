@@ -7,6 +7,7 @@ import (
 )
 
 func TestProductInfoFetchingWorker(t *testing.T) {
+	t.Fatal("Confirm a failed test blocks deployment")
 	slog.SetLogLoggerLevel(slog.LevelDebug)
 	w := getInitialisedWoolworths()
 
