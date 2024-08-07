@@ -47,7 +47,7 @@
                 "viz": false
               },
               "lineInterpolation": "linear",
-              "lineWidth": 1,
+              "lineWidth": 2,
               "pointSize": 5,
               "scaleDistribution": {
                 "type": "linear"
@@ -75,7 +75,8 @@
                   "value": 80
                 }
               ]
-            }
+            },
+            "unit": "currencyUSD"
           },
           "overrides": []
         },
@@ -179,7 +180,7 @@
             "measurement": "product",
             "orderByTime": "ASC",
             "policy": "autogen",
-            "query": "SELECT mean(\"cents\")  / 100 FROM \"autogen\".\"product\" WHERE (\"name\"::tag =~ /^$UserSelectedProduct$/) AND $timeFilter GROUP BY *, time($__interval) fill(linear)",
+            "query": "SELECT mean(\"cents\")  / 100 FROM \"autogen\".\"product\" WHERE (\"name\"::tag =~ /^$UserSelectedProduct$/) AND $timeFilter GROUP BY *, time($__interval) fill(previous)",
             "rawQuery": true,
             "refId": "B",
             "resultFormat": "time_series",
@@ -223,8 +224,8 @@
         },
         "description": "",
         "gridPos": {
-          "h": 10,
-          "w": 10,
+          "h": 11,
+          "w": 14,
           "x": 0,
           "y": 11
         },
@@ -235,7 +236,7 @@
             "showLineNumbers": false,
             "showMiniMap": false
           },
-          "content": "# AUSCost\n\nHi! Welcome to [AUSCost](https://auscost.com.au)! Thanks for visiting.\n\nThis is an open database of grocery prices in Australia. Its goal is to track long-term price trends to help make good purchasing decisions and hold grocery stores to account for price increases. You're currently looking at the raw data. I know it's not very beautiful yet! It's early days.\n\nThis project is [open source](https://github.com/tjhowse/aus_grocery_price_database), which means anyone is welcome to contribute code. At the moment we're only polling Woolworths, but more grocery stores are planned in the future. I'm looking for collaborators to help with improving the frontend (the thing you're looking at).\n\nHosting this service is fairly cheap, but not free, and I'm working on it in my spare time. If you feel this project is worthwhile, and you are able, please consider helping with running costs and development via [PayPal](https://www.paypal.com/paypalme/tjhowse) or a [Github Sponsorship](https://github.com/sponsors/tjhowse).",
+          "content": "# AUSCost\n\nHi! Welcome to [AUSCost](https://auscost.com.au)! Thanks for visiting.\n\nThis is an open database of grocery prices in Australia. Its goal is to track long-term price trends to help make good purchasing decisions and hold grocery stores to account for price increases. You're currently looking at the raw data. I know it's not very beautiful yet! It's early days.\n\nThis project is [open source](https://github.com/tjhowse/aus_grocery_price_database), which means anyone is welcome to contribute code. At the moment I'm polling Woolworths, but more grocery stores will be added in the future. I'm looking for collaborators to help with improving the frontend (the thing you're looking at).\n\nHosting this service is fairly cheap, but not free, and I'm working on it in my spare time. If you feel this project is worthwhile, and you are able, please consider helping with running costs and development via [PayPal](https://www.paypal.com/paypalme/tjhowse) or a [Github Sponsorship](https://github.com/sponsors/tjhowse).\n\nIf you have any feedback please [email](mailto:hi@auscost.com.au) me or create a Github issue. I'm very keen to learn about ideas for different use-cases! I'm also amenable to providing API keys for (respectful) direct access to the price history database for other cool spinoff projects.",
           "mode": "markdown"
         },
         "pluginVersion": "10.0.0",
@@ -269,9 +270,9 @@
           "overrides": []
         },
         "gridPos": {
-          "h": 10,
-          "w": 14,
-          "x": 10,
+          "h": 11,
+          "w": 10,
+          "x": 14,
           "y": 11
         },
         "id": 4,
@@ -331,7 +332,7 @@
                 "viz": false
               },
               "lineInterpolation": "linear",
-              "lineWidth": 1,
+              "lineWidth": 2,
               "pointSize": 5,
               "scaleDistribution": {
                 "type": "linear"
@@ -368,7 +369,7 @@
           "h": 15,
           "w": 24,
           "x": 0,
-          "y": 21
+          "y": 22
         },
         "id": 3,
         "options": {
@@ -399,7 +400,7 @@
               },
               {
                 "params": [
-                  "linear"
+                  "previous"
                 ],
                 "type": "fill"
               }
@@ -458,7 +459,7 @@
               },
               {
                 "params": [
-                  "linear"
+                  "previous"
                 ],
                 "type": "fill"
               }
@@ -504,66 +505,6 @@
             ]
           },
           {
-            "alias": "Hass Avocado",
-            "datasource": {
-              "type": "influxdb",
-              "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
-            },
-            "groupBy": [
-              {
-                "params": [
-                  "$__interval"
-                ],
-                "type": "time"
-              },
-              {
-                "params": [
-                  "linear"
-                ],
-                "type": "fill"
-              }
-            ],
-            "hide": false,
-            "measurement": "product",
-            "orderByTime": "ASC",
-            "policy": "autogen",
-            "refId": "C",
-            "resultFormat": "time_series",
-            "select": [
-              [
-                {
-                  "params": [
-                    "cents"
-                  ],
-                  "type": "field"
-                },
-                {
-                  "params": [],
-                  "type": "mean"
-                },
-                {
-                  "params": [
-                    " / 100"
-                  ],
-                  "type": "math"
-                }
-              ]
-            ],
-            "tags": [
-              {
-                "key": "department::tag",
-                "operator": "=",
-                "value": "Fruit & Veg"
-              },
-              {
-                "condition": "AND",
-                "key": "name::tag",
-                "operator": "=",
-                "value": " Hass Avocado  Each"
-              }
-            ]
-          },
-          {
             "alias": "Kiwi",
             "datasource": {
               "type": "influxdb",
@@ -578,7 +519,7 @@
               },
               {
                 "params": [
-                  "linear"
+                  "previous"
                 ],
                 "type": "fill"
               }
@@ -638,7 +579,7 @@
               },
               {
                 "params": [
-                  "linear"
+                  "previous"
                 ],
                 "type": "fill"
               }
@@ -698,7 +639,7 @@
               },
               {
                 "params": [
-                  "linear"
+                  "previous"
                 ],
                 "type": "fill"
               }
@@ -758,16 +699,20 @@
           "current": {
             "selected": true,
             "text": [
-              " Bananas Kids  5 Pack",
-              " Beans Round  Per Kg",
-              " Beetroot Loose  Each",
-              " Blueberries Punnet 125g Punnet"
+              " Hass Avocado  Each",
+              "Mazzetti Balsamic Vinegar Of Modena 250mL",
+              "Natural Black Peppercorn Ceramic Grinder 50G",
+              "Nuttelex Buttery Table Spread 500G",
+              "Saxa Iodised Cooking Salt Iodised 1Kg",
+              "Wonder White Bread Vitamins & Minerals Sandwich 700G"
             ],
             "value": [
-              " Bananas Kids  5 Pack",
-              " Beans Round  Per Kg",
-              " Beetroot Loose  Each",
-              " Blueberries Punnet 125g Punnet"
+              " Hass Avocado  Each",
+              "Mazzetti Balsamic Vinegar Of Modena 250mL",
+              "Natural Black Peppercorn Ceramic Grinder 50G",
+              "Nuttelex Buttery Table Spread 500G",
+              "Saxa Iodised Cooking Salt Iodised 1Kg",
+              "Wonder White Bread Vitamins & Minerals Sandwich 700G"
             ]
           },
           "datasource": {
@@ -799,6 +744,6 @@
     "timezone": "",
     "title": "Groceries",
     "uid": "dd34eddb-26fc-48ce-88fb-19ef7b18734e",
-    "version": 16,
+    "version": 23,
     "weekStart": ""
   }

@@ -661,7 +661,8 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green"
+                  "color": "green",
+                  "value": null
                 },
                 {
                   "color": "red",
@@ -801,13 +802,13 @@
       "list": []
     },
     "time": {
-      "from": "now-6h",
+      "from": "now-2d",
       "to": "now"
     },
     "timepicker": {},
     "timezone": "",
     "title": "System Info",
     "uid": "f1f70ee7-5b9c-4678-946e-63e42ab641d3",
-    "version": 21,
+    "version": 22,
     "weekStart": ""
   }

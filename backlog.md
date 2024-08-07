@@ -2,6 +2,9 @@
 
 ## Basic
 
+### Frontend
+* Make sure plotlines are accessible from a colour perception perspective
+
 ### Optimisations
 * Use transactions for all multi-part SQL operations
 * Smear updated times a bit to flatten out request rate peaks.
