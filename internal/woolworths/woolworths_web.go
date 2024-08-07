@@ -140,7 +140,7 @@ func (w *Woolworths) getProductsFromDepartment(department departmentID) ([]produ
 	page := 1
 
 	for {
-		ids, count, err := w.getProductListPage(department, page)
+		ids, count, err := w.getProductIDsCountFromListPage(department, page)
 		if err != nil {
 			return prodIDs, err
 		}
@@ -154,24 +154,19 @@ func (w *Woolworths) getProductsFromDepartment(department departmentID) ([]produ
 	return prodIDs, nil
 }
 
-// This queries the Woolworths API to get the product list for a department. It reads
-// the specified page of that department's product list, returning the list of product
-// IDs and the total number of products in the department.
-func (w *Woolworths) getProductListPage(department departmentID, page int) ([]productID, int, error) {
-	var url string
-	var totalCount int
+func (w *Woolworths) getProductListPage(department departmentID, page int) ([]byte, error) {
 
-	prodIDs := []productID{}
+	var url string
 
 	requestBody, err := buildCategoryRequestBody(department, page)
 	if err != nil {
-		return prodIDs, 0, err
+		return nil, err
 	}
 	slog.Debug("Requesting product info page", "department", department, "page", page)
 
 	url = fmt.Sprintf("%s/apis/ui/browse/category", w.baseURL)
 	if req, err := http.NewRequest("POST", url, bytes.NewBufferString(requestBody)); err != nil {
-		return prodIDs, 0, err
+		return nil, err
 	} else {
 		// This is the minimal set of headers the request expects to see.
 		// Note that the cookie jar must be full from previous requests
@@ -182,33 +177,46 @@ func (w *Woolworths) getProductListPage(department departmentID, page int) ([]pr
 		req.Header.Set("Request-Id", "|b14af797522740e5a25290ac283f739d.037da5c5e87f4706")
 		resp, err := w.client.Do(req)
 		if err != nil {
-			return prodIDs, 0, fmt.Errorf("failed to get category data: %w", err)
+			return nil, fmt.Errorf("failed to get category data: %w", err)
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
-			return prodIDs, 0, fmt.Errorf("failed to get category data: %s", resp.Status)
+			return nil, fmt.Errorf("failed to get category data: %s", resp.Status)
 		}
 
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return prodIDs, 0, err
+			return nil, err
 		}
+		return body, nil
+	}
+}
 
-		totalCount, err = extractTotalRecordCount(body)
-		if err != nil {
-			return prodIDs, 0, err
-		}
+// This queries the Woolworths API to get the product list for a department. It reads
+// the specified page of that department's product list, returning the list of product
+// IDs and the total number of products in the department.
+func (w *Woolworths) getProductIDsCountFromListPage(department departmentID, page int) ([]productID, int, error) {
+	var totalCount int
 
-		stockCodes, err := extractStockCodes(body)
-		if err != nil {
-			return prodIDs, 0, err
-		}
-
-		for _, code := range stockCodes {
-			prodIDs = append(prodIDs, productID(code))
-		}
+	prodIDs := []productID{}
+	body, err := w.getProductListPage(department, page)
+	if err != nil {
+		return prodIDs, 0, err
 	}
 
+	totalCount, err = extractTotalRecordCount(body)
+	if err != nil {
+		return prodIDs, 0, err
+	}
+
+	stockCodes, err := extractStockCodes(body)
+	if err != nil {
+		return prodIDs, 0, err
+	}
+
+	for _, code := range stockCodes {
+		prodIDs = append(prodIDs, productID(code))
+	}
 	return prodIDs, totalCount, nil
 }
 

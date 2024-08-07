@@ -118,7 +118,7 @@ func WoolworthsHTTPServer() *httptest.Server {
 func TestGetProductListPage(t *testing.T) {
 	w := getInitialisedWoolworths()
 
-	prodIDs, count, err := w.getProductListPage("1-E5BEE36E", 1)
+	prodIDs, count, err := w.getProductIDsCountFromListPage("1-E5BEE36E", 1)
 	if err != nil {
 		t.Fatal(err)
 	}
