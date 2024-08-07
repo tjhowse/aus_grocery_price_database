@@ -6,6 +6,8 @@ FROM ${BASE_IMAGE}
 # has booted. We can't cook stuff into the mounted /data volume.
 COPY grafana.ini /grafana.ini
 
+USER root
+
 # TODO Put these in once we have a favicon/logo
 # ## Replace Favicon and Apple Touch
 # COPY img/fav32.png /usr/share/grafana/public/img
@@ -23,6 +25,8 @@ RUN find /usr/share/grafana/public/build/ -name *.js \
     -exec sed -i 's|AppTitle="Grafana"|AppTitle="AUSCost"|g' {} \; \
 ## Update Login Title
     -exec sed -i 's|LoginTitle="Welcome to Grafana"|LoginTitle="Welcome to AUSCost"|g' {} \; \
+
+USER grafana
 
 # Use this to override the base image's entrypoint if you need the container to just stay up
 # regardless of the app crashing every time it starts.
