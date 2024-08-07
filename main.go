@@ -27,7 +27,7 @@ type config struct {
 	DebugLogging                bool   `env:"DEBUG_LOGGING" envDefault:"false"`
 }
 
-// Other stores will need to implement this interface
+// ProductInfoGetter defines the expectations for a product information getter.
 type ProductInfoGetter interface {
 	Init(string, string, time.Duration) error
 	Run(chan struct{})

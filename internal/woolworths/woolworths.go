@@ -18,6 +18,7 @@ const PRODUCT_INFO_WORKER_COUNT = 15
 
 var ErrProductMissing = errors.New("no product found")
 
+// Woolworths satisfies the ProductInfoGetter interface to provide a stream of product information from Woolworths.
 type Woolworths struct {
 	baseURL                  string
 	client                   *RLHTTPClient
@@ -28,7 +29,7 @@ type Woolworths struct {
 	filteredDepartmentIDsSet map[departmentID]bool
 }
 
-// Returns a list of product IDs that have been updated since the given time
+// GetSharedProductsUpdatedAfter provides a list of product IDs that have been updated since the given time
 func (w *Woolworths) GetSharedProductsUpdatedAfter(t time.Time, count int) ([]shared.ProductInfo, error) {
 	var productIDs []shared.ProductInfo
 	rows, err := w.db.Query("SELECT productID, name, description, departmentDescription, priceCents, weightGrams, updated FROM products WHERE updated > ? AND name != '' LIMIT ?", t, count)
@@ -48,6 +49,7 @@ func (w *Woolworths) GetSharedProductsUpdatedAfter(t time.Time, count int) ([]sh
 	return productIDs, nil
 }
 
+// GetTotalProductCount returns the total number of products in the database
 func (w *Woolworths) GetTotalProductCount() (int, error) {
 	var count int
 	err := w.db.QueryRow("SELECT COUNT(*) FROM products").Scan(&count)
@@ -57,6 +59,7 @@ func (w *Woolworths) GetTotalProductCount() (int, error) {
 	return count, nil
 }
 
+// Init sets up the Woolworths struct with the given parameters
 func (w *Woolworths) Init(baseURL string, dbPath string, productMaxAge time.Duration) error {
 	var err error
 
