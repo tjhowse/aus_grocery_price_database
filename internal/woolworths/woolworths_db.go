@@ -9,7 +9,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-const DB_SCHEMA_VERSION = 4
+const DB_SCHEMA_VERSION = 5
 
 // Initialises the DB with the schema. Note you must bump the DB_SCHEMA_VERSION
 // constant if you change the schema.
@@ -33,7 +33,7 @@ func (w *Woolworths) initBlankDB() error {
 	if err != nil {
 		return err
 	}
-	_, err = w.db.Exec("CREATE TABLE IF NOT EXISTS departments (departmentID TEXT UNIQUE, description TEXT, updated DATETIME)")
+	_, err = w.db.Exec("CREATE TABLE IF NOT EXISTS departments (departmentID TEXT UNIQUE, description TEXT, productCount INTEGER, updated DATETIME)")
 	if err != nil {
 		return err
 	}
@@ -174,13 +174,14 @@ func (w *Woolworths) saveDepartment(departmentInfo departmentInfo) error {
 	var result sql.Result
 
 	result, err = w.db.Exec(`
-		INSERT INTO departments (departmentID, description, updated)
-		VALUES (?, ?, ?)
+		INSERT INTO departments (departmentID, description, productCount, updated)
+		VALUES (?, ?, ?, ?)
 		ON CONFLICT(departmentID) DO UPDATE SET
 			departmentID = excluded.departmentID,
 			description = excluded.description,
+			productCount = excluded.productCount,
 			updated = excluded.updated`,
-		departmentInfo.NodeID, departmentInfo.Description, time.Now())
+		departmentInfo.NodeID, departmentInfo.Description, departmentInfo.ProductCount, time.Now())
 
 	if err != nil {
 		return fmt.Errorf("failed to update department ID info: %w", err)
@@ -236,13 +237,13 @@ func (w *Woolworths) checkIfKnownProductID(productID productID) (bool, error) {
 
 func (w *Woolworths) loadDepartmentInfoList() ([]departmentInfo, error) {
 	var departmentInfos []departmentInfo
-	rows, err := w.db.Query("SELECT departmentID, description FROM departments")
+	rows, err := w.db.Query("SELECT departmentID, description, productCount, updated FROM departments")
 	if err != nil {
 		return departmentInfos, fmt.Errorf("failed to query departmentIDs: %w", err)
 	}
 	for rows.Next() {
 		var deptInfo departmentInfo
-		err = rows.Scan(&deptInfo.NodeID, &deptInfo.Description)
+		err = rows.Scan(&deptInfo.NodeID, &deptInfo.Description, &deptInfo.ProductCount, &deptInfo.Updated)
 		if err != nil {
 			return departmentInfos, fmt.Errorf("failed to scan departmentID: %w", err)
 		}

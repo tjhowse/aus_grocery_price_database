@@ -108,7 +108,8 @@ func (w *Woolworths) newDepartmentInfoWorker(output chan<- departmentInfo) {
 		for _, webDepartmentID := range departmentsFromWeb {
 			found := false
 			for _, departmentInfoFromDB := range departmentInfosFromDB {
-				if webDepartmentID.NodeID == departmentInfoFromDB.NodeID {
+				if webDepartmentID.NodeID == departmentInfoFromDB.NodeID &&
+					webDepartmentID.ProductCount == departmentInfoFromDB.ProductCount {
 					found = true
 					break
 				}
@@ -204,7 +205,36 @@ func (w *Woolworths) productListPageWorker(input <-chan departmentPage) {
 
 // departmentPageUpdateQueueWorker generates a stream of departmentPage structs that are due for an update
 func (w *Woolworths) departmentPageUpdateQueueWorker(output chan<- departmentPage, maxAge time.Duration) {
-	// TODO THis.
+	for {
+		departmentInfos, err := w.loadDepartmentInfoList()
+		if err != nil {
+			slog.Error("error loading department IDs. Trying again soon.", "error", err)
+			// Try again in ten minutes.
+			time.Sleep(1 * time.Minute)
+			continue
+		}
+		for _, departmentInfo := range departmentInfos {
+			if time.Since(departmentInfo.Updated) < maxAge {
+				continue
+			}
+
+			productCount := 0
+			for productCount < departmentInfo.ProductCount {
+				productCount += PRODUCTS_PER_PAGE
+				output <- departmentPage{
+					ID:   departmentInfo.NodeID,
+					page: productCount / PRODUCTS_PER_PAGE,
+				}
+			}
+			// Save this department back to the DB to refresh its updated time.
+			err := w.saveDepartment(departmentInfo)
+			if err != nil {
+				slog.Error("error saving department info", "error", err)
+			}
+		}
+		// We've done an update of all departments, so we don't need to check for new departments very often.
+		time.Sleep(1 * time.Minute)
+	}
 }
 
 const DEFAULT_PRODUCT_UPDATE_BATCH_SIZE = 10

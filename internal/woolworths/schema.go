@@ -24,6 +24,7 @@ type departmentInfo struct {
 	IsSpecial           bool         `json:"IsSpecial"`
 	RichRelevanceID     *string      `json:"RichRelevanceId"`
 	IsBundle            bool         `json:"IsBundle"`
+	Updated             time.Time    // Excluded from JSON deserialisation
 }
 
 type DepartmentCategoriesList struct {
@@ -43,6 +44,7 @@ type fruitVegPage []byte
 
 // Prefix for product IDs when exported outside of woolworths-world
 const WOOLWORTHS_ID_PREFIX = "woolworths_sku_"
+const PRODUCTS_PER_PAGE = 36
 
 type woolworthsProductInfo struct {
 	ID                    productID

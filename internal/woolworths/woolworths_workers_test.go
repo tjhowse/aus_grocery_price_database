@@ -118,5 +118,33 @@ func TestProductListPageWorker(t *testing.T) {
 	if want, got := "Strawberries 250g Punnet", readInfo.Info.Name; want != got {
 		t.Errorf("Expected %s, got %s", want, got)
 	}
+}
+
+func TestDepartmentPageUpdateQueueWorker(t *testing.T) {
+	departmentPageChannel := make(chan departmentPage)
+	w := getInitialisedWoolworths()
+	// We want to get pages from this department, updated an hour ago.
+	w.saveDepartment(departmentInfo{NodeID: "1-E5BEE36E", Description: "Fruit & Vegetables", ProductCount: 100, Updated: time.Now().Add(-1 * time.Hour)})
+	// We don't want to get pages from this department, updated an hour in the future.
+	w.saveDepartment(departmentInfo{NodeID: "1-E5BEE36F", Description: "Vruit & Fegetables", ProductCount: 100, Updated: time.Now().Add(1 * time.Hour)})
+
+	go w.departmentPageUpdateQueueWorker(departmentPageChannel, 1)
+
+	pageIndex := 1
+	for dp := range departmentPageChannel {
+		if want, got := departmentID("1-E5BEE36E"), dp.ID; want != got {
+			t.Errorf("Expected %s, got %s", want, got)
+		}
+		if want, got := pageIndex, dp.page; want != got {
+			t.Errorf("Expected %d, got %d", want, got)
+		}
+		pageIndex++
+		if pageIndex > 3 {
+			break
+		}
+	}
+	// if want, got := 3, pageIndex; want != got {
+	// 	t.Errorf("Expected %d, got %d", want, got)
+	// }
 
 }
