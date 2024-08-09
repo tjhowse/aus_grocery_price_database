@@ -86,7 +86,6 @@ func (w *Woolworths) saveProductInfo(productInfo woolworthsProductInfo) error {
 
 	productInfoString := string(productInfo.RawJSON)
 
-	// TODO Is there some better way of handling passing copies of the same data?
 	// TODO I bet a real SQL wizard could combine these two statements such that the department
 	// 		info is only written to the DB if it is not empty in the productInfo struct.
 	if productInfo.departmentID != "" {
@@ -96,8 +95,11 @@ func (w *Woolworths) saveProductInfo(productInfo woolworthsProductInfo) error {
 		result, err = w.db.Exec(`
 			INSERT INTO products (productID, departmentID, departmentDescription, updated)
 			VALUES (?, ?, ?, ?)
-			ON CONFLICT(productID) DO UPDATE SET productID = ?, departmentID = ?, departmentDescription = ?, updated = ?`,
-			productInfo.ID, productInfo.departmentID, productInfo.departmentDescription, productInfo.Updated,
+			ON CONFLICT(productID) DO UPDATE SET
+				productID = excluded.productID,
+				departmentID = excluded.departmentID,
+				departmentDescription = excluded.departmentDescription,
+				updated = excluded.updated`,
 			productInfo.ID, productInfo.departmentID, productInfo.departmentDescription, productInfo.Updated)
 
 		if err != nil {
@@ -108,17 +110,19 @@ func (w *Woolworths) saveProductInfo(productInfo woolworthsProductInfo) error {
 		} else if rowsAffected == 0 {
 			slog.Warn("Product department info not updated.")
 		}
-
 	}
 
 	result, err = w.db.Exec(`
 			INSERT INTO products (productID, name, description, priceCents, weightGrams, productJSON, updated)
 			VALUES (?, ?, ?, ?, ?, ?, ?)
-			ON CONFLICT(productID) DO UPDATE SET productID = ?, name = ?, description = ?, priceCents = ?, weightGrams = ?, productJSON = ?, updated = ?`,
-		productInfo.ID, productInfo.Info.Name, productInfo.Info.Description,
-		productInfo.Info.Offers.Price.Mul(decimal.NewFromInt(100)).IntPart(),
-		productInfo.Info.Weight, productInfoString, productInfo.Updated,
-
+			ON CONFLICT(productID) DO UPDATE SET
+			productID = excluded.productID,
+			name = excluded.name,
+			description = excluded.description,
+			priceCents = excluded.priceCents,
+			weightGrams = excluded.weightGrams,
+			productJSON = excluded.productJSON,
+			updated = excluded.updated`,
 		productInfo.ID, productInfo.Info.Name, productInfo.Info.Description,
 		productInfo.Info.Offers.Price.Mul(decimal.NewFromInt(100)).IntPart(),
 		productInfo.Info.Weight, productInfoString, productInfo.Updated)
@@ -140,7 +144,7 @@ func (w *Woolworths) saveProductInfoExtended(tx *sql.Tx, productInfo woolworthsP
 	var err error
 	var result sql.Result
 
-	This needs to save department descriptions. Maybe when we pull it out we can inner join on the departments table.
+	// This needs to save department descriptions. Maybe when we pull it out we can inner join on the departments table.
 	// Then we can remove the departmentDescription field from the products table.
 
 	result, err = tx.Exec(`
