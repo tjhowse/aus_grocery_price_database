@@ -186,6 +186,7 @@ func (w *Woolworths) productListPageWorker(input <-chan departmentPage) {
 			continue
 		}
 		for _, product := range products {
+			product.departmentID = dp.ID
 			err := w.saveProductInfoExtended(transaction, product)
 			if err != nil {
 				slog.Error(fmt.Sprintf("Error inserting product info: %v", err))
