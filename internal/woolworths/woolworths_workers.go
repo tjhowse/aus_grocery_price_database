@@ -117,11 +117,6 @@ func (w *Woolworths) newDepartmentInfoWorker(output chan<- departmentInfo) {
 			if found {
 				continue
 			}
-			if w.filterDepartments {
-				if !w.filteredDepartmentIDsSet[webDepartmentID.NodeID] {
-					continue
-				}
-			}
 
 			output <- webDepartmentID
 		}
@@ -179,6 +174,7 @@ func (w *Woolworths) newProductWorker(output chan<- woolworthsProductInfo) {
 // and writes the updated product data to the DB, transactionfully.
 func (w *Woolworths) productListPageWorker(input <-chan departmentPage) {
 	for dp := range input {
+		slog.Debug("Getting product list page", "departmentID", dp.ID, "page", dp.page)
 		products, err := w.getProductInfoExtendedFromListPage(dp)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Error getting product info extended: %v", err))
@@ -217,23 +213,27 @@ func (w *Woolworths) departmentPageUpdateQueueWorker(output chan<- departmentPag
 			if time.Since(departmentInfo.Updated) < maxAge {
 				continue
 			}
+			slog.Debug("Checking department", "ID", departmentInfo.NodeID, "Updated", departmentInfo.Updated)
 
 			productCount := 0
 			for productCount < departmentInfo.ProductCount {
 				productCount += PRODUCTS_PER_PAGE
+				slog.Debug("Adding department page to queue", "ID", departmentInfo.NodeID, "page", productCount/PRODUCTS_PER_PAGE)
 				output <- departmentPage{
 					ID:   departmentInfo.NodeID,
 					page: productCount / PRODUCTS_PER_PAGE,
 				}
 			}
 			// Save this department back to the DB to refresh its updated time.
+			departmentInfo.Updated = time.Now()
 			err := w.saveDepartment(departmentInfo)
 			if err != nil {
 				slog.Error("error saving department info", "error", err)
 			}
 		}
 		// We've done an update of all departments, so we don't need to check for new departments very often.
-		time.Sleep(1 * time.Minute)
+		time.Sleep(2 * time.Second)
+		// time.Sleep(1 * time.Minute)
 	}
 }
 
@@ -267,6 +267,8 @@ func (w *Woolworths) Run(cancel chan struct{}) {
 		case newDepartmentInfo := <-newDepartmentInfoChannel:
 			slog.Debug("New department", "ID", newDepartmentInfo.NodeID, "Description", newDepartmentInfo.Description)
 			// Update the departmentIDs table with the new department ID
+			// Set the updated time in the past to force an update on the next poll.
+			newDepartmentInfo.Updated = time.Now().Add(-2 * w.productMaxAge)
 			err := w.saveDepartment(newDepartmentInfo)
 			if err != nil {
 				slog.Error(fmt.Sprintf("Error saving department ID: %v", err))
@@ -292,12 +294,17 @@ func (w *Woolworths) RunExtended(cancel chan struct{}) {
 	for {
 		select {
 		case newDepartmentInfo := <-newDepartmentInfoChannel:
-			slog.Debug("New department", "ID", newDepartmentInfo.NodeID, "Description", newDepartmentInfo.Description)
+			slog.Debug("New department", "ID", newDepartmentInfo.NodeID, "Description", newDepartmentInfo.Description, "ProductCount", newDepartmentInfo.ProductCount)
 			// Update the departmentIDs table with the new department ID
+			// Set the updated time in the past to force an update on the next poll.
+			newDepartmentInfo.Updated = time.Now().Add(-2 * w.productMaxAge)
 			err := w.saveDepartment(newDepartmentInfo)
 			if err != nil {
 				slog.Error(fmt.Sprintf("Error saving department ID: %v", err))
+				continue
 			}
+			slog.Debug("Saved department", "ID", newDepartmentInfo.NodeID)
+
 		case <-cancel:
 			slog.Info("Exiting scheduler")
 			return

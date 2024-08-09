@@ -119,7 +119,7 @@ func TestMissingProduct(t *testing.T) {
 
 func TestDepartmentInfo(t *testing.T) {
 	w := getInitialisedWoolworths()
-	dept := departmentInfo{NodeID: "1-E5BEE36E", Description: "Fruit & Veg"}
+	dept := departmentInfo{NodeID: "1-E5BEE36E", Description: "Fruit & Veg", Updated: time.Now()}
 	w.saveDepartment(dept)
 	departmentIDs, err := w.loadDepartmentInfoList()
 	if err != nil {

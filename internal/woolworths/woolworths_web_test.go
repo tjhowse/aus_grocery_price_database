@@ -275,3 +275,24 @@ func TestGetProductInfoExtendedFromListPage(t *testing.T) {
 	}
 
 }
+
+func TestIsDepartmentFilteredOut(t *testing.T) {
+	w := getInitialisedWoolworths()
+
+	w.filterDepartments = true
+	w.filteredDepartmentIDsSet = map[departmentID]bool{
+		"1-E5BEE36E": true, // Fruit & Veg
+		"1_DEB537E":  true, // Bakery
+	}
+
+	if want, got := false, w.isDepartmentFilteredOut("1-E5BEE36E"); want != got {
+		t.Errorf("Expected %t, got %t", want, got)
+	}
+	if want, got := true, w.isDepartmentFilteredOut("1_5AF3A0A"); want != got {
+		t.Errorf("Expected %t, got %t", want, got)
+	}
+	w.filterDepartments = false
+	if want, got := false, w.isDepartmentFilteredOut("1_5AF3A0A"); want != got {
+		t.Errorf("Expected %t, got %t", want, got)
+	}
+}

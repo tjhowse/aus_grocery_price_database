@@ -49,7 +49,7 @@ func TestNewDepartmentIDWorker(t *testing.T) {
 
 	// Pre-load one existing department ID to check we're only being notified of
 	// new ones
-	dept := departmentInfo{NodeID: "1-E5BEE36E", Description: "Fruit & Vegetables"}
+	dept := departmentInfo{NodeID: "1-E5BEE36E", Description: "Fruit & Vegetables", Updated: time.Now()}
 	w.saveDepartment(dept)
 
 	departmentIDChannel := make(chan departmentInfo)
@@ -72,7 +72,7 @@ func TestNewProductWorker(t *testing.T) {
 	w := getInitialisedWoolworths()
 
 	// Set up a department to scan products from
-	dept := departmentInfo{NodeID: "1-E5BEE36E", Description: "Fruit & Vegetables"}
+	dept := departmentInfo{NodeID: "1-E5BEE36E", Description: "Fruit & Vegetables", Updated: time.Now()}
 	w.saveDepartment(dept)
 
 	productIDChannel := make(chan woolworthsProductInfo)
@@ -98,7 +98,7 @@ func TestProductListPageWorker(t *testing.T) {
 	w := getInitialisedWoolworths()
 
 	// Set up a department to scan products from
-	dept := departmentInfo{NodeID: "1-E5BEE36E", Description: "Fruit & Vegetables"}
+	dept := departmentInfo{NodeID: "1-E5BEE36E", Description: "Fruit & Vegetables", Updated: time.Now()}
 	w.saveDepartment(dept)
 
 	departmentPageChannel := make(chan departmentPage)
@@ -142,6 +142,12 @@ func TestDepartmentPageUpdateQueueWorker(t *testing.T) {
 		if pageIndex > 3 {
 			break
 		}
+	}
+	// Now test there are no more products waiting.
+	select {
+	case dept := <-departmentPageChannel:
+		t.Fatal("Expected no more products, got", dept)
+	case <-time.After(1 * time.Second):
 	}
 	// if want, got := 3, pageIndex; want != got {
 	// 	t.Errorf("Expected %d, got %d", want, got)

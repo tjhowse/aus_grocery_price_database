@@ -47,30 +47,42 @@ func extractDepartmentInfos(body fruitVegPage) ([]departmentInfo, error) {
 }
 
 func (w *Woolworths) getDepartmentInfos() ([]departmentInfo, error) {
-	departmentInfo := []departmentInfo{}
+	var req *http.Request
+	var resp *http.Response
+	var err error
+	departmentInfos := []departmentInfo{}
 
 	url := fmt.Sprintf("%s/shop/browse/fruit-veg", w.baseURL)
-	if req, err := http.NewRequest("GET", url, nil); err != nil {
-		return departmentInfo, err
-	} else {
-		resp, err := w.client.Do(req)
-		if err != nil {
-			return departmentInfo, err
-		}
-		defer resp.Body.Close()
-		if resp.StatusCode != http.StatusOK {
-			return departmentInfo, fmt.Errorf("failed to get category data: %s", resp.Status)
-		}
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return departmentInfo, err
-		}
-		departmentInfo, err = extractDepartmentInfos(body)
-		if err != nil {
-			return departmentInfo, err
-		}
-		return departmentInfo, nil
+	if req, err = http.NewRequest("GET", url, nil); err != nil {
+		return departmentInfos, err
 	}
+	resp, err = w.client.Do(req)
+	if err != nil {
+		return departmentInfos, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return departmentInfos, fmt.Errorf("failed to get category data: %s", resp.Status)
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return departmentInfos, err
+	}
+	departmentInfos, err = extractDepartmentInfos(body)
+	if err != nil {
+		return departmentInfos, err
+	}
+	departmentInfos = w.filterOutDepartments(departmentInfos)
+	// Now we have to populate the product count, since the fruit-veg page doesn't have it.
+	for i, departmentInfo := range departmentInfos {
+		_, count, err := w.getProductIDsAndCountFromListPage(departmentInfo.NodeID, 1)
+		if err != nil {
+			slog.Warn("Failed to get product count for department", "department", departmentInfo.NodeID, "error", err)
+			continue
+		}
+		departmentInfos[i].ProductCount = count
+	}
+	return departmentInfos, nil
 }
 
 func extractTotalRecordCount(body categoryData) (int, error) {
@@ -315,4 +327,24 @@ func unmarshalProductInfo(body []byte) (productInfo, error) {
 	}
 
 	return pInfo, nil
+}
+
+// isDepartmentFilteredOut returns true if the department is in the filteredDepartmentIDsSet
+func (w *Woolworths) isDepartmentFilteredOut(department departmentID) bool {
+	if !w.filterDepartments {
+		return false
+	}
+	_, ok := w.filteredDepartmentIDsSet[department]
+	return !ok
+}
+
+// filterOutDepartments filters out the departments that are not in the filteredDepartmentIDsSet
+func (w *Woolworths) filterOutDepartments(departments []departmentInfo) []departmentInfo {
+	filteredDepartments := []departmentInfo{}
+	for _, dp := range departments {
+		if !w.isDepartmentFilteredOut(dp.NodeID) {
+			filteredDepartments = append(filteredDepartments, dp)
+		}
+	}
+	return filteredDepartments
 }

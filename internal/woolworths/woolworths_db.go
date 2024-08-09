@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
-	"time"
 
 	"github.com/shopspring/decimal"
 )
@@ -181,7 +180,7 @@ func (w *Woolworths) saveDepartment(departmentInfo departmentInfo) error {
 			description = excluded.description,
 			productCount = excluded.productCount,
 			updated = excluded.updated`,
-		departmentInfo.NodeID, departmentInfo.Description, departmentInfo.ProductCount, time.Now())
+		departmentInfo.NodeID, departmentInfo.Description, departmentInfo.ProductCount, departmentInfo.Updated)
 
 	if err != nil {
 		return fmt.Errorf("failed to update department ID info: %w", err)
