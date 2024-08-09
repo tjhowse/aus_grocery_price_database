@@ -68,11 +68,10 @@ func TestSchedulerExtended(t *testing.T) {
 	cancel := make(chan struct{})
 	go w.RunExtended(cancel)
 
-	// gotta make the second category page contain real json, not the hacky snippet that's in there now.
-
 	done := make(chan struct{})
 	go func() {
 		for {
+			// TODO these should also validate department and description
 			err1 := ValidateProduct(t, &w, "165262", "Raspberries 125g Punnet")
 			err2 := ValidateProduct(t, &w, "187314", "Woolworths Broccolini Bunch Each")
 			if err1 == nil && err2 == nil {

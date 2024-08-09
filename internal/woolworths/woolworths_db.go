@@ -140,6 +140,8 @@ func (w *Woolworths) saveProductInfoExtended(tx *sql.Tx, productInfo woolworthsP
 	var err error
 	var result sql.Result
 
+	This needs to save department descriptions
+
 	result, err = tx.Exec(`
 			INSERT INTO products (productID, name, description, priceCents, weightGrams, productJSON, updated)
 			VALUES (?, ?, ?, ?, ?, ?, ?)
