@@ -140,7 +140,8 @@ func (w *Woolworths) saveProductInfoExtended(tx *sql.Tx, productInfo woolworthsP
 	var err error
 	var result sql.Result
 
-	This needs to save department descriptions
+	This needs to save department descriptions. Maybe when we pull it out we can inner join on the departments table.
+	// Then we can remove the departmentDescription field from the products table.
 
 	result, err = tx.Exec(`
 			INSERT INTO products (productID, name, description, priceCents, weightGrams, productJSON, updated)
