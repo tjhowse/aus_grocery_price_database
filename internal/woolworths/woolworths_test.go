@@ -13,8 +13,17 @@ func ValidateProduct(t *testing.T, w *Woolworths, id productID, want string) err
 		return fmt.Errorf("Failed to get product ID %s: %v", id, err)
 	}
 	if prod.Info.Name != want {
+		t.Logf("Expected %s, got %s", want, prod.Info.Name)
 		return fmt.Errorf("Expected %s, got %s", want, prod.Info.Name)
 	}
+	// if want, got := "Fruit & Veg", prod.departmentDescription; want != got {
+	// 	t.Fatalf("Expected %s, got %s", want, got)
+	// 	return fmt.Errorf("Expected %s, got %s", want, got)
+	// }
+	// if want, got := departmentID("1-E5BEE36E"), prod.departmentID; want != got {
+	// 	t.Fatalf("Expected %s, got %s", want, got)
+	// 	return fmt.Errorf("Expected %s, got %s", want, got)
+	// }
 	return nil
 }
 
@@ -71,7 +80,6 @@ func TestSchedulerExtended(t *testing.T) {
 	done := make(chan struct{})
 	go func() {
 		for {
-			// TODO these should also validate department and description
 			err1 := ValidateProduct(t, &w, "165262", "Raspberries 125g Punnet")
 			err2 := ValidateProduct(t, &w, "187314", "Woolworths Broccolini Bunch Each")
 			if err1 == nil && err2 == nil {

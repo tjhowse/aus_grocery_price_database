@@ -148,8 +148,8 @@ func (w *Woolworths) saveProductInfoExtended(tx *sql.Tx, productInfo woolworthsP
 	// Then we can remove the departmentDescription field from the products table.
 
 	result, err = tx.Exec(`
-			INSERT INTO products (productID, name, description, priceCents, weightGrams, productJSON, updated)
-			VALUES (?, ?, ?, ?, ?, ?, ?)
+			INSERT INTO products (productID, name, description, priceCents, weightGrams, productJSON, departmentID, updated)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 			ON CONFLICT(productID) DO UPDATE SET
 				productID = excluded.productID,
 				name = excluded.name,
@@ -157,10 +157,11 @@ func (w *Woolworths) saveProductInfoExtended(tx *sql.Tx, productInfo woolworthsP
 				priceCents = excluded.priceCents,
 				weightGrams = excluded.weightGrams,
 				productJSON = excluded.productJSON,
+				departmentID = excluded.departmentID,
 				updated = excluded.updated`,
 		productInfo.ID, productInfo.Info.DisplayName, productInfo.Info.Description,
 		productInfo.Info.Price.Mul(decimal.NewFromInt(100)).IntPart(),
-		productInfo.Info.UnitWeightInGrams, productInfo.RawJSON, productInfo.Updated)
+		productInfo.Info.UnitWeightInGrams, productInfo.RawJSON, productInfo.departmentID, productInfo.Updated)
 
 	if err != nil {
 		return fmt.Errorf("failed to update product info: %w", err)
