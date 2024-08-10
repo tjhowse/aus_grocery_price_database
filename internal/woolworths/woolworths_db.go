@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
+	"os"
+	"time"
 
 	"github.com/shopspring/decimal"
 )
@@ -53,26 +55,63 @@ func (w *Woolworths) initBlankDB() error {
 	return nil
 }
 
+// backupDB moves the specified DB to the same directory with an ISO8601 timestamp and the schema
+// number prepended to the filename.
+func (w *Woolworths) backupDB(dbPath string, oldSchema int) error {
+	backupName := fmt.Sprintf("%s.%d.%s", dbPath, oldSchema, time.Now().Format("2006-01-02T15:04:05"))
+	err := os.Rename(dbPath, backupName)
+	if err != nil {
+		return fmt.Errorf("failed to backup existing DB: %w", err)
+	}
+	slog.Info("Backed up old DB", "old", dbPath, "new", backupName)
+	return nil
+}
+
+func openDB(dbPath string) (*sql.DB, error) {
+	db, err := sql.Open("sqlite3", dbPath+"?cache=shared")
+	if err != nil {
+		return nil, err
+	}
+	db.SetMaxOpenConns(1)
+	return db, nil
+}
+
 func (w *Woolworths) initDB(dbPath string) error {
 	var err error
-	dbPath += "?cache=shared"
-	w.db, err = sql.Open("sqlite3", dbPath)
+	w.db, err = openDB(dbPath)
 	if err != nil {
-		return fmt.Errorf("failed to open database: %w", err)
+		return fmt.Errorf("failed to open DB: %w", err)
 	}
-	w.db.SetMaxOpenConns(1)
 	var version int
 	err = w.db.QueryRow("SELECT version FROM schema").Scan(&version)
-	if err != nil {
-		slog.Warn("DB schema error. Creating blank DB.", "error", err)
-	}
-	if version != DB_SCHEMA_VERSION {
-		slog.Warn("DB schema error. Creating blank DB.", "path", dbPath, "version", DB_SCHEMA_VERSION)
+
+	if err != nil || version != DB_SCHEMA_VERSION {
+		slog.Warn("DB schema mismatch.", "path", dbPath, "currentVersion", DB_SCHEMA_VERSION, "detectedVersion", version)
+
+		if version != 0 {
+			// If we detected an old schema, backup the DB and create a new one.
+			err = w.db.Close()
+			if err != nil {
+				return fmt.Errorf("failed to close existing DB before backing it up: %w", err)
+			}
+			err = w.backupDB(dbPath, version)
+			if err != nil {
+				return fmt.Errorf("failed to backup existing DB: %w", err)
+			}
+
+			// Open a new DB
+			w.db, err = openDB(dbPath)
+			if err != nil {
+				return fmt.Errorf("failed to open DB: %w", err)
+			}
+		}
+
+		// Create the schema
 		err := w.initBlankDB()
 		if err != nil {
 			return fmt.Errorf("failed to create blank DB: %w", err)
 		} else {
-			slog.Info("Blank DB created")
+			slog.Info("New blank DB created")
 		}
 	}
 	return nil

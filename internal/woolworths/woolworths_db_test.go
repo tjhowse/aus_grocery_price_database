@@ -3,6 +3,9 @@ package woolworths
 import (
 	"encoding/json"
 	"log/slog"
+	"os"
+	"path/filepath"
+	"strconv"
 	"testing"
 	"time"
 
@@ -243,4 +246,57 @@ func TestSaveProductInfo(t *testing.T) {
 	if want, got := inProduct.departmentID, outProduct.departmentID; want != got {
 		t.Errorf("Expected %s, got %s", want, got)
 	}
+}
+
+func TestBackupDB(t *testing.T) {
+
+	// Get a temp directory
+
+	tempDirName, err := os.MkdirTemp("", "delme")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tempDirName)
+
+	func() {
+		w := Woolworths{}
+		err = w.Init(woolworthsServer.URL, tempDirName+"/delme.db3", 10*time.Minute)
+		if err != nil {
+			slog.Error("Failed to initialise Woolworths", "error", err)
+		}
+	}()
+
+	func() {
+		w := Woolworths{}
+		err = w.Init(woolworthsServer.URL, tempDirName+"/delme.db3", 10*time.Minute)
+		if err != nil {
+			slog.Error("Failed to initialise Woolworths", "error", err)
+		}
+		matches, err := filepath.Glob(tempDirName + "/delme.db3.*")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want, got := 0, len(matches); want != got {
+			t.Fatalf("Unexpectedly found a backup of the DB that shouldn't've been created.")
+		}
+		// Tweak the schema version to DB_SCHEMA_VERSION-1 to force a backup.
+		w.db.Exec("UPDATE schema SET version = ?", DB_SCHEMA_VERSION-1)
+	}()
+
+	func() {
+		w := Woolworths{}
+		err = w.Init(woolworthsServer.URL, tempDirName+"/delme.db3", 10*time.Minute)
+		if err != nil {
+			slog.Error("Failed to initialise Woolworths", "error", err)
+		}
+		// Ensure we created a backup of the old database at tempDirName/delme.db3.{DB_SCHEMA_VERSION-1}.{timestamp}
+		matches, err := filepath.Glob(tempDirName + "/delme.db3." + strconv.Itoa(DB_SCHEMA_VERSION-1) + ".*")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want, got := 1, len(matches); want != got {
+			t.Fatalf("Couldn't find the backed-up file.")
+		}
+	}()
+
 }

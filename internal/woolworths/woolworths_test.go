@@ -67,8 +67,7 @@ func TestSchedulerExtended(t *testing.T) {
 	slog.SetLogLoggerLevel(slog.LevelDebug)
 
 	w := Woolworths{}
-	// w.Init(woolworthsServer.URL, ":memory:", 100*time.Second)
-	w.Init(woolworthsServer.URL, "delme.db3", 100*time.Second)
+	w.Init(woolworthsServer.URL, ":memory:", 100*time.Second)
 	w.filteredDepartmentIDsSet = map[departmentID]bool{
 		"1-E5BEE36E": true, // Fruit & Veg
 		"1_DEB537E":  true, // Bakery
