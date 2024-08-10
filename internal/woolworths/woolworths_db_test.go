@@ -19,8 +19,8 @@ func TestUpdateProductInfo(t *testing.T) {
 	w := getInitialisedWoolworths()
 
 	wProdInfo.Updated = time.Now()
-	err = w.saveProductInfo(wProdInfo)
-	if err != nil {
+
+	if err := w.saveProductInfo(wProdInfo); err != nil {
 		t.Fatal(err)
 	}
 
@@ -224,7 +224,7 @@ func TestCheckIfKnownProductID(t *testing.T) {
 
 func TestSaveProductInfo(t *testing.T) {
 	w := getInitialisedWoolworths()
-	inProduct := woolworthsProductInfo{ID: "123456", departmentID: "abc", departmentDescription: "cba", Info: productInfo{Name: "1", Offers: offer{Price: decimal.NewFromFloat(1.5)}}, Updated: time.Now()}
+	inProduct := woolworthsProductInfo{ID: "123456", departmentID: "abc", Info: productInfo{Name: "1", Offers: offer{Price: decimal.NewFromFloat(1.5)}}, Updated: time.Now()}
 
 	err := w.saveProductInfo(inProduct)
 	if err != nil {
@@ -243,8 +243,4 @@ func TestSaveProductInfo(t *testing.T) {
 	if want, got := inProduct.departmentID, outProduct.departmentID; want != got {
 		t.Errorf("Expected %s, got %s", want, got)
 	}
-	if want, got := inProduct.departmentDescription, outProduct.departmentDescription; want != got {
-		t.Errorf("Expected %s, got %s", want, got)
-	}
-
 }

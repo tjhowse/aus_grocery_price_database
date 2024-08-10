@@ -93,7 +93,7 @@ func (w *Woolworths) saveProductInfo(productInfo woolworthsProductInfo) error {
 
 		result, err = w.db.Exec(`
 			INSERT INTO products (productID, departmentID, updated)
-			VALUES (?, ?, ?, ?)
+			VALUES (?, ?, ?)
 			ON CONFLICT(productID) DO UPDATE SET
 				productID = excluded.productID,
 				departmentID = excluded.departmentID,
@@ -200,6 +200,7 @@ func (w *Woolworths) saveDepartment(departmentInfo departmentInfo) error {
 // Loads cached product info from the database
 func (w *Woolworths) loadProductInfo(productID productID) (woolworthsProductInfo, error) {
 	var wProdInfo woolworthsProductInfo
+	var deptDescription sql.NullString
 	row := w.db.QueryRow(`
 	SELECT
 		productID,
@@ -221,13 +222,16 @@ func (w *Woolworths) loadProductInfo(productID productID) (woolworthsProductInfo
 		&wProdInfo.Info.Offers.Price,
 		&wProdInfo.Info.Weight,
 		&wProdInfo.departmentID,
-		&wProdInfo.departmentDescription,
+		&deptDescription, // This value comes from a join, so it might be NULL.
 		&wProdInfo.Updated)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return wProdInfo, ErrProductMissing
 		}
 		return wProdInfo, fmt.Errorf("failed to query existing product info: %w", err)
+	}
+	if deptDescription.Valid {
+		wProdInfo.departmentDescription = deptDescription.String
 	}
 
 	return wProdInfo, nil

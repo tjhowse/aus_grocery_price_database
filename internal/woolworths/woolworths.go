@@ -32,27 +32,31 @@ type Woolworths struct {
 // GetSharedProductsUpdatedAfter provides a list of product IDs that have been updated since the given time
 func (w *Woolworths) GetSharedProductsUpdatedAfter(t time.Time, count int) ([]shared.ProductInfo, error) {
 	var productIDs []shared.ProductInfo
+	var deptDescription sql.NullString
 	rows, err := w.db.Query(`
 		SELECT
 			productID,
-			name,
+			products.name,
 			products.description,
 			departments.description,
 			priceCents,
 			weightGrams,
-			updated
+			products.updated
 		FROM
 			products
 			LEFT JOIN departments ON products.departmentID = departments.departmentID
-		WHERE updated > ? AND name != '' LIMIT ?", t, count)`)
+		WHERE products.updated > ? AND name != '' LIMIT ?`, t, count)
 	if err != nil {
 		return productIDs, fmt.Errorf("failed to query productIDs: %w", err)
 	}
 	for rows.Next() {
 		var product shared.ProductInfo
-		err = rows.Scan(&product.ID, &product.Name, &product.Description, &product.Department, &product.PriceCents, &product.WeightGrams, &product.Timestamp)
+		err = rows.Scan(&product.ID, &product.Name, &product.Description, &deptDescription, &product.PriceCents, &product.WeightGrams, &product.Timestamp)
 		if err != nil {
 			return productIDs, fmt.Errorf("failed to scan productID: %w", err)
+		}
+		if deptDescription.Valid {
+			product.Department = deptDescription.String
 		}
 		product.ID = WOOLWORTHS_ID_PREFIX + product.ID
 		product.Store = "Woolworths"
