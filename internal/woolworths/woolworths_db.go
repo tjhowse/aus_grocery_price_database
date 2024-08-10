@@ -45,7 +45,6 @@ func (w *Woolworths) initBlankDB() error {
 							weightGrams INTEGER,
 							productJSON TEXT,
 							departmentID TEXT DEFAULT "",
-							departmentDescription TEXT DEFAULT "",
 							updated DATETIME
 						)`)
 	if err != nil {
@@ -93,14 +92,13 @@ func (w *Woolworths) saveProductInfo(productInfo woolworthsProductInfo) error {
 		// Only save the department info and leave the rest alone.
 
 		result, err = w.db.Exec(`
-			INSERT INTO products (productID, departmentID, departmentDescription, updated)
+			INSERT INTO products (productID, departmentID, updated)
 			VALUES (?, ?, ?, ?)
 			ON CONFLICT(productID) DO UPDATE SET
 				productID = excluded.productID,
 				departmentID = excluded.departmentID,
-				departmentDescription = excluded.departmentDescription,
 				updated = excluded.updated`,
-			productInfo.ID, productInfo.departmentID, productInfo.departmentDescription, productInfo.Updated)
+			productInfo.ID, productInfo.departmentID, productInfo.Updated)
 
 		if err != nil {
 			return fmt.Errorf("failed to update product info: %w", err)
@@ -143,9 +141,6 @@ func (w *Woolworths) saveProductInfo(productInfo woolworthsProductInfo) error {
 func (w *Woolworths) saveProductInfoExtended(tx *sql.Tx, productInfo woolworthsProductInfoExtended) error {
 	var err error
 	var result sql.Result
-
-	// This needs to save department descriptions. Maybe when we pull it out we can inner join on the departments table.
-	// Then we can remove the departmentDescription field from the products table.
 
 	result, err = tx.Exec(`
 			INSERT INTO products (productID, name, description, priceCents, weightGrams, productJSON, departmentID, updated)
@@ -205,9 +200,20 @@ func (w *Woolworths) saveDepartment(departmentInfo departmentInfo) error {
 // Loads cached product info from the database
 func (w *Woolworths) loadProductInfo(productID productID) (woolworthsProductInfo, error) {
 	var wProdInfo woolworthsProductInfo
-	row := w.db.QueryRow(`SELECT
-		productID, name, description, priceCents, weightGrams, departmentID, departmentDescription, updated
-		FROM products WHERE productID = ? LIMIT 1`, productID)
+	row := w.db.QueryRow(`
+	SELECT
+		productID,
+		name,
+		products.description,
+		priceCents,
+		weightGrams,
+		products.departmentID,
+		departments.description,
+		products.updated
+	FROM
+		products
+		LEFT JOIN departments ON products.departmentID = departments.departmentID
+	WHERE productID = ? LIMIT 1`, productID)
 	err := row.Scan(
 		&wProdInfo.ID,
 		&wProdInfo.Info.Name,
