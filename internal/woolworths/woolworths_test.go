@@ -16,14 +16,14 @@ func ValidateProduct(t *testing.T, w *Woolworths, id productID, want string) err
 		t.Logf("Expected %s, got %s", want, prod.Info.Name)
 		return fmt.Errorf("Expected %s, got %s", want, prod.Info.Name)
 	}
-	// if want, got := "Fruit & Veg", prod.departmentDescription; want != got {
-	// 	t.Fatalf("Expected %s, got %s", want, got)
-	// 	return fmt.Errorf("Expected %s, got %s", want, got)
-	// }
-	// if want, got := departmentID("1-E5BEE36E"), prod.departmentID; want != got {
-	// 	t.Fatalf("Expected %s, got %s", want, got)
-	// 	return fmt.Errorf("Expected %s, got %s", want, got)
-	// }
+	if want, got := "Fruit & Veg", prod.departmentDescription; want != got {
+		t.Fatalf("Expected %s, got %s", want, got)
+		return fmt.Errorf("Expected %s, got %s", want, got)
+	}
+	if want, got := departmentID("1-E5BEE36E"), prod.departmentID; want != got {
+		t.Fatalf("Expected %s, got %s", want, got)
+		return fmt.Errorf("Expected %s, got %s", want, got)
+	}
 	return nil
 }
 
