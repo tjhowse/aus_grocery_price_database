@@ -67,6 +67,7 @@ func (m *MockGroceryStore) Init(url string, dbpath string, age time.Duration) er
 }
 
 func (m *MockGroceryStore) Run(chan struct{}) {
+
 }
 
 func (m *MockGroceryStore) GetSharedProductsUpdatedAfter(cutoff time.Time, count int) ([]shared.ProductInfo, error) {

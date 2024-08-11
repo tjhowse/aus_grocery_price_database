@@ -38,7 +38,7 @@ func TestScheduler(t *testing.T) {
 	}
 	w.filterDepartments = true
 	cancel := make(chan struct{})
-	go w.Run(cancel)
+	go w.runIndividualPages(cancel)
 
 	done := make(chan struct{})
 	go func() {
@@ -74,7 +74,7 @@ func TestSchedulerExtended(t *testing.T) {
 	}
 	w.filterDepartments = true
 	cancel := make(chan struct{})
-	go w.RunExtended(cancel)
+	go w.runExtended(cancel)
 
 	done := make(chan struct{})
 	go func() {

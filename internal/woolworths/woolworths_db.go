@@ -86,7 +86,7 @@ func (w *Woolworths) initDB(dbPath string) error {
 	err = w.db.QueryRow("SELECT version FROM schema").Scan(&version)
 
 	if err != nil || version != DB_SCHEMA_VERSION {
-		slog.Warn("DB schema mismatch.", "path", dbPath, "currentVersion", DB_SCHEMA_VERSION, "detectedVersion", version)
+		slog.Warn("DB schema mismatch", "path", dbPath, "currentVersion", DB_SCHEMA_VERSION, "detectedVersion", version)
 
 		if version != 0 {
 			// If we detected an old schema, backup the DB and create a new one.

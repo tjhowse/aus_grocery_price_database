@@ -244,6 +244,11 @@ const DEFAULT_PRODUCT_UPDATE_BATCH_SIZE = 10
 // Currently all sqlite writes happen via this function. This may move
 // off to a separate goroutine in the future.
 func (w *Woolworths) Run(cancel chan struct{}) {
+	// w.runIndividualPages(cancel)
+	w.runExtended(cancel)
+}
+
+func (w *Woolworths) runIndividualPages(cancel chan struct{}) {
 
 	productInfoChannel := make(chan woolworthsProductInfo)
 	productsThatNeedAnUpdateChannel := make(chan productID)
@@ -279,10 +284,9 @@ func (w *Woolworths) Run(cancel chan struct{}) {
 			return
 		}
 	}
-
 }
 
-func (w *Woolworths) RunExtended(cancel chan struct{}) {
+func (w *Woolworths) runExtended(cancel chan struct{}) {
 	departmentPageChannel := make(chan departmentPage)
 	newDepartmentInfoChannel := make(chan departmentInfo)
 

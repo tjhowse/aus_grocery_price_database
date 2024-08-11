@@ -316,11 +316,11 @@ type productListPageProduct struct {
 	InstoreWasPrice           float64         `json:"InstoreWasPrice"`
 	QuantityInTrolley         int             `json:"QuantityInTrolley"`
 	Unit                      string          `json:"Unit"`
-	MinimumQuantity           int             `json:"MinimumQuantity"`
+	MinimumQuantity           float32         `json:"MinimumQuantity"`
 	HasBeenBoughtBefore       bool            `json:"HasBeenBoughtBefore"`
 	IsInTrolley               bool            `json:"IsInTrolley"`
 	Source                    string          `json:"Source"`
-	SupplyLimit               int             `json:"SupplyLimit"`
+	SupplyLimit               float32         `json:"SupplyLimit"`
 	ProductLimit              int             `json:"ProductLimit"`
 	MaxSupplyLimitMessage     string          `json:"MaxSupplyLimitMessage"`
 	IsRanged                  bool            `json:"IsRanged"`
@@ -368,7 +368,7 @@ type productListPageProduct struct {
 	IsPurchasable                bool        `json:"IsPurchasable"`
 	InstoreIsPurchasable         bool        `json:"InstoreIsPurchasable"`
 	AgeRestricted                bool        `json:"AgeRestricted"`
-	DisplayQuantity              int         `json:"DisplayQuantity"`
+	DisplayQuantity              float32     `json:"DisplayQuantity"`
 	RichDescription              interface{} `json:"RichDescription"`
 	HideWasSavedPrice            bool        `json:"HideWasSavedPrice"`
 	SapCategories                interface{} `json:"SapCategories"`
