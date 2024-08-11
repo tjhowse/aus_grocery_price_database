@@ -178,6 +178,10 @@ func TestRun(t *testing.T) {
 		t.Fatalf("Expected %d items, got %d", want, got)
 	}
 
+	if len(mockInfluxDB.writtenSystemDatapoints) == 0 {
+		t.Fatal("Expected a system datapoint to be written")
+	}
+
 	if want, got := 100, mockInfluxDB.writtenSystemDatapoints[0].TotalProductCount; want != got {
 		t.Errorf("Expected %v, got %v", want, got)
 	}
