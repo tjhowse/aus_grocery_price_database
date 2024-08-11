@@ -7,14 +7,14 @@ import (
 	"time"
 )
 
-func ValidateProduct(t *testing.T, w *Woolworths, id productID, want string) error {
+func ValidateProduct(t *testing.T, w *Woolworths, id productID, expectedName string) error {
 	prod, err := w.loadProductInfo(id)
 	if err != nil {
 		return fmt.Errorf("Failed to get product ID %s: %v", id, err)
 	}
-	if prod.Info.Name != want {
-		t.Logf("Expected %s, got %s", want, prod.Info.Name)
-		return fmt.Errorf("Expected %s, got %s", want, prod.Info.Name)
+	if prod.Info.Name != expectedName {
+		t.Logf("Expected %s, got %s", expectedName, prod.Info.Name)
+		return fmt.Errorf("Expected %s, got %s", expectedName, prod.Info.Name)
 	}
 	if want, got := "Fruit & Veg", prod.departmentDescription; want != got {
 		t.Fatalf("Expected %s, got %s", want, got)

@@ -10,7 +10,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-const DB_SCHEMA_VERSION = 5
+const DB_SCHEMA_VERSION = 6
 
 // Initialises the DB with the schema. Note you must bump the DB_SCHEMA_VERSION
 // constant if you change the schema.
@@ -43,6 +43,7 @@ func (w *Woolworths) initBlankDB() error {
 						(	productID TEXT UNIQUE,
 							name TEXT,
 							description TEXT,
+							barcode TEXT,
 							priceCents INTEGER,
 							weightGrams INTEGER,
 							productJSON TEXT,
@@ -182,18 +183,19 @@ func (w *Woolworths) saveProductInfoExtended(tx *sql.Tx, productInfo woolworthsP
 	var result sql.Result
 
 	result, err = tx.Exec(`
-			INSERT INTO products (productID, name, description, priceCents, weightGrams, productJSON, departmentID, updated)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+			INSERT INTO products (productID, name, description, barcode, priceCents, weightGrams, productJSON, departmentID, updated)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 			ON CONFLICT(productID) DO UPDATE SET
 				productID = excluded.productID,
 				name = excluded.name,
 				description = excluded.description,
+				barcode = excluded.barcode,
 				priceCents = excluded.priceCents,
 				weightGrams = excluded.weightGrams,
 				productJSON = excluded.productJSON,
 				departmentID = excluded.departmentID,
 				updated = excluded.updated`,
-		productInfo.ID, productInfo.Info.DisplayName, productInfo.Info.Description,
+		productInfo.ID, productInfo.Info.DisplayName, productInfo.Info.Description, productInfo.Info.Barcode,
 		productInfo.Info.Price.Mul(decimal.NewFromInt(100)).IntPart(),
 		productInfo.Info.UnitWeightInGrams, productInfo.RawJSON, productInfo.departmentID, productInfo.Updated)
 
