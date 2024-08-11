@@ -206,12 +206,12 @@ func (w *Woolworths) departmentPageUpdateQueueWorker(output chan<- departmentPag
 		departmentInfos, err := w.loadDepartmentInfoList()
 		if err != nil {
 			slog.Error("error loading department IDs. Trying again soon.", "error", err)
-			// Try again in ten minutes.
 			time.Sleep(1 * time.Minute)
 			continue
 		}
 		for _, departmentInfo := range departmentInfos {
 			if time.Since(departmentInfo.Updated) < maxAge {
+				slog.Debug("Skipping update of department", "ID", departmentInfo.NodeID, "UpdatedAgo", time.Since(departmentInfo.Updated))
 				continue
 			}
 			slog.Debug("Checking department", "ID", departmentInfo.NodeID, "Updated", departmentInfo.Updated)
@@ -233,8 +233,8 @@ func (w *Woolworths) departmentPageUpdateQueueWorker(output chan<- departmentPag
 			}
 		}
 		// We've done an update of all departments, so we don't need to check for new departments very often.
-		time.Sleep(2 * time.Second)
-		// time.Sleep(1 * time.Minute)
+		// time.Sleep(2 * time.Second)
+		time.Sleep(1 * time.Minute)
 	}
 }
 
