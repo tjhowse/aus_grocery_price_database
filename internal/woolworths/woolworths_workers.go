@@ -89,6 +89,15 @@ func (w *Woolworths) productUpdateQueueWorker(output chan<- productID, maxAge ti
 	}
 }
 
+func departmentInSlice(a departmentInfo, list []departmentInfo) *departmentInfo {
+	for _, b := range list {
+		if a.NodeID == b.NodeID {
+			return &b
+		}
+	}
+	return nil
+}
+
 // This worker emits a stream of new department IDs that don't currently exist in the database.
 func (w *Woolworths) newDepartmentInfoWorker(output chan<- departmentInfo) {
 	for {
@@ -106,19 +115,15 @@ func (w *Woolworths) newDepartmentInfoWorker(output chan<- departmentInfo) {
 
 		// Compare the two lists and output any new department IDs.
 		for _, webDepartmentID := range departmentsFromWeb {
-			found := false
-			for _, departmentInfoFromDB := range departmentInfosFromDB {
-				if webDepartmentID.NodeID == departmentInfoFromDB.NodeID &&
-					webDepartmentID.ProductCount == departmentInfoFromDB.ProductCount {
-					found = true
-					break
+			if dept := departmentInSlice(webDepartmentID, departmentInfosFromDB); dept == nil {
+				slog.Info("New department ID", "ID", webDepartmentID.NodeID, "Description", webDepartmentID.Description)
+				output <- webDepartmentID
+			} else {
+				if dept.ProductCount != webDepartmentID.ProductCount {
+					slog.Info("Department flagged for update", "oldProductCount", dept.ProductCount, "newProductCount", webDepartmentID.ProductCount)
+					output <- webDepartmentID
 				}
 			}
-			if found {
-				continue
-			}
-
-			output <- webDepartmentID
 		}
 		// We don't need to check for departments very often.
 		time.Sleep(1 * time.Hour)
