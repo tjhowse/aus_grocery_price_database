@@ -230,7 +230,7 @@ func (w *Woolworths) getProductListPage(department departmentID, page int) ([]by
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
-			return nil, fmt.Errorf("failed to get category data: %s", resp.Status)
+			return nil, fmt.Errorf("failed to get data from category %s page %d: %s", department, page, resp.Status)
 		}
 
 		body, err := io.ReadAll(resp.Body)

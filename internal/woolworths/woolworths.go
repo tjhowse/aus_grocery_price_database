@@ -14,7 +14,7 @@ import (
 )
 
 const WOOLWORTHS_PRODUCT_URL_FORMAT = "%s/api/v3/ui/schemaorg/product/%s"
-const PRODUCT_INFO_WORKER_COUNT = 15
+const PRODUCT_INFO_WORKER_COUNT = 2
 
 var ErrProductMissing = errors.New("no product found")
 
@@ -92,7 +92,7 @@ func (w *Woolworths) Init(baseURL string, dbPath string, productMaxAge time.Dura
 			Jar:     w.cookieJar,
 			Timeout: 30 * time.Second,
 		},
-		Ratelimiter: rate.NewLimiter(rate.Every(50*time.Millisecond), 1),
+		Ratelimiter: rate.NewLimiter(rate.Every(100*time.Millisecond), 1),
 	}
 	w.productMaxAge = productMaxAge
 	err = w.initDB(dbPath)
@@ -110,7 +110,7 @@ func (w *Woolworths) Init(baseURL string, dbPath string, productMaxAge time.Dura
 		"1_8E4DA6F":  true, // Liquor
 		// "1_61D6FEB":  true, // Pet // Don't put this one in. It contains 10000 "pet" products that are all 1-each doses of pet medicine or something.
 		"1_717A94B": true, // Baby
-		"1_894D0A8": true, // Health & Beauty
+		// "1_894D0A8": true, // Health & Beauty
 		// "1_2432B58":  true, // Household
 		// "1_B63CF9E":  true, // Front of store
 
