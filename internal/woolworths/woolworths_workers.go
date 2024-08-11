@@ -233,8 +233,7 @@ func (w *Woolworths) departmentPageUpdateQueueWorker(output chan<- departmentPag
 			}
 		}
 		// We've done an update of all departments, so we don't need to check for new departments very often.
-		// time.Sleep(2 * time.Second)
-		time.Sleep(1 * time.Minute)
+		time.Sleep(w.listingPageUpdateInterval)
 	}
 }
 

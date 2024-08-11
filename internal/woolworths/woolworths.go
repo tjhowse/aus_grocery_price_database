@@ -15,18 +15,20 @@ import (
 
 const WOOLWORTHS_PRODUCT_URL_FORMAT = "%s/api/v3/ui/schemaorg/product/%s"
 const PRODUCT_INFO_WORKER_COUNT = 2
+const DEFAULT_LISTING_PAGE_CHECK_INTERVAL = 1 * time.Minute
 
 var ErrProductMissing = errors.New("no product found")
 
 // Woolworths satisfies the ProductInfoGetter interface to provide a stream of product information from Woolworths.
 type Woolworths struct {
-	baseURL                  string
-	client                   *RLHTTPClient
-	cookieJar                *cookiejar.Jar // TODO This might not be threadsafe.
-	db                       *sql.DB
-	productMaxAge            time.Duration
-	filterDepartments        bool // These are used to limit the departments and products for gradual testing.
-	filteredDepartmentIDsSet map[departmentID]bool
+	baseURL                   string
+	client                    *RLHTTPClient
+	cookieJar                 *cookiejar.Jar // TODO This might not be threadsafe.
+	db                        *sql.DB
+	productMaxAge             time.Duration
+	listingPageUpdateInterval time.Duration
+	filterDepartments         bool // These are used to limit the departments and products for gradual testing.
+	filteredDepartmentIDsSet  map[departmentID]bool
 }
 
 // GetSharedProductsUpdatedAfter provides a list of product IDs that have been updated since the given time
@@ -115,5 +117,6 @@ func (w *Woolworths) Init(baseURL string, dbPath string, productMaxAge time.Dura
 		// "1_B63CF9E":  true, // Front of store
 
 	}
+	w.listingPageUpdateInterval = DEFAULT_LISTING_PAGE_CHECK_INTERVAL
 	return nil
 }

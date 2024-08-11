@@ -127,7 +127,7 @@ func TestDepartmentPageUpdateQueueWorker(t *testing.T) {
 	w.saveDepartment(departmentInfo{NodeID: "1-E5BEE36E", Description: "Fruit & Vegetables", ProductCount: 100, Updated: time.Now().Add(-1 * time.Hour)})
 	// We don't want to get pages from this department, updated an hour in the future.
 	w.saveDepartment(departmentInfo{NodeID: "1-E5BEE36F", Description: "Vruit & Fegetables", ProductCount: 100, Updated: time.Now().Add(1 * time.Hour)})
-
+	w.listingPageUpdateInterval = 1 * time.Second
 	go w.departmentPageUpdateQueueWorker(departmentPageChannel, 1)
 
 	pageIndex := 1

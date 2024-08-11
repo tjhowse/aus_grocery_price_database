@@ -68,6 +68,7 @@ func TestSchedulerExtended(t *testing.T) {
 
 	w := Woolworths{}
 	w.Init(woolworthsServer.URL, ":memory:", 100*time.Second)
+	w.listingPageUpdateInterval = 1 * time.Second
 	w.filteredDepartmentIDsSet = map[departmentID]bool{
 		"1-E5BEE36E": true, // Fruit & Veg
 		"1_DEB537E":  true, // Bakery
