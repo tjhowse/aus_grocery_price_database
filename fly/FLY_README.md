@@ -130,6 +130,7 @@ Then delete the temporary bucket and re-create it, and another one for testing:
 ### Better option for next time
 
 Local:
+    # Take a snapshot of the backing volume
     fly volumes fork vol_r7l95jwqy0j8kp94
 
 VM:
