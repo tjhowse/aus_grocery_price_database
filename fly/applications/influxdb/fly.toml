@@ -6,6 +6,8 @@
 
 app = 'aus-grocery-price-database-influxdb'
 primary_region = 'syd'
+swap_size_mb = 2048
+
 
 [build]
   [build.args]
