@@ -2,9 +2,7 @@ ARG BASE_IMAGE=grafana/grafana:10.0.0
 
 FROM ${BASE_IMAGE}
 
-# This needs to be copied into /data/etc/grafana/grafana.ini once the container
-# has booted. We can't cook stuff into the mounted /data volume.
-COPY grafana.ini /grafana.ini
+COPY grafana.ini /etc/grafana/grafana.ini
 
 USER root
 

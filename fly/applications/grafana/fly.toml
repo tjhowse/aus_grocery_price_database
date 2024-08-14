@@ -17,7 +17,7 @@ primary_region = 'syd'
 #   GF_PATHS_LOGS = '/data/var/log/grafana'
 #   GF_PATHS_PLUGINS = '/data/var/lib/grafana/plugins'
 #   GF_PATHS_PROVISIONING = '/data/etc/grafana/provisioning'
-  GF_PATHS_CONFIG = '/data/etc/grafana/grafana.ini'
+  GF_PATHS_CONFIG = '/etc/grafana/grafana.ini'
   GF_PATHS_DATA = '/data/var/lib/grafana'
   GF_DEFAULT_INSTANCE_NAME = 'aus-grocery-price-database-grafana'
 
