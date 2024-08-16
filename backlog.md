@@ -4,6 +4,7 @@
 
 ### Frontend
 * Make sure plotlines are accessible from a colour perception perspective
+* Add display for recent significant increases/decreases in prices
 
 ### Optimisations
 * Use transactions for all multi-part SQL operations
@@ -14,6 +15,8 @@
 * Set up health check for AGPD container. Touch /tmp/heartbeat or something.
 * Report delta between actual product max age and target.
 * Periodic backups of timeseries DB to S3/other block storage. Possibly just clone fly.io volume?
+* Drop AGPD container RAM allocation to 256MB. Add swap file.
+* Drop grafana container RAM allocation to 512MB. Add swap file.
 
 ### General
 * Extract barcode from category page along with the stockcode, E.G. "Stockcode":134034,"Barcode":"0263151000002"
