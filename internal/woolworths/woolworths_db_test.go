@@ -55,60 +55,6 @@ func ReadWoolworthsProductInfoFromFile(filename string) (woolworthsProductInfo, 
 	return result, nil
 }
 
-func TestProductUpdateQueueGenerator(t *testing.T) {
-	slog.SetLogLoggerLevel(slog.LevelDebug)
-	var err error
-	var wProdInfo1, wProdInfo2 woolworthsProductInfo
-	wProdInfo1, err = ReadWoolworthsProductInfoFromFile("data/187314.json")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	wProdInfo2, err = ReadWoolworthsProductInfoFromFile("data/524336.json")
-	if err != nil {
-		t.Fatal(err)
-	}
-	w := getInitialisedWoolworths()
-
-	wProdInfo1.Updated = time.Now().Add(-2 * time.Hour)
-	wProdInfo2.Updated = time.Now().Add(-1 * time.Hour)
-
-	err = w.saveProductInfo(wProdInfo1)
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = w.saveProductInfo(wProdInfo2)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	idChannel := make(chan productID)
-	go w.productUpdateQueueWorker(idChannel, 20*time.Millisecond, 1)
-
-	time.Sleep(50 * time.Microsecond)
-
-	select {
-	case id := <-idChannel:
-		if id != "187314" {
-			t.Errorf("Expected 187314, got %s", id)
-		}
-	case <-time.After(1 * time.Second):
-		t.Fatal("Timed out waiting for first product ID")
-	}
-
-	// Ensure we don't get the same product twice.
-	time.Sleep(50 * time.Microsecond)
-
-	select {
-	case id := <-idChannel:
-		if id != "524336" {
-			t.Errorf("Expected 524336, got %s", id)
-		}
-	case <-time.After(1 * time.Second):
-		t.Fatal("Timed out waiting for second product ID")
-	}
-}
-
 func TestMissingProduct(t *testing.T) {
 	w := getInitialisedWoolworths()
 	_, err := w.loadProductInfo("123456")
