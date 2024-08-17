@@ -5,6 +5,7 @@
 
 app = 'aus-grocery-price-database'
 primary_region = 'syd'
+swap_size_mb = 1024
 
 [build]
   [build.args]
@@ -20,7 +21,7 @@ primary_region = 'syd'
 
 
 [[vm]]
-  memory_mb = 512
+  memory_mb = 256
   cpu_kind = 'shared'
   cpus = 1
 

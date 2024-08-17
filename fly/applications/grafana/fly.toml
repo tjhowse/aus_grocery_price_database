@@ -5,6 +5,7 @@
 
 app = 'aus-grocery-price-database-grafana'
 primary_region = 'syd'
+swap_size_mb = 1024
 
 [build]
 #   image = 'grafana/grafana:10.0.0'
@@ -30,7 +31,7 @@ primary_region = 'syd'
   processes = ['app']
 
 [[vm]]
-  memory = '1gb'
+  memory_mb = 512
   cpu_kind = 'shared'
   cpus = 1
 
