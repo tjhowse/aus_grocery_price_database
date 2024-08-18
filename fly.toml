@@ -14,7 +14,7 @@ swap_size_mb = 1024
 [env]
   PORT = '8080'
   LOCAL_WOOLWORTHS_DB_PATH = '/data/woolworths.db3'
-  MAX_PRODUCT_AGE_MINUTES = 60
+  MAX_PRODUCT_AGE_MINUTES = 360
   WOOLWORTHS_URL = 'https://www.woolworths.com.au'
   INFLUXDB_UPDATE_RATE_SECONDS = 2
   DEBUG_LOGGING = 'true'

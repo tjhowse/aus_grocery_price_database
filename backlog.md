@@ -5,6 +5,10 @@
 ### Frontend
 * Make sure plotlines are accessible from a colour perception perspective
 * Add display for recent significant increases/decreases in prices
+    * Run the "price changes in last day" query once per day and dump the results somewhere for display. The query is quite expensive.
+    * Maybe run it as a cronjob on the influxdb server and write the results back into a separate derived data bucket.
+    * `select * from (SELECT difference(last("cents")),last("cents") FROM "autogen"."product" WHERE $timeFilter GROUP BY time($__interval),* ) where difference != 0 and last != 0 and difference != last`
+    * see querynotes.txt for more.
 
 ### Optimisations
 * Use transactions for all multi-part SQL operations

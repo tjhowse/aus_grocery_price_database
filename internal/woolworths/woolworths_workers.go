@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log/slog"
 	"time"
+
+	"github.com/shopspring/decimal"
 )
 
 func departmentInSlice(a departmentInfo, list []departmentInfo) *departmentInfo {
@@ -62,7 +64,13 @@ func (w *Woolworths) productListPageWorker(input <-chan departmentPage) {
 			slog.Error(fmt.Sprintf("Error starting transaction: %v", err))
 			continue
 		}
+		var skippedProductCount int
 		for _, product := range products {
+			// Skip products with zero price. Assume something went wrong.
+			if product.Info.Price.Equal(decimal.Zero) {
+				skippedProductCount++
+				continue
+			}
 			product.departmentID = dp.ID
 			err := w.saveProductInfoExtended(transaction, product)
 			if err != nil {
@@ -73,6 +81,9 @@ func (w *Woolworths) productListPageWorker(input <-chan departmentPage) {
 		err = transaction.Commit()
 		if err != nil {
 			slog.Error(fmt.Sprintf("Error committing transaction: %v", err))
+		}
+		if skippedProductCount > 0 {
+			slog.Warn("Skipped products with zero price", "skippedProductCount", skippedProductCount)
 		}
 	}
 }
