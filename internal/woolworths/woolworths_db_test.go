@@ -37,6 +37,33 @@ func TestUpdateProductInfo(t *testing.T) {
 	}
 }
 
+func TestUpdateProductInfoExtended(t *testing.T) {
+	w := getInitialisedWoolworths()
+	testFile, err := utils.ReadEntireFile("data/category_1-E5BEE36E_1.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	infos, err := extractProductInfoFromProductListPage(testFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	infos[0].Updated = time.Now()
+
+	if err := w.saveProductInfoExtendedNoTx(infos[0]); err != nil {
+		t.Fatal(err)
+	}
+
+	var readProdInfo woolworthsProductInfoExtended
+	readProdInfo, err = w.loadProductInfoExtended("133211")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if readProdInfo.Info.Description != infos[0].Info.Description {
+		t.Errorf("Expected %v, got %v", infos[0].Info.Description, readProdInfo.Info.Description)
+	}
+}
+
 func ReadWoolworthsProductInfoFromFile(filename string) (woolworthsProductInfo, error) {
 	var err error
 	var prodInfoRaw []byte

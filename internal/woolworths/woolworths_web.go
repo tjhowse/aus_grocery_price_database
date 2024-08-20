@@ -167,7 +167,8 @@ func (w *Woolworths) getProductsFromDepartment(department departmentID) ([]produ
 	return prodIDs, nil
 }
 
-func (w *Woolworths) extractProductInfoFromProductListPage(body []byte) ([]woolworthsProductInfoExtended, error) {
+// extractProductInfoFromProductListPage extracts the product info from the product list page
+func extractProductInfoFromProductListPage(body []byte) ([]woolworthsProductInfoExtended, error) {
 	productInfos := []woolworthsProductInfoExtended{}
 
 	// Unmarshal body into a productListPage
@@ -280,7 +281,7 @@ func (w *Woolworths) getProductInfoExtendedFromListPage(dp departmentPage) ([]wo
 		return productInfos, err
 	}
 
-	return w.extractProductInfoFromProductListPage(body)
+	return extractProductInfoFromProductListPage(body)
 }
 
 // This queries the Woolworths API to get the product information

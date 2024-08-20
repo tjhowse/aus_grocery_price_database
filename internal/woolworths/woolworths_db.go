@@ -212,6 +212,22 @@ func (w *Woolworths) saveProductInfoExtended(tx *sql.Tx, productInfo woolworthsP
 }
 
 // Saves product info to the database
+func (w *Woolworths) saveProductInfoExtendedNoTx(productInfo woolworthsProductInfoExtended) error {
+	var err error
+
+	tx, err := w.db.Begin()
+	if err != nil {
+		return fmt.Errorf("failed to start transaction: %w", err)
+	}
+	w.saveProductInfoExtended(tx, productInfo)
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+	return nil
+}
+
+// Saves product info to the database
 func (w *Woolworths) saveDepartment(departmentInfo departmentInfo) error {
 	var err error
 	var result sql.Result
@@ -238,7 +254,7 @@ func (w *Woolworths) saveDepartment(departmentInfo departmentInfo) error {
 	return nil
 }
 
-// Loads cached product info from the database
+// loadProductInfo loads cached product info from the database
 func (w *Woolworths) loadProductInfo(productID productID) (woolworthsProductInfo, error) {
 	var wProdInfo woolworthsProductInfo
 	var deptDescription sql.NullString
@@ -275,6 +291,49 @@ func (w *Woolworths) loadProductInfo(productID productID) (woolworthsProductInfo
 		wProdInfo.departmentDescription = deptDescription.String
 	}
 
+	return wProdInfo, nil
+}
+
+// loadProductInfoExtended loads cached extended product info from the database
+func (w *Woolworths) loadProductInfoExtended(productID productID) (woolworthsProductInfoExtended, error) {
+	var wProdInfo woolworthsProductInfoExtended
+	var deptDescription sql.NullString
+	row := w.db.QueryRow(`
+	SELECT
+		productID,
+		name,
+		products.description,
+		barcode,
+		priceCents,
+		weightGrams,
+		productJSON,
+		products.departmentID,
+		departments.description,
+		products.updated
+	FROM
+		products
+		LEFT JOIN departments ON products.departmentID = departments.departmentID
+	WHERE productID = ? LIMIT 1`, productID)
+	err := row.Scan(
+		&wProdInfo.ID,
+		&wProdInfo.Info.DisplayName,
+		&wProdInfo.Info.Description,
+		&wProdInfo.Info.Barcode,
+		&wProdInfo.Info.Price,
+		&wProdInfo.Info.UnitWeightInGrams,
+		&wProdInfo.RawJSON,
+		&wProdInfo.departmentID,
+		&deptDescription, // This value comes from a join, so it might be NULL.
+		&wProdInfo.Updated)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return wProdInfo, ErrProductMissing
+		}
+		return wProdInfo, fmt.Errorf("failed to query existing product info: %w", err)
+	}
+	if deptDescription.Valid {
+		wProdInfo.departmentDescription = deptDescription.String
+	}
 	return wProdInfo, nil
 }
 
