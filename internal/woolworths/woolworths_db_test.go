@@ -90,6 +90,8 @@ func TestGetSharedProductsUpdatedAfter(t *testing.T) {
 	infoList = append(infoList, woolworthsProductInfo{ID: "123456", Info: productListPageProduct{DisplayName: "2", Price: decimal.NewFromFloat(2.4)}, Updated: time.Now().Add(-4 * time.Minute)})
 	infoList = append(infoList, woolworthsProductInfo{ID: "123457", Info: productListPageProduct{DisplayName: "3", Price: decimal.NewFromFloat(3.3)}, Updated: time.Now().Add(-3 * time.Minute)})
 	infoList = append(infoList, woolworthsProductInfo{ID: "123458", Info: productListPageProduct{DisplayName: "4", Price: decimal.NewFromFloat(4.2)}, Updated: time.Now().Add(-1 * time.Minute)})
+	// Put this one in twice to test the PreviousPriceCents is updated.
+	infoList = append(infoList, woolworthsProductInfo{ID: "123459", Info: productListPageProduct{DisplayName: "5", Price: decimal.NewFromFloat(5.0)}, Updated: time.Now()})
 	infoList = append(infoList, woolworthsProductInfo{ID: "123459", Info: productListPageProduct{DisplayName: "5", Price: decimal.NewFromFloat(5.1)}, Updated: time.Now()})
 	// This last one is to test that we don't get products that have a blank name.
 	infoList = append(infoList, woolworthsProductInfo{ID: "123460", Info: productListPageProduct{DisplayName: "", Price: decimal.NewFromFloat(6.0)}, Updated: time.Now()})
@@ -109,6 +111,9 @@ func TestGetSharedProductsUpdatedAfter(t *testing.T) {
 	}
 	if want, got := WOOLWORTHS_ID_PREFIX+"123459", productIDs[1].ID; want != got {
 		t.Errorf("Expected %s, got %s", want, got)
+	}
+	if want, got := 500, productIDs[1].PreviousPriceCents; want != got {
+		t.Errorf("Expected %v, got %v", want, got)
 	}
 	if want, got := 510, productIDs[1].PriceCents; want != got {
 		t.Errorf("Expected %v, got %v", want, got)

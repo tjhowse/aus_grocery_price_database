@@ -42,6 +42,7 @@ func (w *Woolworths) GetSharedProductsUpdatedAfter(t time.Time, count int) ([]sh
 			products.description,
 			departments.description,
 			priceCents,
+			previousPriceCents,
 			weightGrams,
 			products.updated
 		FROM
@@ -53,7 +54,15 @@ func (w *Woolworths) GetSharedProductsUpdatedAfter(t time.Time, count int) ([]sh
 	}
 	for rows.Next() {
 		var product shared.ProductInfo
-		err = rows.Scan(&product.ID, &product.Name, &product.Description, &deptDescription, &product.PriceCents, &product.WeightGrams, &product.Timestamp)
+		err = rows.Scan(
+			&product.ID,
+			&product.Name,
+			&product.Description,
+			&deptDescription,
+			&product.PriceCents,
+			&product.PreviousPriceCents,
+			&product.WeightGrams,
+			&product.Timestamp)
 		if err != nil {
 			return productIDs, fmt.Errorf("failed to scan productID: %w", err)
 		}
