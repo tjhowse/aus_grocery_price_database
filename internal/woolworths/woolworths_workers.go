@@ -54,7 +54,7 @@ func (w *Woolworths) newDepartmentInfoWorker(output chan<- departmentInfo) {
 func (w *Woolworths) productListPageWorker(input <-chan departmentPage) {
 	for dp := range input {
 		slog.Debug("Getting product list page", "departmentID", dp.ID, "page", dp.page)
-		products, err := w.getProductInfoExtendedFromListPage(dp)
+		products, err := w.getProductInfoFromListPage(dp)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Error getting product info extended: %v", err))
 			continue
@@ -72,7 +72,7 @@ func (w *Woolworths) productListPageWorker(input <-chan departmentPage) {
 				continue
 			}
 			product.departmentID = dp.ID
-			err := w.saveProductInfoExtended(transaction, product)
+			err := w.saveProductInfo(transaction, product)
 			if err != nil {
 				slog.Error(fmt.Sprintf("Error inserting product info: %v", err))
 				continue
@@ -131,10 +131,6 @@ const DEFAULT_PRODUCT_UPDATE_BATCH_SIZE = 10
 // Currently all sqlite writes happen via this function. This may move
 // off to a separate goroutine in the future.
 func (w *Woolworths) Run(cancel chan struct{}) {
-	w.runExtended(cancel)
-}
-
-func (w *Woolworths) runExtended(cancel chan struct{}) {
 	departmentPageChannel := make(chan departmentPage)
 	newDepartmentInfoChannel := make(chan departmentInfo)
 

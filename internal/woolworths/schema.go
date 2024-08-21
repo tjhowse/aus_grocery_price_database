@@ -46,8 +46,7 @@ type fruitVegPage []byte
 const WOOLWORTHS_ID_PREFIX = "woolworths_sku_"
 const PRODUCTS_PER_PAGE = 36
 
-// This will eventually supplant woolworthsProductInfo
-type woolworthsProductInfoExtended struct {
+type woolworthsProductInfo struct {
 	ID                    productID
 	departmentID          departmentID
 	departmentDescription string

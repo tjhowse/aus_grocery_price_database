@@ -8,7 +8,7 @@ import (
 )
 
 func ValidateProduct(t *testing.T, w *Woolworths, id productID, expectedName string) error {
-	prod, err := w.loadProductInfoExtended(id)
+	prod, err := w.loadProductInfo(id)
 	if err != nil {
 		return fmt.Errorf("Failed to get product ID %s: %v", id, err)
 	}
@@ -27,7 +27,7 @@ func ValidateProduct(t *testing.T, w *Woolworths, id productID, expectedName str
 	return nil
 }
 
-func TestSchedulerExtended(t *testing.T) {
+func TestScheduler(t *testing.T) {
 	slog.SetLogLoggerLevel(slog.LevelDebug)
 
 	w := Woolworths{}
@@ -39,7 +39,7 @@ func TestSchedulerExtended(t *testing.T) {
 	}
 	w.filterDepartments = true
 	cancel := make(chan struct{})
-	go w.runExtended(cancel)
+	go w.Run(cancel)
 
 	done := make(chan struct{})
 	go func() {

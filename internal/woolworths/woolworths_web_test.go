@@ -220,7 +220,7 @@ func TestGetProductInfoExtendedFromListPage(t *testing.T) {
 		ID:   "1-E5BEE36E",
 		page: 1,
 	}
-	productInfo, err := w.getProductInfoExtendedFromListPage(dp)
+	productInfo, err := w.getProductInfoFromListPage(dp)
 	if err != nil {
 		t.Fatal(err)
 	}

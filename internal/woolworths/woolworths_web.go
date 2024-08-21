@@ -168,8 +168,8 @@ func (w *Woolworths) getProductsFromDepartment(department departmentID) ([]produ
 }
 
 // extractProductInfoFromProductListPage extracts the product info from the product list page
-func extractProductInfoFromProductListPage(body []byte) ([]woolworthsProductInfoExtended, error) {
-	productInfos := []woolworthsProductInfoExtended{}
+func extractProductInfoFromProductListPage(body []byte) ([]woolworthsProductInfo, error) {
+	productInfos := []woolworthsProductInfo{}
 
 	// Unmarshal body into a productListPage
 	var productListPage productListPage
@@ -190,7 +190,7 @@ func extractProductInfoFromProductListPage(body []byte) ([]woolworthsProductInfo
 			slog.Warn("Error encoding product back to JSON for storage", "error", err)
 			encoded = []byte("error re-encoding product")
 		}
-		productInfos = append(productInfos, woolworthsProductInfoExtended{
+		productInfos = append(productInfos, woolworthsProductInfo{
 			ID:                    productID(strconv.Itoa(product.Stockcode)),
 			departmentID:          departmentID(product.AdditionalAttributes.PiesProductDepartmentNodeID),
 			departmentDescription: product.AdditionalAttributes.Sapdepartmentname,
@@ -271,8 +271,8 @@ func (w *Woolworths) getProductIDsAndCountFromListPage(department departmentID, 
 }
 
 // getProductInfoFromListPage returns the product information from the department list page
-func (w *Woolworths) getProductInfoExtendedFromListPage(dp departmentPage) ([]woolworthsProductInfoExtended, error) {
-	productInfos := []woolworthsProductInfoExtended{}
+func (w *Woolworths) getProductInfoFromListPage(dp departmentPage) ([]woolworthsProductInfo, error) {
+	productInfos := []woolworthsProductInfo{}
 	var body []byte
 	var err error
 

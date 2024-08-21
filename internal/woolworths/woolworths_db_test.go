@@ -12,7 +12,7 @@ import (
 	utils "github.com/tjhowse/aus_grocery_price_database/internal/utils"
 )
 
-func TestUpdateProductInfoExtended(t *testing.T) {
+func TestUpdateProductInfo(t *testing.T) {
 	w := getInitialisedWoolworths()
 	testFile, err := utils.ReadEntireFile("data/category_1-E5BEE36E_1.json")
 	if err != nil {
@@ -25,12 +25,12 @@ func TestUpdateProductInfoExtended(t *testing.T) {
 
 	infos[0].Updated = time.Now()
 
-	if err := w.saveProductInfoExtendedNoTx(infos[0]); err != nil {
+	if err := w.saveProductInfoNoTx(infos[0]); err != nil {
 		t.Fatal(err)
 	}
 
-	var readProdInfo woolworthsProductInfoExtended
-	readProdInfo, err = w.loadProductInfoExtended("133211")
+	var readProdInfo woolworthsProductInfo
+	readProdInfo, err = w.loadProductInfo("133211")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,7 +41,7 @@ func TestUpdateProductInfoExtended(t *testing.T) {
 
 func TestMissingProduct(t *testing.T) {
 	w := getInitialisedWoolworths()
-	_, err := w.loadProductInfoExtended("123456")
+	_, err := w.loadProductInfo("123456")
 	if err == nil {
 		t.Fatal("Expected an error")
 	}
@@ -85,17 +85,17 @@ func TestGetSharedProductsUpdatedAfter(t *testing.T) {
 	w := Woolworths{}
 	w.Init(woolworthsServer.URL, ":memory:", 5*time.Second)
 	w.filterDepartments = false
-	var infoList []woolworthsProductInfoExtended
-	infoList = append(infoList, woolworthsProductInfoExtended{ID: "123455", Info: productListPageProduct{DisplayName: "1", Price: decimal.NewFromFloat(1.5)}, Updated: time.Now().Add(-5 * time.Minute)})
-	infoList = append(infoList, woolworthsProductInfoExtended{ID: "123456", Info: productListPageProduct{DisplayName: "2", Price: decimal.NewFromFloat(2.4)}, Updated: time.Now().Add(-4 * time.Minute)})
-	infoList = append(infoList, woolworthsProductInfoExtended{ID: "123457", Info: productListPageProduct{DisplayName: "3", Price: decimal.NewFromFloat(3.3)}, Updated: time.Now().Add(-3 * time.Minute)})
-	infoList = append(infoList, woolworthsProductInfoExtended{ID: "123458", Info: productListPageProduct{DisplayName: "4", Price: decimal.NewFromFloat(4.2)}, Updated: time.Now().Add(-1 * time.Minute)})
-	infoList = append(infoList, woolworthsProductInfoExtended{ID: "123459", Info: productListPageProduct{DisplayName: "5", Price: decimal.NewFromFloat(5.1)}, Updated: time.Now()})
+	var infoList []woolworthsProductInfo
+	infoList = append(infoList, woolworthsProductInfo{ID: "123455", Info: productListPageProduct{DisplayName: "1", Price: decimal.NewFromFloat(1.5)}, Updated: time.Now().Add(-5 * time.Minute)})
+	infoList = append(infoList, woolworthsProductInfo{ID: "123456", Info: productListPageProduct{DisplayName: "2", Price: decimal.NewFromFloat(2.4)}, Updated: time.Now().Add(-4 * time.Minute)})
+	infoList = append(infoList, woolworthsProductInfo{ID: "123457", Info: productListPageProduct{DisplayName: "3", Price: decimal.NewFromFloat(3.3)}, Updated: time.Now().Add(-3 * time.Minute)})
+	infoList = append(infoList, woolworthsProductInfo{ID: "123458", Info: productListPageProduct{DisplayName: "4", Price: decimal.NewFromFloat(4.2)}, Updated: time.Now().Add(-1 * time.Minute)})
+	infoList = append(infoList, woolworthsProductInfo{ID: "123459", Info: productListPageProduct{DisplayName: "5", Price: decimal.NewFromFloat(5.1)}, Updated: time.Now()})
 	// This last one is to test that we don't get products that have a blank name.
-	infoList = append(infoList, woolworthsProductInfoExtended{ID: "123460", Info: productListPageProduct{DisplayName: "", Price: decimal.NewFromFloat(6.0)}, Updated: time.Now()})
+	infoList = append(infoList, woolworthsProductInfo{ID: "123460", Info: productListPageProduct{DisplayName: "", Price: decimal.NewFromFloat(6.0)}, Updated: time.Now()})
 
 	for _, info := range infoList {
-		w.saveProductInfoExtendedNoTx(info)
+		w.saveProductInfoNoTx(info)
 	}
 	productIDs, err := w.GetSharedProductsUpdatedAfter(time.Now().Add(-2*time.Minute), 10)
 	if err != nil {
@@ -139,13 +139,13 @@ func TestGetSharedProductsUpdatedAfter(t *testing.T) {
 
 func TestSaveProductInfo(t *testing.T) {
 	w := getInitialisedWoolworths()
-	inProduct := woolworthsProductInfoExtended{ID: "123455", Info: productListPageProduct{DisplayName: "1", Price: decimal.NewFromFloat(1.5)}, Updated: time.Now().Add(-5 * time.Minute)}
+	inProduct := woolworthsProductInfo{ID: "123455", Info: productListPageProduct{DisplayName: "1", Price: decimal.NewFromFloat(1.5)}, Updated: time.Now().Add(-5 * time.Minute)}
 
-	err := w.saveProductInfoExtendedNoTx(inProduct)
+	err := w.saveProductInfoNoTx(inProduct)
 	if err != nil {
 		t.Fatal(err)
 	}
-	outProduct, err := w.loadProductInfoExtended("123455")
+	outProduct, err := w.loadProductInfo("123455")
 	if err != nil {
 		t.Fatal(err)
 	}

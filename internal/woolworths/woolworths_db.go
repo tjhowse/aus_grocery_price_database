@@ -119,7 +119,7 @@ func (w *Woolworths) initDB(dbPath string) error {
 }
 
 // Saves product info to the database
-func (w *Woolworths) saveProductInfoExtended(tx *sql.Tx, productInfo woolworthsProductInfoExtended) error {
+func (w *Woolworths) saveProductInfo(tx *sql.Tx, productInfo woolworthsProductInfo) error {
 	var err error
 	var result sql.Result
 
@@ -153,14 +153,14 @@ func (w *Woolworths) saveProductInfoExtended(tx *sql.Tx, productInfo woolworthsP
 }
 
 // Saves product info to the database
-func (w *Woolworths) saveProductInfoExtendedNoTx(productInfo woolworthsProductInfoExtended) error {
+func (w *Woolworths) saveProductInfoNoTx(productInfo woolworthsProductInfo) error {
 	var err error
 
 	tx, err := w.db.Begin()
 	if err != nil {
 		return fmt.Errorf("failed to start transaction: %w", err)
 	}
-	w.saveProductInfoExtended(tx, productInfo)
+	w.saveProductInfo(tx, productInfo)
 	err = tx.Commit()
 	if err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
@@ -195,9 +195,9 @@ func (w *Woolworths) saveDepartment(departmentInfo departmentInfo) error {
 	return nil
 }
 
-// loadProductInfoExtended loads cached extended product info from the database
-func (w *Woolworths) loadProductInfoExtended(productID productID) (woolworthsProductInfoExtended, error) {
-	var wProdInfo woolworthsProductInfoExtended
+// loadProductInfo loads cached extended product info from the database
+func (w *Woolworths) loadProductInfo(productID productID) (woolworthsProductInfo, error) {
+	var wProdInfo woolworthsProductInfo
 	var deptDescription sql.NullString
 	row := w.db.QueryRow(`
 	SELECT
