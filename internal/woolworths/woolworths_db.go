@@ -10,7 +10,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-const DB_SCHEMA_VERSION = 6
+const DB_SCHEMA_VERSION = 7
 
 // Initialises the DB with the schema. Note you must bump the DB_SCHEMA_VERSION
 // constant if you change the schema.
@@ -45,6 +45,7 @@ func (w *Woolworths) initBlankDB() error {
 							description TEXT,
 							barcode TEXT,
 							priceCents INTEGER,
+							previousPriceCents INTEGER,
 							weightGrams INTEGER,
 							productJSON TEXT,
 							departmentID TEXT DEFAULT "",
@@ -124,14 +125,15 @@ func (w *Woolworths) saveProductInfo(tx *sql.Tx, productInfo woolworthsProductIn
 	var result sql.Result
 
 	result, err = tx.Exec(`
-			INSERT INTO products (productID, name, description, barcode, priceCents, weightGrams, productJSON, departmentID, updated)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+			INSERT INTO products (productID, name, description, barcode, priceCents, previousPriceCents, weightGrams, productJSON, departmentID, updated)
+			VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
 			ON CONFLICT(productID) DO UPDATE SET
 				productID = excluded.productID,
 				name = excluded.name,
 				description = excluded.description,
 				barcode = excluded.barcode,
 				priceCents = excluded.priceCents,
+				previousPriceCents = priceCents,
 				weightGrams = excluded.weightGrams,
 				productJSON = excluded.productJSON,
 				departmentID = excluded.departmentID,
@@ -206,6 +208,7 @@ func (w *Woolworths) loadProductInfo(productID productID) (woolworthsProductInfo
 		products.description,
 		barcode,
 		priceCents,
+		previousPriceCents,
 		weightGrams,
 		productJSON,
 		products.departmentID,
@@ -221,6 +224,7 @@ func (w *Woolworths) loadProductInfo(productID productID) (woolworthsProductInfo
 		&wProdInfo.Info.Description,
 		&wProdInfo.Info.Barcode,
 		&wProdInfo.Info.Price,
+		&wProdInfo.PreviousPrice,
 		&wProdInfo.Info.UnitWeightInGrams,
 		&wProdInfo.RawJSON,
 		&wProdInfo.departmentID,

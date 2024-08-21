@@ -160,6 +160,42 @@ func TestSaveProductInfo(t *testing.T) {
 	}
 }
 
+func TestPreviousPrice(t *testing.T) {
+	w := getInitialisedWoolworths()
+	inProduct := woolworthsProductInfo{ID: "123455", Info: productListPageProduct{DisplayName: "1", Price: decimal.NewFromFloat(1.5)}, Updated: time.Now().Add(-5 * time.Minute)}
+
+	err := w.saveProductInfoNoTx(inProduct)
+	if err != nil {
+		t.Fatal(err)
+	}
+	outProduct, err := w.loadProductInfo("123455")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want, got := 0.0, outProduct.PreviousPrice; !got.Equal(decimal.NewFromFloat(want * 100)) {
+		t.Errorf("Expected %v, got %v", want, got)
+	}
+	if want, got := 1.5, outProduct.Info.Price; !got.Equal(decimal.NewFromFloat(want * 100)) {
+		t.Errorf("Expected %v, got %v", want, got)
+	}
+	inProduct = woolworthsProductInfo{ID: "123455", Info: productListPageProduct{DisplayName: "1", Price: decimal.NewFromFloat(2)}, Updated: time.Now().Add(-5 * time.Minute)}
+
+	err = w.saveProductInfoNoTx(inProduct)
+	if err != nil {
+		t.Fatal(err)
+	}
+	outProduct, err = w.loadProductInfo("123455")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want, got := 2.0, outProduct.Info.Price; !got.Equal(decimal.NewFromFloat(want * 100)) {
+		t.Errorf("Expected %v, got %v", want, got)
+	}
+	if want, got := 1.5, outProduct.PreviousPrice; !got.Equal(decimal.NewFromFloat(want * 100)) {
+		t.Errorf("Expected %v, got %v", want, got)
+	}
+}
+
 func TestBackupDB(t *testing.T) {
 
 	// Get a temp directory

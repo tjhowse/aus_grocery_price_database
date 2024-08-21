@@ -51,6 +51,7 @@ type woolworthsProductInfo struct {
 	departmentID          departmentID
 	departmentDescription string
 	Info                  productListPageProduct
+	PreviousPrice         decimal.Decimal
 	RawJSON               []byte
 	Updated               time.Time
 }
