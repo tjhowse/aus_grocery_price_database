@@ -4,7 +4,7 @@ go 1.22.5
 
 require (
 	github.com/caarlos0/env/v11 v11.1.0
-	github.com/influxdata/influxdb-client-go/v2 v2.13.0
+	github.com/influxdata/influxdb-client-go/v2 v2.14.0
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/shopspring/decimal v1.4.0
 	golang.org/x/sys v0.22.0

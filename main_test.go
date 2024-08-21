@@ -73,7 +73,7 @@ func (m *MockGroceryStore) Run(chan struct{}) {
 func (m *MockGroceryStore) GetSharedProductsUpdatedAfter(cutoff time.Time, count int) ([]shared.ProductInfo, error) {
 	var productIDs []shared.ProductInfo
 
-	for i := 0; i < count; i++ {
+	for i := 0; i < count-1; i++ {
 
 		productIDs = append(productIDs, shared.ProductInfo{
 			ID:          strconv.Itoa(i),
@@ -87,6 +87,20 @@ func (m *MockGroceryStore) GetSharedProductsUpdatedAfter(cutoff time.Time, count
 			Timestamp:   time.Now().Add(-5 * time.Minute),
 		})
 	}
+	// Add a duplicate at the end with a different price to trigger the price change logging.
+	i := 1
+	productIDs = append(productIDs, shared.ProductInfo{
+		ID:                 strconv.Itoa(i),
+		Name:               "Test Product" + strconv.Itoa(i),
+		Description:        "Test Description" + strconv.Itoa(i),
+		Store:              "Test Store" + strconv.Itoa(i),
+		Department:         "Test Department" + strconv.Itoa(i),
+		Location:           "Test Location" + strconv.Itoa(i),
+		PriceCents:         100 + i + 1,
+		PreviousPriceCents: 100 + i,
+		WeightGrams:        1000 + i,
+		Timestamp:          time.Now().Add(-5 * time.Minute),
+	})
 
 	return productIDs, nil
 }
@@ -137,6 +151,13 @@ func TestRun(t *testing.T) {
 	}
 
 	if want, got := 100, mockInfluxDB.writtenProductDataPoints[0].PriceCents; want != got {
+		t.Errorf("Expected %d, got %d", want, got)
+	}
+
+	if want, got := 102, mockInfluxDB.writtenProductDataPoints[len(mockInfluxDB.writtenProductDataPoints)-1].PriceCents; want != got {
+		t.Errorf("Expected %d, got %d", want, got)
+	}
+	if want, got := 101, mockInfluxDB.writtenProductDataPoints[len(mockInfluxDB.writtenProductDataPoints)-1].PreviousPriceCents; want != got {
 		t.Errorf("Expected %d, got %d", want, got)
 	}
 	// Give time for the timeseries database to be closed down

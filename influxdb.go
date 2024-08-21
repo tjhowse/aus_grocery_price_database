@@ -37,6 +37,12 @@ func (i *influxDB) Init(url, token, org, bucket string) {
 }
 
 func (i *influxDB) WriteProductDatapoint(info shared.ProductInfo) {
+	values := map[string]interface{}{"cents": info.PriceCents, "grams": info.WeightGrams}
+
+	// If the price has meaningfully changed, report the change
+	if info.PriceCents != 0 && info.PreviousPriceCents != 0 && info.PriceCents != info.PreviousPriceCents {
+		values["cents_change"] = info.PriceCents - info.PreviousPriceCents
+	}
 	p := influxdb2.NewPoint("product",
 		map[string]string{
 			"name":       info.Name,
@@ -45,7 +51,7 @@ func (i *influxDB) WriteProductDatapoint(info shared.ProductInfo) {
 			"department": info.Department,
 			"id":         info.ID,
 		},
-		map[string]interface{}{"cents": info.PriceCents, "grams": info.WeightGrams},
+		values,
 		info.Timestamp,
 	)
 	i.groceryWriteAPI.WritePoint(p)
