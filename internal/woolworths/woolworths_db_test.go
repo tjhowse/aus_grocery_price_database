@@ -1,7 +1,6 @@
 package woolworths
 
 import (
-	"encoding/json"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -12,30 +11,6 @@ import (
 	"github.com/shopspring/decimal"
 	utils "github.com/tjhowse/aus_grocery_price_database/internal/utils"
 )
-
-func TestUpdateProductInfo(t *testing.T) {
-	wProdInfo, err := ReadWoolworthsProductInfoFromFile("data/187314.json")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	w := getInitialisedWoolworths()
-
-	wProdInfo.Updated = time.Now()
-
-	if err := w.saveProductInfo(wProdInfo); err != nil {
-		t.Fatal(err)
-	}
-
-	var readProdInfo woolworthsProductInfo
-	readProdInfo, err = w.loadProductInfo("187314")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if readProdInfo.Info.Description != wProdInfo.Info.Description {
-		t.Errorf("Expected %v, got %v", wProdInfo.Info.Description, readProdInfo.Info.Description)
-	}
-}
 
 func TestUpdateProductInfoExtended(t *testing.T) {
 	w := getInitialisedWoolworths()
@@ -62,24 +37,6 @@ func TestUpdateProductInfoExtended(t *testing.T) {
 	if readProdInfo.Info.Description != infos[0].Info.Description {
 		t.Errorf("Expected %v, got %v", infos[0].Info.Description, readProdInfo.Info.Description)
 	}
-}
-
-func ReadWoolworthsProductInfoFromFile(filename string) (woolworthsProductInfo, error) {
-	var err error
-	var prodInfoRaw []byte
-	var result woolworthsProductInfo
-	prodInfoRaw, err = utils.ReadEntireFile(filename)
-	if err != nil {
-		return result, err
-	}
-	prodInfo := productInfo{}
-	err = json.Unmarshal(prodInfoRaw, &prodInfo)
-	if err != nil {
-		return result, err
-	}
-
-	result = woolworthsProductInfo{ID: productID(prodInfo.Sku), Info: prodInfo, RawJSON: prodInfoRaw}
-	return result, nil
 }
 
 func TestMissingProduct(t *testing.T) {
@@ -126,18 +83,20 @@ func TestDBFail(t *testing.T) {
 
 func TestGetSharedProductsUpdatedAfter(t *testing.T) {
 	w := Woolworths{}
-	w.Init(woolworthsServer.URL, ":memory:", 5*time.Second)
+	// w.Init(woolworthsServer.URL, ":memory:", 5*time.Second)
+	w.Init(woolworthsServer.URL, "delme.db3", 5*time.Second)
 	w.filterDepartments = false
-	var infoList []woolworthsProductInfo
-	infoList = append(infoList, woolworthsProductInfo{ID: "123455", Info: productInfo{Name: "1", Offers: offer{Price: decimal.NewFromFloat(1.5)}}, Updated: time.Now().Add(-5 * time.Minute)})
-	infoList = append(infoList, woolworthsProductInfo{ID: "123456", Info: productInfo{Name: "1", Offers: offer{Price: decimal.NewFromFloat(2.4)}}, Updated: time.Now().Add(-4 * time.Minute)})
-	infoList = append(infoList, woolworthsProductInfo{ID: "123457", Info: productInfo{Name: "1", Offers: offer{Price: decimal.NewFromFloat(3.3)}}, Updated: time.Now().Add(-3 * time.Minute)})
-	infoList = append(infoList, woolworthsProductInfo{ID: "123458", Info: productInfo{Name: "1", Offers: offer{Price: decimal.NewFromFloat(4.2)}}, Updated: time.Now().Add(-1 * time.Minute)})
-	infoList = append(infoList, woolworthsProductInfo{ID: "123459", Info: productInfo{Name: "1", Offers: offer{Price: decimal.NewFromFloat(5.1)}}, Updated: time.Now()})
-	infoList = append(infoList, woolworthsProductInfo{ID: "123460", Info: productInfo{Offers: offer{Price: decimal.NewFromFloat(6.0)}}, Updated: time.Now()})
+	var infoList []woolworthsProductInfoExtended
+	infoList = append(infoList, woolworthsProductInfoExtended{ID: "123455", Info: productListPageProduct{DisplayName: "1", Price: decimal.NewFromFloat(1.5)}, Updated: time.Now().Add(-5 * time.Minute)})
+	infoList = append(infoList, woolworthsProductInfoExtended{ID: "123456", Info: productListPageProduct{DisplayName: "2", Price: decimal.NewFromFloat(2.4)}, Updated: time.Now().Add(-4 * time.Minute)})
+	infoList = append(infoList, woolworthsProductInfoExtended{ID: "123457", Info: productListPageProduct{DisplayName: "3", Price: decimal.NewFromFloat(3.3)}, Updated: time.Now().Add(-3 * time.Minute)})
+	infoList = append(infoList, woolworthsProductInfoExtended{ID: "123458", Info: productListPageProduct{DisplayName: "4", Price: decimal.NewFromFloat(4.2)}, Updated: time.Now().Add(-1 * time.Minute)})
+	infoList = append(infoList, woolworthsProductInfoExtended{ID: "123459", Info: productListPageProduct{DisplayName: "5", Price: decimal.NewFromFloat(5.1)}, Updated: time.Now()})
+	// This last one is to test that we don't get products that have a blank name.
+	infoList = append(infoList, woolworthsProductInfoExtended{ID: "123460", Info: productListPageProduct{DisplayName: "", Price: decimal.NewFromFloat(6.0)}, Updated: time.Now()})
 
 	for _, info := range infoList {
-		w.saveProductInfo(info)
+		w.saveProductInfoExtendedNoTx(info)
 	}
 	productIDs, err := w.GetSharedProductsUpdatedAfter(time.Now().Add(-2*time.Minute), 10)
 	if err != nil {
