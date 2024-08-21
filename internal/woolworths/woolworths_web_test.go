@@ -212,7 +212,7 @@ func TestGetProductsFromDepartment(t *testing.T) {
 	}
 }
 
-func TestGetProductInfoExtendedFromListPage(t *testing.T) {
+func TestGetProductInfoFromListPage(t *testing.T) {
 
 	w := getInitialisedWoolworths()
 
