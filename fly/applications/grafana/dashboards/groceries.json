@@ -301,7 +301,7 @@
             "measurement": "product",
             "orderByTime": "ASC",
             "policy": "autogen",
-            "query": "SELECT \"name\",\"cents_change\"/100,\"cents\"/100 FROM \"autogen\".\"product\" WHERE (\"cents_change\"::field != 0) AND $timeFilter ORDER BY time DESC",
+            "query": "SELECT \"name\",\"cents_change\"/100,\"cents\"/100 FROM \"autogen\".\"product\" WHERE (\"cents_change\"::field != 0) AND time >= now()-5d ORDER BY time DESC LIMIT 10",
             "rawQuery": true,
             "refId": "A",
             "resultFormat": "table",
@@ -462,8 +462,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
-                  "value": null
+                  "color": "green"
                 },
                 {
                   "color": "red",
@@ -856,6 +855,6 @@
     "timezone": "",
     "title": "Groceries",
     "uid": "dd34eddb-26fc-48ce-88fb-19ef7b18734e",
-    "version": 30,
+    "version": 31,
     "weekStart": ""
   }
