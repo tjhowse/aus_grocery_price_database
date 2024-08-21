@@ -83,8 +83,7 @@ func TestDBFail(t *testing.T) {
 
 func TestGetSharedProductsUpdatedAfter(t *testing.T) {
 	w := Woolworths{}
-	// w.Init(woolworthsServer.URL, ":memory:", 5*time.Second)
-	w.Init(woolworthsServer.URL, "delme.db3", 5*time.Second)
+	w.Init(woolworthsServer.URL, ":memory:", 5*time.Second)
 	w.filterDepartments = false
 	var infoList []woolworthsProductInfoExtended
 	infoList = append(infoList, woolworthsProductInfoExtended{ID: "123455", Info: productListPageProduct{DisplayName: "1", Price: decimal.NewFromFloat(1.5)}, Updated: time.Now().Add(-5 * time.Minute)})
@@ -138,41 +137,22 @@ func TestGetSharedProductsUpdatedAfter(t *testing.T) {
 
 }
 
-func TestCheckIfKnownProductID(t *testing.T) {
-	w := getInitialisedWoolworths()
-	w.saveProductInfo(woolworthsProductInfo{ID: "123456", Info: productInfo{Name: "1", Offers: offer{Price: decimal.NewFromFloat(1.5)}}, Updated: time.Now().Add(-5 * time.Minute)})
-	found, err := w.checkIfKnownProductID("123456")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !found {
-		t.Fatal("Didn't find a product as expected")
-	}
-	found, err = w.checkIfKnownProductID("123457")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if found {
-		t.Fatal("Found a product we weren't expecting to find.")
-	}
-}
-
 func TestSaveProductInfo(t *testing.T) {
 	w := getInitialisedWoolworths()
-	inProduct := woolworthsProductInfo{ID: "123456", departmentID: "abc", Info: productInfo{Name: "1", Offers: offer{Price: decimal.NewFromFloat(1.5)}}, Updated: time.Now()}
+	inProduct := woolworthsProductInfoExtended{ID: "123455", Info: productListPageProduct{DisplayName: "1", Price: decimal.NewFromFloat(1.5)}, Updated: time.Now().Add(-5 * time.Minute)}
 
-	err := w.saveProductInfo(inProduct)
+	err := w.saveProductInfoExtendedNoTx(inProduct)
 	if err != nil {
 		t.Fatal(err)
 	}
-	outProduct, err := w.loadProductInfo("123456")
+	outProduct, err := w.loadProductInfoExtended("123455")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if want, got := inProduct.Info.Name, outProduct.Info.Name; want != got {
 		t.Errorf("Expected %s, got %s", want, got)
 	}
-	if want, got := inProduct.Info.Offers.Price.Mul(decimal.NewFromInt(100)), outProduct.Info.Offers.Price; want.Cmp(got) != 0 {
+	if want, got := inProduct.Info.Price.Mul(decimal.NewFromInt(100)), outProduct.Info.Price; want.Cmp(got) != 0 {
 		t.Errorf("Expected %v, got %v", want, got)
 	}
 	if want, got := inProduct.departmentID, outProduct.departmentID; want != got {

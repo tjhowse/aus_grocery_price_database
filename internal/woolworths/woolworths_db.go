@@ -119,65 +119,6 @@ func (w *Woolworths) initDB(dbPath string) error {
 }
 
 // Saves product info to the database
-func (w *Woolworths) saveProductInfo(productInfo woolworthsProductInfo) error {
-	var err error
-	var result sql.Result
-
-	productInfoString := string(productInfo.RawJSON)
-
-	// TODO I bet a real SQL wizard could combine these two statements such that the department
-	// 		info is only written to the DB if it is not empty in the productInfo struct.
-	if productInfo.departmentID != "" {
-		// If we have department info, this data must've come from a department update.
-		// Only save the department info and leave the rest alone.
-
-		result, err = w.db.Exec(`
-			INSERT INTO products (productID, departmentID, updated)
-			VALUES (?, ?, ?)
-			ON CONFLICT(productID) DO UPDATE SET
-				productID = excluded.productID,
-				departmentID = excluded.departmentID,
-				updated = excluded.updated`,
-			productInfo.ID, productInfo.departmentID, productInfo.Updated)
-
-		if err != nil {
-			return fmt.Errorf("failed to update product info: %w", err)
-		}
-		if rowsAffected, err := result.RowsAffected(); err != nil {
-			return fmt.Errorf("failed to get rows affected: %w", err)
-		} else if rowsAffected == 0 {
-			slog.Warn("Product department info not updated.")
-		}
-	}
-
-	result, err = w.db.Exec(`
-			INSERT INTO products (productID, name, description, priceCents, weightGrams, productJSON, updated)
-			VALUES (?, ?, ?, ?, ?, ?, ?)
-			ON CONFLICT(productID) DO UPDATE SET
-			productID = excluded.productID,
-			name = excluded.name,
-			description = excluded.description,
-			priceCents = excluded.priceCents,
-			weightGrams = excluded.weightGrams,
-			productJSON = excluded.productJSON,
-			updated = excluded.updated`,
-		productInfo.ID, productInfo.Info.Name, productInfo.Info.Description,
-		productInfo.Info.Offers.Price.Mul(decimal.NewFromInt(100)).IntPart(),
-		productInfo.Info.Weight, productInfoString, productInfo.Updated)
-
-	if err != nil {
-		return fmt.Errorf("failed to update product info: %w", err)
-	}
-	if rowsAffected, err := result.RowsAffected(); err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
-	} else if rowsAffected == 0 {
-		slog.Warn("Product info not updated.")
-	}
-
-	return nil
-}
-
-// Saves product info to the database
 func (w *Woolworths) saveProductInfoExtended(tx *sql.Tx, productInfo woolworthsProductInfoExtended) error {
 	var err error
 	var result sql.Result
@@ -335,21 +276,6 @@ func (w *Woolworths) loadProductInfoExtended(productID productID) (woolworthsPro
 		wProdInfo.departmentDescription = deptDescription.String
 	}
 	return wProdInfo, nil
-}
-
-// Returns true if the product ID exists in the DB already.
-// This exists separately to loadProductInfo because the productJSON is quite big.
-// This should be faster.
-func (w *Woolworths) checkIfKnownProductID(productID productID) (bool, error) {
-	var count int
-	err := w.db.QueryRow("SELECT COUNT(productID) FROM products WHERE productID = ? LIMIT 1", productID).Scan(&count)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return false, nil
-		}
-		return false, fmt.Errorf("failed to check for existing product: %w", err)
-	}
-	return count > 0, nil
 }
 
 func (w *Woolworths) loadDepartmentInfoList() ([]departmentInfo, error) {
