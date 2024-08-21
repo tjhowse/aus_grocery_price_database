@@ -41,7 +41,7 @@ func TestUpdateProductInfoExtended(t *testing.T) {
 
 func TestMissingProduct(t *testing.T) {
 	w := getInitialisedWoolworths()
-	_, err := w.loadProductInfo("123456")
+	_, err := w.loadProductInfoExtended("123456")
 	if err == nil {
 		t.Fatal("Expected an error")
 	}

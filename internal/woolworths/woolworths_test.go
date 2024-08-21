@@ -8,21 +8,21 @@ import (
 )
 
 func ValidateProduct(t *testing.T, w *Woolworths, id productID, expectedName string) error {
-	prod, err := w.loadProductInfo(id)
+	prod, err := w.loadProductInfoExtended(id)
 	if err != nil {
 		return fmt.Errorf("Failed to get product ID %s: %v", id, err)
 	}
-	if prod.Info.Name != expectedName {
-		t.Logf("Expected %s, got %s", expectedName, prod.Info.Name)
-		return fmt.Errorf("Expected %s, got %s", expectedName, prod.Info.Name)
+	if prod.Info.DisplayName != expectedName {
+		t.Logf("Expected '%s', got '%s'", expectedName, prod.Info.DisplayName)
+		return fmt.Errorf("Expected '%s', got '%s'", expectedName, prod.Info.DisplayName)
 	}
 	if want, got := "Fruit & Veg", prod.departmentDescription; want != got {
-		t.Fatalf("Expected %s, got %s", want, got)
-		return fmt.Errorf("Expected %s, got %s", want, got)
+		t.Fatalf("Expected '%s', got '%s'", want, got)
+		return fmt.Errorf("Expected '%s', got '%s'", want, got)
 	}
 	if want, got := departmentID("1-E5BEE36E"), prod.departmentID; want != got {
-		t.Fatalf("Expected %s, got %s", want, got)
-		return fmt.Errorf("Expected %s, got %s", want, got)
+		t.Fatalf("Expected '%s', got '%s'", want, got)
+		return fmt.Errorf("Expected '%s', got '%s'", want, got)
 	}
 	return nil
 }

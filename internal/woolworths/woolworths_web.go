@@ -284,42 +284,6 @@ func (w *Woolworths) getProductInfoExtendedFromListPage(dp departmentPage) ([]wo
 	return extractProductInfoFromProductListPage(body)
 }
 
-// This queries the Woolworths API to get the product information
-// using the WOOLWORTHS_PRODUCT_URL_PREFIX prefix.
-func (w *Woolworths) getProductInfo(productId productID) (woolworthsProductInfo, error) {
-	url := fmt.Sprintf(WOOLWORTHS_PRODUCT_URL_FORMAT, w.baseURL, productId)
-	result := woolworthsProductInfo{ID: productId}
-
-	// Create a new request
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return result, err
-	}
-
-	// Dispatch the request
-	resp, err := w.client.Do(req)
-	if err != nil {
-		return result, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return result, fmt.Errorf("failed to get product info: %s", resp.Status)
-	}
-
-	// Parse the response
-	defer resp.Body.Close()
-
-	result.RawJSON, err = io.ReadAll(resp.Body)
-	if err != nil {
-		return result, err
-	}
-
-	result.Info, err = unmarshalProductInfo(result.RawJSON)
-	if err != nil {
-		return result, err
-	}
-	return result, nil
-}
-
 func unmarshalProductInfo(body []byte) (productInfo, error) {
 	var pInfo productInfo
 

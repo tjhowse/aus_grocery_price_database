@@ -46,11 +46,11 @@ func TestProductListPageWorker(t *testing.T) {
 	// TODO remove this hardcoded sleep and use a loop in a goroutine with a channel for the output
 	// as I've done before in another test.
 	time.Sleep(50 * time.Millisecond)
-	readInfo, err := w.loadProductInfo("144607")
+	readInfo, err := w.loadProductInfoExtended("144607")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if want, got := "Strawberries 250g Punnet", readInfo.Info.Name; want != got {
+	if want, got := "Strawberries 250g Punnet", readInfo.Info.DisplayName; want != got {
 		t.Errorf("Expected %s, got %s", want, got)
 	}
 }

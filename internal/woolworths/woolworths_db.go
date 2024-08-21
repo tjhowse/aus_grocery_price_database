@@ -195,46 +195,6 @@ func (w *Woolworths) saveDepartment(departmentInfo departmentInfo) error {
 	return nil
 }
 
-// loadProductInfo loads cached product info from the database
-func (w *Woolworths) loadProductInfo(productID productID) (woolworthsProductInfo, error) {
-	var wProdInfo woolworthsProductInfo
-	var deptDescription sql.NullString
-	row := w.db.QueryRow(`
-	SELECT
-		productID,
-		name,
-		products.description,
-		priceCents,
-		weightGrams,
-		products.departmentID,
-		departments.description,
-		products.updated
-	FROM
-		products
-		LEFT JOIN departments ON products.departmentID = departments.departmentID
-	WHERE productID = ? LIMIT 1`, productID)
-	err := row.Scan(
-		&wProdInfo.ID,
-		&wProdInfo.Info.Name,
-		&wProdInfo.Info.Description,
-		&wProdInfo.Info.Offers.Price,
-		&wProdInfo.Info.Weight,
-		&wProdInfo.departmentID,
-		&deptDescription, // This value comes from a join, so it might be NULL.
-		&wProdInfo.Updated)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return wProdInfo, ErrProductMissing
-		}
-		return wProdInfo, fmt.Errorf("failed to query existing product info: %w", err)
-	}
-	if deptDescription.Valid {
-		wProdInfo.departmentDescription = deptDescription.String
-	}
-
-	return wProdInfo, nil
-}
-
 // loadProductInfoExtended loads cached extended product info from the database
 func (w *Woolworths) loadProductInfoExtended(productID productID) (woolworthsProductInfoExtended, error) {
 	var wProdInfo woolworthsProductInfoExtended

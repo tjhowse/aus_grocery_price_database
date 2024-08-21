@@ -46,15 +46,6 @@ type fruitVegPage []byte
 const WOOLWORTHS_ID_PREFIX = "woolworths_sku_"
 const PRODUCTS_PER_PAGE = 36
 
-type woolworthsProductInfo struct {
-	ID                    productID
-	departmentID          departmentID
-	departmentDescription string
-	Info                  productInfo
-	RawJSON               []byte
-	Updated               time.Time
-}
-
 // This will eventually supplant woolworthsProductInfo
 type woolworthsProductInfoExtended struct {
 	ID                    productID

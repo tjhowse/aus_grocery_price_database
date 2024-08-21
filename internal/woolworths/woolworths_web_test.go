@@ -132,28 +132,6 @@ func TestGetProductListPage(t *testing.T) {
 	}
 }
 
-func TestGetProductInfo(t *testing.T) {
-	w := getInitialisedWoolworths()
-
-	tests := map[string]string{
-		"187314": "Woolworths Broccolini Bunch  Each",
-		"165262": "Driscoll's Raspberries Punnet 125g Punnet",
-		"524336": "Woolworths Baby Spinach Spinach 280g",
-	}
-
-	for id, want := range tests {
-
-		productInfo, err := w.getProductInfo(productID(id))
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if productInfo.Info.Name != want {
-			t.Errorf("Expected %s, got %s", want, productInfo.Info.Name)
-		}
-	}
-}
-
 func TestExtractDepartmentInfos(t *testing.T) {
 	f, err := os.Open("data/fruit-veg.html.file")
 	if err != nil {
