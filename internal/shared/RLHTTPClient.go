@@ -12,7 +12,7 @@ import (
 
 // RLHTTPClient Rate Limited HTTP Client
 type RLHTTPClient struct {
-	client      *http.Client
+	Client      *http.Client
 	Ratelimiter *rate.Limiter
 }
 
@@ -24,7 +24,7 @@ func (c *RLHTTPClient) Do(req *http.Request) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := c.client.Do(req)
+	resp, err := c.Client.Do(req)
 	if err != nil {
 		return nil, err
 	}
