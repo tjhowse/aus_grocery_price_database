@@ -4,6 +4,7 @@
 
 ### Frontend
 * Make sure plotlines are accessible from a colour perception perspective
+* Light mode
 
 ### Optimisations
 * Use transactions for all multi-part SQL operations
