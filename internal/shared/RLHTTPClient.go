@@ -1,4 +1,4 @@
-package woolworths
+package shared
 
 import (
 	"context"

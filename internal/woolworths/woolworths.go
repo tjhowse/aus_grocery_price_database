@@ -22,7 +22,7 @@ var ErrProductMissing = errors.New("no product found")
 // Woolworths satisfies the ProductInfoGetter interface to provide a stream of product information from Woolworths.
 type Woolworths struct {
 	baseURL                   string
-	client                    *RLHTTPClient
+	client                    *shared.RLHTTPClient
 	cookieJar                 *cookiejar.Jar // TODO This might not be threadsafe.
 	db                        *sql.DB
 	productMaxAge             time.Duration
@@ -98,8 +98,8 @@ func (w *Woolworths) Init(baseURL string, dbPath string, productMaxAge time.Dura
 		return fmt.Errorf("error creating cookie jar: %v", err)
 	}
 	w.baseURL = baseURL
-	w.client = &RLHTTPClient{
-		client: &http.Client{
+	w.client = &shared.RLHTTPClient{
+		Client: &http.Client{
 			Jar:     w.cookieJar,
 			Timeout: 30 * time.Second,
 		},
