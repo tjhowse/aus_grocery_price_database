@@ -21,6 +21,7 @@
     * Not sure if this is a great idea. Maybe persist the last-checked time in a main-level DB.
 * Calculate $/g where possible
 * Export grafana config/dashboards/etc to repo. Embed as a part of dockerfile (?)
+* Make sure we're `defer rows.Close()` everywhere we need to.
 
 ### Cleanup
 * Create a logo and favicon for grafana. Uncomment the stuff in fly/applications/grafana/Dockerfile and deploy
