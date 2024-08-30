@@ -2,6 +2,107 @@ package coles
 
 import "github.com/shopspring/decimal"
 
+type product struct {
+	Type             string      `json:"_type"`
+	ID               int         `json:"id,omitempty"`
+	AdID             interface{} `json:"adId"`
+	AdSource         interface{} `json:"adSource"`
+	Featured         bool        `json:"featured,omitempty"`
+	Name             string      `json:"name,omitempty"`
+	Brand            string      `json:"brand,omitempty"`
+	Description      string      `json:"description,omitempty"`
+	Size             string      `json:"size,omitempty"`
+	Availability     bool        `json:"availability,omitempty"`
+	AvailabilityType string      `json:"availabilityType,omitempty"`
+	ImageUris        []struct {
+		AltText string `json:"altText"`
+		Type    string `json:"type"`
+		URI     string `json:"uri"`
+	} `json:"imageUris,omitempty"`
+	Locations []struct {
+		AisleSide   interface{} `json:"aisleSide"`
+		Description string      `json:"description"`
+		Facing      int         `json:"facing"`
+		Aisle       interface{} `json:"aisle"`
+		Order       int         `json:"order"`
+		Shelf       interface{} `json:"shelf"`
+	} `json:"locations,omitempty"`
+	Restrictions struct {
+		RetailLimit               int      `json:"retailLimit"`
+		PromotionalLimit          int      `json:"promotionalLimit"`
+		LiquorAgeRestrictionFlag  bool     `json:"liquorAgeRestrictionFlag"`
+		TobaccoAgeRestrictionFlag bool     `json:"tobaccoAgeRestrictionFlag"`
+		RestrictedByOrganisation  bool     `json:"restrictedByOrganisation"`
+		Delivery                  []string `json:"delivery"`
+	} `json:"restrictions,omitempty"`
+	MerchandiseHeir struct {
+		TradeProfitCentre string `json:"tradeProfitCentre"`
+		CategoryGroup     string `json:"categoryGroup"`
+		Category          string `json:"category"`
+		SubCategory       string `json:"subCategory"`
+		ClassName         string `json:"className"`
+	} `json:"merchandiseHeir,omitempty"`
+	OnlineHeirs []struct {
+		Aisle         string `json:"aisle"`
+		Category      string `json:"category"`
+		SubCategory   string `json:"subCategory"`
+		CategoryID    string `json:"categoryId"`
+		AisleID       string `json:"aisleId"`
+		SubCategoryID string `json:"subCategoryId"`
+	} `json:"onlineHeirs,omitempty"`
+	Pricing struct {
+		Now  decimal.Decimal `json:"now"`
+		Was  decimal.Decimal `json:"was"`
+		Unit struct {
+			Quantity          float64         `json:"quantity"`
+			OfMeasureQuantity float64         `json:"ofMeasureQuantity"`
+			OfMeasureUnits    string          `json:"ofMeasureUnits"`
+			Price             decimal.Decimal `json:"price"`
+			OfMeasureType     string          `json:"ofMeasureType"`
+			IsWeighted        bool            `json:"isWeighted"`
+		} `json:"unit"`
+		Comparable    string `json:"comparable"`
+		PromotionType string `json:"promotionType"`
+		OnlineSpecial bool   `json:"onlineSpecial"`
+	} `json:"pricing,omitempty"`
+	CampaignName                     string      `json:"campaignName,omitempty"`
+	Expiry                           interface{} `json:"expiry,omitempty"`
+	HeadingText                      interface{} `json:"headingText,omitempty"`
+	BannerText                       string      `json:"bannerText,omitempty"`
+	BannerTextColour                 interface{} `json:"bannerTextColour,omitempty"`
+	CtaFlag                          interface{} `json:"ctaFlag,omitempty"`
+	CtaText                          string      `json:"ctaText,omitempty"`
+	CtaTextAccessibility             string      `json:"ctaTextAccessibility,omitempty"`
+	CtaLink                          string      `json:"ctaLink,omitempty"`
+	BackgroundColour                 interface{} `json:"backgroundColour,omitempty"`
+	BackgroundImage                  string      `json:"backgroundImage,omitempty"`
+	BackgroundImagePosition          interface{} `json:"backgroundImagePosition,omitempty"`
+	SecondaryBackgroundImage         interface{} `json:"secondaryBackgroundImage,omitempty"`
+	SecondaryBackgroundImagePosition interface{} `json:"secondaryBackgroundImagePosition,omitempty"`
+	HeroImage                        interface{} `json:"heroImage,omitempty"`
+	HeroImageAltText                 interface{} `json:"heroImageAltText,omitempty"`
+	SecondaryHeroImage               string      `json:"secondaryHeroImage,omitempty"`
+	SecondaryHeroImageAltText        string      `json:"secondaryHeroImageAltText,omitempty"`
+	ProductIds                       []string    `json:"productIds,omitempty"`
+	AdditionalFields                 []struct {
+		ID    string `json:"id"`
+		Value string `json:"value"`
+	} `json:"additionalFields,omitempty"`
+	Continuity struct {
+		ContinuityPromotionID   interface{} `json:"continuityPromotionId"`
+		CreditsToRedeem         interface{} `json:"creditsToRedeem"`
+		BonusAvailable          bool        `json:"bonusAvailable"`
+		BonusTimes              int         `json:"bonusTimes"`
+		BonusPromoName          string      `json:"bonusPromoName"`
+		BonusRoundelDisplayable bool        `json:"bonusRoundelDisplayable"`
+		BonusRoundelDescription string      `json:"bonusRoundelDescription"`
+	} `json:"continuity,omitempty"`
+	TargetProductID int `json:"targetProductId,omitempty"`
+	Variations      struct {
+		Total int `json:"total"`
+	} `json:"variations,omitempty"`
+}
+
 type categoryPage struct {
 	PageProps struct {
 		AssetsURL       string `json:"assetsUrl"`
@@ -51,106 +152,7 @@ type categoryPage struct {
 				TobaccoProducts                  bool `json:"tobaccoProducts"`
 				RestrictedByOrganisationProducts bool `json:"restrictedByOrganisationProducts"`
 			} `json:"pageRestrictions"`
-			Results []struct {
-				Type             string      `json:"_type"`
-				ID               int         `json:"id,omitempty"`
-				AdID             interface{} `json:"adId"`
-				AdSource         interface{} `json:"adSource"`
-				Featured         bool        `json:"featured,omitempty"`
-				Name             string      `json:"name,omitempty"`
-				Brand            string      `json:"brand,omitempty"`
-				Description      string      `json:"description,omitempty"`
-				Size             string      `json:"size,omitempty"`
-				Availability     bool        `json:"availability,omitempty"`
-				AvailabilityType string      `json:"availabilityType,omitempty"`
-				ImageUris        []struct {
-					AltText string `json:"altText"`
-					Type    string `json:"type"`
-					URI     string `json:"uri"`
-				} `json:"imageUris,omitempty"`
-				Locations []struct {
-					AisleSide   interface{} `json:"aisleSide"`
-					Description string      `json:"description"`
-					Facing      int         `json:"facing"`
-					Aisle       interface{} `json:"aisle"`
-					Order       int         `json:"order"`
-					Shelf       interface{} `json:"shelf"`
-				} `json:"locations,omitempty"`
-				Restrictions struct {
-					RetailLimit               int      `json:"retailLimit"`
-					PromotionalLimit          int      `json:"promotionalLimit"`
-					LiquorAgeRestrictionFlag  bool     `json:"liquorAgeRestrictionFlag"`
-					TobaccoAgeRestrictionFlag bool     `json:"tobaccoAgeRestrictionFlag"`
-					RestrictedByOrganisation  bool     `json:"restrictedByOrganisation"`
-					Delivery                  []string `json:"delivery"`
-				} `json:"restrictions,omitempty"`
-				MerchandiseHeir struct {
-					TradeProfitCentre string `json:"tradeProfitCentre"`
-					CategoryGroup     string `json:"categoryGroup"`
-					Category          string `json:"category"`
-					SubCategory       string `json:"subCategory"`
-					ClassName         string `json:"className"`
-				} `json:"merchandiseHeir,omitempty"`
-				OnlineHeirs []struct {
-					Aisle         string `json:"aisle"`
-					Category      string `json:"category"`
-					SubCategory   string `json:"subCategory"`
-					CategoryID    string `json:"categoryId"`
-					AisleID       string `json:"aisleId"`
-					SubCategoryID string `json:"subCategoryId"`
-				} `json:"onlineHeirs,omitempty"`
-				Pricing struct {
-					Now  decimal.Decimal `json:"now"`
-					Was  decimal.Decimal `json:"was"`
-					Unit struct {
-						Quantity          int             `json:"quantity"`
-						OfMeasureQuantity int             `json:"ofMeasureQuantity"`
-						OfMeasureUnits    string          `json:"ofMeasureUnits"`
-						Price             decimal.Decimal `json:"price"`
-						OfMeasureType     string          `json:"ofMeasureType"`
-						IsWeighted        bool            `json:"isWeighted"`
-					} `json:"unit"`
-					Comparable    string `json:"comparable"`
-					PromotionType string `json:"promotionType"`
-					OnlineSpecial bool   `json:"onlineSpecial"`
-				} `json:"pricing,omitempty"`
-				CampaignName                     string      `json:"campaignName,omitempty"`
-				Expiry                           interface{} `json:"expiry,omitempty"`
-				HeadingText                      interface{} `json:"headingText,omitempty"`
-				BannerText                       string      `json:"bannerText,omitempty"`
-				BannerTextColour                 interface{} `json:"bannerTextColour,omitempty"`
-				CtaFlag                          interface{} `json:"ctaFlag,omitempty"`
-				CtaText                          string      `json:"ctaText,omitempty"`
-				CtaTextAccessibility             string      `json:"ctaTextAccessibility,omitempty"`
-				CtaLink                          string      `json:"ctaLink,omitempty"`
-				BackgroundColour                 interface{} `json:"backgroundColour,omitempty"`
-				BackgroundImage                  string      `json:"backgroundImage,omitempty"`
-				BackgroundImagePosition          interface{} `json:"backgroundImagePosition,omitempty"`
-				SecondaryBackgroundImage         interface{} `json:"secondaryBackgroundImage,omitempty"`
-				SecondaryBackgroundImagePosition interface{} `json:"secondaryBackgroundImagePosition,omitempty"`
-				HeroImage                        interface{} `json:"heroImage,omitempty"`
-				HeroImageAltText                 interface{} `json:"heroImageAltText,omitempty"`
-				SecondaryHeroImage               string      `json:"secondaryHeroImage,omitempty"`
-				SecondaryHeroImageAltText        string      `json:"secondaryHeroImageAltText,omitempty"`
-				ProductIds                       []string    `json:"productIds,omitempty"`
-				AdditionalFields                 []struct {
-					ID    string `json:"id"`
-					Value string `json:"value"`
-				} `json:"additionalFields,omitempty"`
-				Continuity struct {
-					ContinuityPromotionID   interface{} `json:"continuityPromotionId"`
-					CreditsToRedeem         interface{} `json:"creditsToRedeem"`
-					BonusAvailable          bool        `json:"bonusAvailable"`
-					BonusTimes              int         `json:"bonusTimes"`
-					BonusPromoName          string      `json:"bonusPromoName"`
-					BonusRoundelDisplayable bool        `json:"bonusRoundelDisplayable"`
-					BonusRoundelDescription string      `json:"bonusRoundelDescription"`
-				} `json:"continuity,omitempty"`
-				TargetProductID int `json:"targetProductId,omitempty"`
-				Variations      struct {
-					Total int `json:"total"`
-				} `json:"variations,omitempty"`
-			} `json:"results"`
+			Results          []product `json:"results"`
 			CatalogGroupView []struct {
 				Level            int         `json:"level"`
 				Name             string      `json:"name"`

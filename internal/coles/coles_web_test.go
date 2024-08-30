@@ -32,6 +32,7 @@ func ColesHTTPServer() *httptest.Server {
 		"data/browse.json",
 		"data/browse.html.file",
 		"data/fruit-vegetables_1.json",
+		"data/fruit-vegetables_2.json",
 	}
 	fileContents := make(map[string][]byte)
 	for _, filename := range filesToLoad {
@@ -133,4 +134,40 @@ func TestGetCategoryJSON(t *testing.T) {
 		t.Fatalf("Got empty body")
 	}
 	// utils.WriteEntireFile("data/fruit-vegetables.json", body)
+}
+
+func TestGetProductsAndTotalCountForCategoryPage(t *testing.T) {
+	c := getInitialisedColes()
+
+	{
+		products, totalRecordCount, err := c.getProductsAndTotalCountForCategoryPage("fruit-vegetables", 1)
+		if err != nil {
+			t.Fatalf("Failed to get products: %v", err)
+		}
+		if want, got := 48, len(products); want != got {
+			t.Errorf("Expected %d products, got %d", want, got)
+		}
+		if want, got := "Bananas Mini Pack", products[0].Name; want != got {
+			t.Errorf("Expected %s, got %s", want, got)
+		}
+		if want, got := 578, totalRecordCount; want != got {
+			t.Errorf("Expected %d total record count, got %d", want, got)
+		}
+
+	}
+	{
+		products, totalRecordCount, err := c.getProductsAndTotalCountForCategoryPage("fruit-vegetables", 2)
+		if err != nil {
+			t.Fatalf("Failed to get products: %v", err)
+		}
+		if want, got := 2, len(products); want != got {
+			t.Errorf("Expected %d products, got %d", want, got)
+		}
+		if want, got := "Glorba beans", products[0].Name; want != got {
+			t.Errorf("Expected %s, got %s", want, got)
+		}
+		if want, got := 50, totalRecordCount; want != got {
+			t.Errorf("Expected %d total record count, got %d", want, got)
+		}
+	}
 }
