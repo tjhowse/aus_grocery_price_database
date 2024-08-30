@@ -61,20 +61,8 @@ func ColesHTTPServer() *httptest.Server {
 	}))
 }
 
-func TestGetURL(t *testing.T) {
-	c := Coles{
-		baseURL:         "https://www.coles.com.au",
-		colesAPIVersion: "20240809.03_v4.7.3",
-	}
-
-	if want, got := "https://www.coles.com.au/_next/data/20240809.03_v4.7.3/en/browse.json", c.get_url(); want != got {
-		t.Errorf("Expected %s, got %s", want, got)
-	}
-}
-
 func TestGetHomepage(t *testing.T) {
 	c := getInitialisedColes()
-	// c.baseURL = "https://coles.com.au"
 	body, err := c.getBrowseHomepage()
 	if err != nil {
 		t.Errorf("Failed to get homepage: %v", err)
@@ -109,4 +97,21 @@ func TestUpdateAPIVersion(t *testing.T) {
 	if want, got := "20240827.02_v4.7.7", c.colesAPIVersion; want != got {
 		t.Errorf("Expected %s, got %s", want, got)
 	}
+}
+
+func TestGetCategoryJSON(t *testing.T) {
+	c := getInitialisedColes()
+	// c.baseURL = "https://coles.com.au"
+	// c.colesAPIVersion = "20240827.02_v4.7.7"
+	// if err := c.updateAPIVersion(); err != nil {
+	// 	t.Fatalf("Failed to update API version: %v", err)
+	// }
+	body, err := c.getCategoryJSON("fruit-vegetables")
+	if err != nil {
+		t.Fatalf("Failed to get category JSON: %v", err)
+	}
+	if len(body) == 0 {
+		t.Fatalf("Got empty body")
+	}
+	// utils.WriteEntireFile("data/fruit-vegetables.json", body)
 }
