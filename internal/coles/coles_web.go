@@ -2,12 +2,14 @@ package coles
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
 	"regexp"
+	"strconv"
 
 	"github.com/tjhowse/aus_grocery_price_database/internal/utils"
 )
@@ -16,7 +18,7 @@ const DEFAULT_API_VERSION = "20240827.02_v4.7.7"
 
 const BROWSE_JSON_URL_FORMAT = "%s/_next/data/%s/en/browse.json"
 const BROWSE_HOMEPAGE_URL_FORMAT = "%s/browse"
-const CATEGORY_URL_FORMAT = "%s/_next/data/%s/en/browse/%s.json?slug=%s"
+const CATEGORY_URL_FORMAT = "%s/_next/data/%s/en/browse/%s.json"
 const SCRAPE_TRAP_STRING = "Pardon Our Interruption"
 
 var ErrHitScrapeTrap = errors.New("caught in a scrape trap")
@@ -120,18 +122,22 @@ func (c *Coles) getBrowseJSON() ([]byte, error) {
 }
 
 // getCategoryJSON returns the bytes of the Coles category JSON.
-func (c *Coles) getCategoryJSON(category string) ([]byte, error) {
+func (c *Coles) getCategoryJSON(category string, page int) ([]byte, error) {
 	var req *http.Request
 	var resp *http.Response
 	var err error
-	url := fmt.Sprintf(CATEGORY_URL_FORMAT, c.baseURL, c.colesAPIVersion, category, category)
+	url := fmt.Sprintf(CATEGORY_URL_FORMAT, c.baseURL, c.colesAPIVersion, category)
 	var body []byte
-
-	fmt.Println("URL: ", url)
 
 	if req, err = http.NewRequest("GET", url, nil); err != nil {
 		return body, err
 	}
+	q := req.URL.Query()
+	q.Add("slug", category)
+	q.Add("page", strconv.Itoa(page))
+	req.URL.RawQuery = q.Encode()
+	// = req.URL.Query().Add("slug", category)
+	fmt.Println(req.URL)
 
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:129.0) Gecko/20100101 Firefox/129.0")
 	req.Header.Set("Accept", "application/json")
@@ -154,4 +160,19 @@ func (c *Coles) getCategoryJSON(category string) ([]byte, error) {
 // checkForScrapeTrap checks the given body for a scrape trap.
 func checkForScrapeTrap(body []byte) bool {
 	return bytes.Contains(body, []byte(SCRAPE_TRAP_STRING))
+}
+
+// getCategoryContents fetches a category page from the Coles API and unmarshals it.
+func (c *Coles) getCategoryContents(category string, page int) (categoryPage, error) {
+	body, err := c.getCategoryJSON(category, page)
+	if err != nil {
+		return categoryPage{}, err
+	}
+	// Unmarshal into a categoryPage
+	var catPage categoryPage
+	err = json.Unmarshal(body, &catPage)
+	if err != nil {
+		return categoryPage{}, fmt.Errorf("failed to unmarshal category page: %w", err)
+	}
+	return catPage, nil
 }

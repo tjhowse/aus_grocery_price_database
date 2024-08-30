@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -30,7 +31,7 @@ func ColesHTTPServer() *httptest.Server {
 	filesToLoad := []string{
 		"data/browse.json",
 		"data/browse.html.file",
-		"data/fruit-vegetables.json",
+		"data/fruit-vegetables_1.json",
 	}
 	fileContents := make(map[string][]byte)
 	for _, filename := range filesToLoad {
@@ -48,12 +49,21 @@ func ColesHTTPServer() *httptest.Server {
 			responseFilename = "data/browse.html.file"
 		} else if strings.HasPrefix(r.URL.Path, categoryPrefix) {
 			var category string
+			var page int
 			if _, err := fmt.Sscanf(r.URL.Path, categoryPrefix+"%s", &category); err != nil {
 				slog.Error("Failed to parse category from URL", "error", err)
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
-			responseFilename = fmt.Sprintf("data/%s", category)
+			if pageStr := r.URL.Query().Get("page"); pageStr == "" {
+				page = 1
+			} else if page, err = strconv.Atoi(pageStr); err != nil {
+				slog.Error("Failed to parse page from URL", "error", err)
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			category = strings.TrimSuffix(category, ".json")
+			responseFilename = fmt.Sprintf("data/%s_%d.json", category, page)
 		} else {
 			w.WriteHeader(http.StatusNotFound)
 			return
@@ -115,7 +125,7 @@ func TestGetCategoryJSON(t *testing.T) {
 	// if err := c.updateAPIVersion(); err != nil {
 	// 	t.Fatalf("Failed to update API version: %v", err)
 	// }
-	body, err := c.getCategoryJSON("fruit-vegetables")
+	body, err := c.getCategoryJSON("fruit-vegetables", 1)
 	if err != nil {
 		t.Fatalf("Failed to get category JSON: %v", err)
 	}
