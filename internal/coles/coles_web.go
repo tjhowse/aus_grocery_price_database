@@ -1,6 +1,8 @@
 package coles
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -10,9 +12,14 @@ import (
 	"github.com/tjhowse/aus_grocery_price_database/internal/utils"
 )
 
+const DEFAULT_API_VERSION = "20240827.02_v4.7.7"
+
 const BROWSE_JSON_URL_FORMAT = "%s/_next/data/%s/en/browse.json"
 const BROWSE_HOMEPAGE_URL_FORMAT = "%s/browse"
 const CATEGORY_URL_FORMAT = "%s/_next/data/%s/en/browse/%s.json?slug=%s"
+const SCRAPE_TRAP_STRING = "Pardon Our Interruption"
+
+var ErrHitScrapeTrap = errors.New("caught in a scrape trap")
 
 // updateAPIVersion grabs the coles home page and extracts the API version from it.
 func (c *Coles) updateAPIVersion() error {
@@ -29,7 +36,7 @@ func (c *Coles) updateAPIVersion() error {
 			slog.Error("Failed to write failed homepage to file", "error", err)
 		}
 		return fmt.Errorf("failed to extract API version: %w", err)
-	} else {
+	} else if newAPI != c.colesAPIVersion {
 		slog.Info("Updated API version", "old_version", c.colesAPIVersion, "version", newAPI)
 		c.colesAPIVersion = newAPI
 	}
@@ -62,6 +69,9 @@ func (c *Coles) getBrowseHomepage() ([]byte, error) {
 	body, err = io.ReadAll(resp.Body)
 	if err != nil {
 		return body, err
+	}
+	if checkForScrapeTrap(body) {
+		return body, ErrHitScrapeTrap
 	}
 	return body, nil
 }
@@ -139,4 +149,9 @@ func (c *Coles) getCategoryJSON(category string) ([]byte, error) {
 		return body, err
 	}
 	return body, nil
+}
+
+// checkForScrapeTrap checks the given body for a scrape trap.
+func checkForScrapeTrap(body []byte) bool {
+	return bytes.Contains(body, []byte(SCRAPE_TRAP_STRING))
 }

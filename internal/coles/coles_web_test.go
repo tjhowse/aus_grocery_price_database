@@ -30,6 +30,7 @@ func ColesHTTPServer() *httptest.Server {
 	filesToLoad := []string{
 		"data/browse.json",
 		"data/browse.html.file",
+		"data/fruit-vegetables.json",
 	}
 	fileContents := make(map[string][]byte)
 	for _, filename := range filesToLoad {
@@ -40,11 +41,19 @@ func ColesHTTPServer() *httptest.Server {
 	}
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var responseFilename string
-		fmt.Println(r.URL.Path)
+
+		categoryPrefix := fmt.Sprintf("/_next/data/%s/en/browse/", DEFAULT_API_VERSION)
+
 		if strings.HasPrefix(r.URL.Path, "/browse") {
 			responseFilename = "data/browse.html.file"
-		} else if strings.HasPrefix(r.URL.Path, "/shop/browse/fruit-veg") {
-			responseFilename = "data/fruit-veg.html.file"
+		} else if strings.HasPrefix(r.URL.Path, categoryPrefix) {
+			var category string
+			if _, err := fmt.Sscanf(r.URL.Path, categoryPrefix+"%s", &category); err != nil {
+				slog.Error("Failed to parse category from URL", "error", err)
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			responseFilename = fmt.Sprintf("data/%s", category)
 		} else {
 			w.WriteHeader(http.StatusNotFound)
 			return

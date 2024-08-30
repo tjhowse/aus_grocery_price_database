@@ -26,7 +26,7 @@ func (c *Coles) Init(baseURL string, dbPath string, productMaxAge time.Duration)
 	var err error
 	// This might change on occasion. We should allow for that.
 	//'https://www.coles.com.au/_next/data/20240809.03_v4.7.3/en/browse.json'
-	c.colesAPIVersion = "20240809.03_v4.7.3"
+	c.colesAPIVersion = DEFAULT_API_VERSION
 	c.baseURL = baseURL
 
 	c.cookieJar, err = cookiejar.New(nil)
@@ -39,7 +39,7 @@ func (c *Coles) Init(baseURL string, dbPath string, productMaxAge time.Duration)
 			Jar:     c.cookieJar,
 			Timeout: 30 * time.Second,
 		},
-		Ratelimiter: rate.NewLimiter(rate.Every(100*time.Millisecond), 1),
+		Ratelimiter: rate.NewLimiter(rate.Every(1000*time.Millisecond), 1),
 	}
 	c.productMaxAge = productMaxAge
 	err = c.initDB(dbPath)
