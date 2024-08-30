@@ -63,7 +63,7 @@ func ColesHTTPServer() *httptest.Server {
 
 func TestGetURL(t *testing.T) {
 	c := Coles{
-		baseURL:         "www.coles.com.au",
+		baseURL:         "https://www.coles.com.au",
 		colesAPIVersion: "20240809.03_v4.7.3",
 	}
 
