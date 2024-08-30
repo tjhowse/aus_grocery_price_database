@@ -148,25 +148,6 @@ func buildCategoryRequestBody(departmentID departmentID, pageNumber int) (string
 	return string(request), nil
 }
 
-func (w *Woolworths) getProductsFromDepartment(department departmentID) ([]productID, error) {
-	prodIDs := []productID{}
-	page := 1
-
-	for {
-		ids, count, err := w.getProductIDsAndCountFromListPage(department, page)
-		if err != nil {
-			return prodIDs, err
-		}
-		prodIDs = append(prodIDs, ids...)
-		if len(prodIDs) >= count {
-			break
-		}
-		page++
-	}
-
-	return prodIDs, nil
-}
-
 // extractProductInfoFromProductListPage extracts the product info from the product list page
 func extractProductInfoFromProductListPage(body []byte) ([]woolworthsProductInfo, error) {
 	productInfos := []woolworthsProductInfo{}

@@ -196,22 +196,6 @@ func TestExtractTotalRecordCount(t *testing.T) {
 	}
 }
 
-func TestGetProductsFromDepartment(t *testing.T) {
-
-	w := getInitialisedWoolworths()
-
-	productIDs, err := w.getProductsFromDepartment("1-E5BEE36E")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if want, got := 38, len(productIDs); want != got {
-		t.Errorf("Expected %d items, got %d", want, got)
-	}
-	for _, productID := range productIDs {
-		fmt.Println("Product ID:", productID)
-	}
-}
-
 func TestGetProductInfoFromListPage(t *testing.T) {
 
 	w := getInitialisedWoolworths()
