@@ -179,16 +179,23 @@ func (c *Coles) getCategoryContents(category string, page int) (categoryPage, er
 
 // getProductsAndTotalCountForCategoryPage fetches the specified page of the specified category
 // and returns the products and the total count of products in the category.
-func (c *Coles) getProductsAndTotalCountForCategoryPage(category string, page int) ([]product, int, error) {
+func (c *Coles) getProductsAndTotalCountForCategoryPage(category string, page int) ([]colesProductInfo, int, error) {
 	catPage, err := c.getCategoryContents(category, page)
 	if err != nil {
 		return nil, 0, err
 	}
 	// Filter out products without "_type" == "PRODUCT"
-	var products []product
+	var products []colesProductInfo
 	for _, result := range catPage.PageProps.SearchResults.Results {
 		if result.Type == "PRODUCT" {
-			products = append(products, result)
+			var product colesProductInfo
+			product.Info = result
+			product.RawJSON, err = json.Marshal(result)
+			if err != nil {
+				slog.Warn("Failed to marshal product info for storage", "error", err)
+			}
+
+			products = append(products, product)
 		}
 	}
 	return products, catPage.PageProps.SearchResults.NoOfResults, nil

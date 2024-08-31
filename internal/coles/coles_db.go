@@ -8,6 +8,7 @@ import (
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/shopspring/decimal"
 )
 
 const DB_SCHEMA_VERSION = 1
@@ -117,5 +118,77 @@ func (c *Coles) initDB(dbPath string) error {
 			slog.Info("New blank DB created")
 		}
 	}
+	return nil
+}
+
+// saveProductInfo saves the product info to the database transactionfully.
+func (c *Coles) saveProductInfoes(products []colesProductInfo) error {
+	tx, err := c.db.Begin()
+	defer tx.Rollback()
+	if err != nil {
+		return fmt.Errorf("failed to start transaction: %w", err)
+	}
+	for _, product := range products {
+		if err := c.saveProductInfo(tx, product); err != nil {
+			return fmt.Errorf("failed to save product info: %w", err)
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+	return nil
+}
+
+func calcWeightInGrams(productInfo colesProductInfo) (int, error) {
+	scalar := 0.0
+	switch productInfo.Info.Pricing.Unit.OfMeasureUnits {
+	case "g":
+		scalar = 1.0
+	case "kg":
+		scalar = 1000.0
+	default:
+		return 0, fmt.Errorf("cannot convert unit `%s` to grams", productInfo.Info.Pricing.Unit.OfMeasureUnits)
+	}
+	return int(float64(productInfo.Info.Pricing.Unit.Quantity) * scalar), nil
+}
+
+// saveProductInfo saves a single product to the database transactionfully.
+func (c *Coles) saveProductInfo(tx *sql.Tx, productInfo colesProductInfo) error {
+	var err error
+	var result sql.Result
+
+	weightGrams, err := calcWeightInGrams(productInfo)
+	if err != nil {
+		slog.Warn("Failed to calculate weight in grams", "productID", productInfo.ID, "error", err)
+		weightGrams = 0
+	}
+
+	result, err = tx.Exec(`
+			INSERT INTO products (productID, name, description, barcode, priceCents, previousPriceCents, weightGrams, productJSON, departmentID, updated)
+			VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
+			ON CONFLICT(productID) DO UPDATE SET
+				productID = excluded.productID,
+				name = excluded.name,
+				description = excluded.description,
+				barcode = excluded.barcode,
+				priceCents = excluded.priceCents,
+				previousPriceCents = priceCents,
+				weightGrams = excluded.weightGrams,
+				productJSON = excluded.productJSON,
+				departmentID = excluded.departmentID,
+				updated = excluded.updated`,
+		productInfo.ID, productInfo.Info.Name, productInfo.Info.Description, 0,
+		productInfo.Info.Pricing.Now.Mul(decimal.NewFromInt(100)).IntPart(),
+		weightGrams, productInfo.RawJSON, productInfo.departmentID, productInfo.Updated)
+
+	if err != nil {
+		return fmt.Errorf("failed to update product info: %w", err)
+	}
+	if rowsAffected, err := result.RowsAffected(); err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	} else if rowsAffected == 0 {
+		slog.Warn("Product info not updated.")
+	}
+
 	return nil
 }

@@ -159,6 +159,7 @@ func (w *Woolworths) saveProductInfoNoTx(productInfo woolworthsProductInfo) erro
 	var err error
 
 	tx, err := w.db.Begin()
+	defer tx.Rollback()
 	if err != nil {
 		return fmt.Errorf("failed to start transaction: %w", err)
 	}

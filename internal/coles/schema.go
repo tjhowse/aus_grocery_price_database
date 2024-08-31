@@ -1,8 +1,25 @@
 package coles
 
-import "github.com/shopspring/decimal"
+import (
+	"time"
 
-type product struct {
+	"github.com/shopspring/decimal"
+)
+
+type productID string
+type departmentID string
+
+type colesProductInfo struct {
+	ID                    productID
+	departmentID          string
+	departmentDescription string
+	Info                  productListPageProduct
+	PreviousPrice         decimal.Decimal
+	RawJSON               []byte
+	Updated               time.Time
+}
+
+type productListPageProduct struct {
 	Type             string      `json:"_type"`
 	ID               int         `json:"id,omitempty"`
 	AdID             interface{} `json:"adId"`
@@ -152,7 +169,7 @@ type categoryPage struct {
 				TobaccoProducts                  bool `json:"tobaccoProducts"`
 				RestrictedByOrganisationProducts bool `json:"restrictedByOrganisationProducts"`
 			} `json:"pageRestrictions"`
-			Results          []product `json:"results"`
+			Results          []productListPageProduct `json:"results"`
 			CatalogGroupView []struct {
 				Level            int         `json:"level"`
 				Name             string      `json:"name"`

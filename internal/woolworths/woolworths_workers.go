@@ -59,7 +59,7 @@ func (w *Woolworths) productListPageWorker(input <-chan departmentPage) {
 			slog.Error(fmt.Sprintf("Error getting product info extended: %v", err))
 			continue
 		}
-		transaction, err := w.db.Begin()
+		tx, err := w.db.Begin()
 		if err != nil {
 			slog.Error(fmt.Sprintf("Error starting transaction: %v", err))
 			continue
@@ -72,13 +72,13 @@ func (w *Woolworths) productListPageWorker(input <-chan departmentPage) {
 				continue
 			}
 			product.departmentID = dp.ID
-			err := w.saveProductInfo(transaction, product)
+			err := w.saveProductInfo(tx, product)
 			if err != nil {
 				slog.Error(fmt.Sprintf("Error inserting product info: %v", err))
 				continue
 			}
 		}
-		err = transaction.Commit()
+		err = tx.Commit()
 		if err != nil {
 			slog.Error(fmt.Sprintf("Error committing transaction: %v", err))
 		}
