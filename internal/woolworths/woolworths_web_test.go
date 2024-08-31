@@ -29,34 +29,6 @@ func getInitialisedWoolworths() Woolworths {
 	return w
 }
 
-func TestUnmarshal(t *testing.T) {
-	// Read in the contents of data/example_product_info.json
-	// and unmarshal it into a ProductInfo struct
-
-	f, err := os.Open("data/187314.json")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer f.Close()
-
-	// Read the contents of the file
-	body, err := io.ReadAll(f)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Unmarshal the contents of the file
-	productInfo, err := unmarshalProductInfo(body)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if want, got := "Woolworths Broccolini Bunch  Each", productInfo.Name; want != got {
-		t.Errorf("Expected %s, got %s", want, got)
-	}
-
-}
-
 // This mocks enough of the Woolworths API to test various stuff
 func WoolworthsHTTPServer() *httptest.Server {
 	var err error

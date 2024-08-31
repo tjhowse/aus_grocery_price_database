@@ -265,16 +265,6 @@ func (w *Woolworths) getProductInfoFromListPage(dp departmentPage) ([]woolworths
 	return extractProductInfoFromProductListPage(body)
 }
 
-func unmarshalProductInfo(body []byte) (productInfo, error) {
-	var pInfo productInfo
-
-	if err := json.Unmarshal(body, &pInfo); err != nil {
-		return productInfo{}, fmt.Errorf("failed to unmarshal product info: %w", err)
-	}
-
-	return pInfo, nil
-}
-
 // isDepartmentFilteredOut returns true if the department is in the filteredDepartmentIDsSet
 func (w *Woolworths) isDepartmentFilteredOut(department departmentID) bool {
 	if !w.filterDepartments {
