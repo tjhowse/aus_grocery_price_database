@@ -1,6 +1,11 @@
 package shared
 
-import "time"
+import (
+	"errors"
+	"time"
+)
+
+var ErrProductMissing = errors.New("no product found")
 
 // ProductInfo is a struct that contains information about a product.
 type ProductInfo struct {

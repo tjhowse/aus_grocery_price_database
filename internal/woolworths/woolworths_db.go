@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
+	"github.com/tjhowse/aus_grocery_price_database/internal/shared"
 )
 
 const DB_SCHEMA_VERSION = 7
@@ -233,7 +234,7 @@ func (w *Woolworths) loadProductInfo(productID productID) (woolworthsProductInfo
 		&wProdInfo.Updated)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return wProdInfo, ErrProductMissing
+			return wProdInfo, shared.ErrProductMissing
 		}
 		return wProdInfo, fmt.Errorf("failed to query existing product info: %w", err)
 	}

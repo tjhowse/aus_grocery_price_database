@@ -2,7 +2,6 @@ package woolworths
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/http/cookiejar"
@@ -16,8 +15,6 @@ import (
 const WOOLWORTHS_PRODUCT_URL_FORMAT = "%s/api/v3/ui/schemaorg/product/%s"
 const PRODUCT_INFO_WORKER_COUNT = 2
 const DEFAULT_LISTING_PAGE_CHECK_INTERVAL = 1 * time.Minute
-
-var ErrProductMissing = errors.New("no product found")
 
 // Woolworths satisfies the ProductInfoGetter interface to provide a stream of product information from Woolworths.
 type Woolworths struct {

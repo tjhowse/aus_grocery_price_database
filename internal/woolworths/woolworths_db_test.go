@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
+	"github.com/tjhowse/aus_grocery_price_database/internal/shared"
 	utils "github.com/tjhowse/aus_grocery_price_database/internal/utils"
 )
 
@@ -45,7 +46,7 @@ func TestMissingProduct(t *testing.T) {
 	if err == nil {
 		t.Fatal("Expected an error")
 	}
-	if want, got := ErrProductMissing, err; want != got {
+	if want, got := shared.ErrProductMissing, err; want != got {
 		t.Errorf("Expected %s, got %s", want, got)
 	}
 }

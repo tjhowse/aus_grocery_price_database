@@ -14,6 +14,7 @@ type colesProductInfo struct {
 	departmentID          string
 	departmentDescription string
 	Info                  productListPageProduct
+	WeightGrams           int
 	PreviousPrice         decimal.Decimal
 	RawJSON               []byte
 	Updated               time.Time

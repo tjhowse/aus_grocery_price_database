@@ -9,6 +9,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/shopspring/decimal"
+	"github.com/tjhowse/aus_grocery_price_database/internal/shared"
 )
 
 const DB_SCHEMA_VERSION = 1
@@ -157,10 +158,10 @@ func (c *Coles) saveProductInfo(tx *sql.Tx, productInfo colesProductInfo) error 
 	var err error
 	var result sql.Result
 
-	weightGrams, err := calcWeightInGrams(productInfo)
+	productInfo.WeightGrams, err = calcWeightInGrams(productInfo)
 	if err != nil {
 		slog.Warn("Failed to calculate weight in grams", "productID", productInfo.ID, "error", err)
-		weightGrams = 0
+		productInfo.WeightGrams = 0
 	}
 
 	result, err = tx.Exec(`
@@ -179,7 +180,7 @@ func (c *Coles) saveProductInfo(tx *sql.Tx, productInfo colesProductInfo) error 
 				updated = excluded.updated`,
 		productInfo.ID, productInfo.Info.Name, productInfo.Info.Description, 0,
 		productInfo.Info.Pricing.Now.Mul(decimal.NewFromInt(100)).IntPart(),
-		weightGrams, productInfo.RawJSON, productInfo.departmentID, productInfo.Updated)
+		productInfo.WeightGrams, productInfo.RawJSON, productInfo.departmentID, productInfo.Updated)
 
 	if err != nil {
 		return fmt.Errorf("failed to update product info: %w", err)
@@ -191,4 +192,47 @@ func (c *Coles) saveProductInfo(tx *sql.Tx, productInfo colesProductInfo) error 
 	}
 
 	return nil
+}
+
+// loadProductInfo loads cached extended product info from the database
+func (w *Coles) loadProductInfo(productID productID) (colesProductInfo, error) {
+	var cProdInfo colesProductInfo
+	var deptDescription sql.NullString
+	row := w.db.QueryRow(`
+	SELECT
+		productID,
+		name,
+		products.description,
+		priceCents,
+		previousPriceCents,
+		weightGrams,
+		productJSON,
+		products.departmentID,
+		departments.description,
+		products.updated
+	FROM
+		products
+		LEFT JOIN departments ON products.departmentID = departments.departmentID
+	WHERE productID = ? LIMIT 1`, productID)
+	err := row.Scan(
+		&cProdInfo.ID,
+		&cProdInfo.Info.Name,
+		&cProdInfo.Info.Description,
+		&cProdInfo.Info.Pricing.Now,
+		&cProdInfo.PreviousPrice,
+		&cProdInfo.WeightGrams,
+		&cProdInfo.RawJSON,
+		&cProdInfo.departmentID,
+		&deptDescription, // This value comes from a join, so it might be NULL.
+		&cProdInfo.Updated)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return cProdInfo, shared.ErrProductMissing
+		}
+		return cProdInfo, fmt.Errorf("failed to query existing product info: %w", err)
+	}
+	if deptDescription.Valid {
+		cProdInfo.departmentDescription = deptDescription.String
+	}
+	return cProdInfo, nil
 }
