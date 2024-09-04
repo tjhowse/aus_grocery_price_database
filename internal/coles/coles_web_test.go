@@ -154,7 +154,8 @@ func TestGetProductsAndTotalCountForCategoryPage(t *testing.T) {
 	c := getInitialisedColes()
 
 	{
-		products, totalRecordCount, err := c.getProductsAndTotalCountForCategoryPage("fruit-vegetables", 1)
+		dp := departmentPage{"fruit-vegetables", 1}
+		products, totalRecordCount, err := c.getProductsAndTotalCountForCategoryPage(dp)
 		if err != nil {
 			t.Fatalf("Failed to get products: %v", err)
 		}
@@ -170,7 +171,8 @@ func TestGetProductsAndTotalCountForCategoryPage(t *testing.T) {
 
 	}
 	{
-		products, totalRecordCount, err := c.getProductsAndTotalCountForCategoryPage("fruit-vegetables", 2)
+		dp := departmentPage{"fruit-vegetables", 2}
+		products, totalRecordCount, err := c.getProductsAndTotalCountForCategoryPage(dp)
 		if err != nil {
 			t.Fatalf("Failed to get products: %v", err)
 		}

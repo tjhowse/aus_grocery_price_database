@@ -9,7 +9,8 @@ import (
 
 func TestCalcWeightInGrams(t *testing.T) {
 	c := getInitialisedColes()
-	products, _, err := c.getProductsAndTotalCountForCategoryPage("fruit-vegetables", 1)
+	dp := departmentPage{"fruit-vegetables", 1}
+	products, _, err := c.getProductsAndTotalCountForCategoryPage(dp)
 	if err != nil {
 		t.Fatalf("Failed to get products: %v", err)
 	}
@@ -37,7 +38,8 @@ func TestCalcWeightInGrams(t *testing.T) {
 
 func TestSaveProductInfo(t *testing.T) {
 	c := getInitialisedColes()
-	products, _, err := c.getProductsAndTotalCountForCategoryPage("fruit-vegetables", 1)
+	dp := departmentPage{"fruit-vegetables", 1}
+	products, _, err := c.getProductsAndTotalCountForCategoryPage(dp)
 	if err != nil {
 		t.Fatalf("Failed to get products: %v", err)
 	}

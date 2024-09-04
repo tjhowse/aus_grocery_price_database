@@ -179,8 +179,8 @@ func (c *Coles) getCategoryContents(category string, page int) (categoryPage, er
 
 // getProductsAndTotalCountForCategoryPage fetches the specified page of the specified category
 // and returns the products and the total count of products in the category.
-func (c *Coles) getProductsAndTotalCountForCategoryPage(category string, page int) ([]colesProductInfo, int, error) {
-	catPage, err := c.getCategoryContents(category, page)
+func (c *Coles) getProductsAndTotalCountForCategoryPage(dp departmentPage) ([]colesProductInfo, int, error) {
+	catPage, err := c.getCategoryContents(dp.ID, dp.page)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -194,7 +194,7 @@ func (c *Coles) getProductsAndTotalCountForCategoryPage(category string, page in
 			if err != nil {
 				slog.Warn("Failed to marshal product info for storage", "error", err)
 			}
-			product.departmentID = category
+			product.departmentID = dp.ID
 			products = append(products, product)
 		}
 	}

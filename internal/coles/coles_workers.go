@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log/slog"
 	"time"
+
+	"github.com/shopspring/decimal"
 )
 
 const PRODUCTS_PER_PAGE = 48
@@ -93,5 +95,44 @@ func (c *Coles) departmentPageUpdateQueueWorker(output chan<- departmentPage, ma
 		}
 		// We've done an update of all departments, so we don't need to check for new departments very often.
 		time.Sleep(c.listingPageUpdateInterval)
+	}
+}
+
+// productListPageWorker reads departmentPage structs from the input channel, fetches the product list page from the web,
+// and writes the updated product data to the DB, transactionfully.
+func (w *Coles) productListPageWorker(input <-chan departmentPage) {
+	for dp := range input {
+		slog.Debug("Getting product list page", "departmentID", dp.ID, "page", dp.page)
+		products, _, err := w.getProductsAndTotalCountForCategoryPage(dp)
+		if err != nil {
+			slog.Error(fmt.Sprintf("Error getting product info extended: %v", err))
+			continue
+		}
+		tx, err := w.db.Begin()
+		if err != nil {
+			slog.Error(fmt.Sprintf("Error starting transaction: %v", err))
+			continue
+		}
+		var skippedProductCount int
+		for _, product := range products {
+			// Skip products with zero price. Assume something went wrong.
+			if product.Info.Pricing.Now.Equal(decimal.Zero) {
+				skippedProductCount++
+				continue
+			}
+			product.departmentID = dp.ID
+			err := w.saveProductInfo(tx, product)
+			if err != nil {
+				slog.Error(fmt.Sprintf("Error inserting product info: %v", err))
+				continue
+			}
+		}
+		err = tx.Commit()
+		if err != nil {
+			slog.Error(fmt.Sprintf("Error committing transaction: %v", err))
+		}
+		if skippedProductCount > 0 {
+			slog.Warn("Skipped products with zero price", "skippedProductCount", skippedProductCount)
+		}
 	}
 }
