@@ -200,3 +200,16 @@ func (c *Coles) getProductsAndTotalCountForCategoryPage(category string, page in
 	}
 	return products, catPage.PageProps.SearchResults.NoOfResults, nil
 }
+
+func (c *Coles) getDepartmentList() ([]departmentInfo, error) {
+	body, err := c.getBrowseJSON()
+	if err != nil {
+		return nil, err
+	}
+	var browseJSON browsePage
+	err = json.Unmarshal(body, &browseJSON)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal browse JSON: %w", err)
+	}
+	return browseJSON.PageProps.AllProductCategories.CatalogGroupView, nil
+}

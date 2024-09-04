@@ -45,9 +45,12 @@ func ColesHTTPServer() *httptest.Server {
 		var responseFilename string
 
 		categoryPrefix := fmt.Sprintf("/_next/data/%s/en/browse/", DEFAULT_API_VERSION)
+		browseJSONPrefix := fmt.Sprintf("/_next/data/%s/en/browse.json", DEFAULT_API_VERSION)
 
 		if strings.HasPrefix(r.URL.Path, "/browse") {
 			responseFilename = "data/browse.html.file"
+		} else if strings.HasPrefix(r.URL.Path, browseJSONPrefix) {
+			responseFilename = "data/browse.json"
 		} else if strings.HasPrefix(r.URL.Path, categoryPrefix) {
 			var category string
 			var page int
@@ -67,6 +70,7 @@ func ColesHTTPServer() *httptest.Server {
 			responseFilename = fmt.Sprintf("data/%s_%d.json", category, page)
 		} else {
 			w.WriteHeader(http.StatusNotFound)
+			slog.Error("Simulated woolworths server can't find requested URL.", "url", r.URL.Path)
 			return
 		}
 
@@ -178,6 +182,33 @@ func TestGetProductsAndTotalCountForCategoryPage(t *testing.T) {
 		}
 		if want, got := 50, totalRecordCount; want != got {
 			t.Errorf("Expected %d total record count, got %d", want, got)
+		}
+	}
+}
+
+func TestGetDepartmentList(t *testing.T) {
+	c := getInitialisedColes()
+	departments, err := c.getDepartmentList()
+	if err != nil {
+		t.Fatalf("Failed to get department list: %v", err)
+	}
+	if want, got := 16, len(departments); want != got {
+		t.Errorf("Expected %d departments, got %d", want, got)
+	}
+	var testCases = []struct {
+		seoToken string
+		name     string
+		index    int
+	}{
+		{"fruit-vegetables", "Fruit & Vegetables", 3},
+		{"meat-seafood", "Meat & Seafood", 2},
+	}
+	for _, tc := range testCases {
+		if want, got := tc.seoToken, departments[tc.index].SeoToken; want != got {
+			t.Errorf("Expected %s, got %s", want, got)
+		}
+		if want, got := tc.name, departments[tc.index].Name; want != got {
+			t.Errorf("Expected %s, got %s", want, got)
 		}
 	}
 }
