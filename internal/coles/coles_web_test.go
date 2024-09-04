@@ -186,9 +186,9 @@ func TestGetProductsAndTotalCountForCategoryPage(t *testing.T) {
 	}
 }
 
-func TestGetDepartmentList(t *testing.T) {
+func TestGetDepartmentInfos(t *testing.T) {
 	c := getInitialisedColes()
-	departments, err := c.getDepartmentList()
+	departments, err := c.getDepartmentInfos()
 	if err != nil {
 		t.Fatalf("Failed to get department list: %v", err)
 	}

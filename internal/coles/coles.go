@@ -11,14 +11,17 @@ import (
 	"golang.org/x/time/rate"
 )
 
+const DEFAULT_LISTING_PAGE_CHECK_INTERVAL = 1 * time.Minute
+
 // Coles satisfies the ProductInfoGetter interface.
 type Coles struct {
-	baseURL         string
-	client          *shared.RLHTTPClient
-	cookieJar       *cookiejar.Jar // TODO This might not be threadsafe.
-	db              *sql.DB
-	colesAPIVersion string
-	productMaxAge   time.Duration
+	baseURL                   string
+	client                    *shared.RLHTTPClient
+	cookieJar                 *cookiejar.Jar // TODO This might not be threadsafe.
+	db                        *sql.DB
+	colesAPIVersion           string
+	productMaxAge             time.Duration
+	listingPageUpdateInterval time.Duration
 }
 
 // Init initialises the Coles struct.
@@ -46,6 +49,7 @@ func (c *Coles) Init(baseURL string, dbPath string, productMaxAge time.Duration)
 	if err != nil {
 		return err
 	}
+	c.listingPageUpdateInterval = DEFAULT_LISTING_PAGE_CHECK_INTERVAL
 	return nil
 }
 

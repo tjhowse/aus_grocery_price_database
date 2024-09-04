@@ -201,7 +201,7 @@ func (c *Coles) getProductsAndTotalCountForCategoryPage(category string, page in
 	return products, catPage.PageProps.SearchResults.NoOfResults, nil
 }
 
-func (c *Coles) getDepartmentList() ([]departmentInfo, error) {
+func (c *Coles) getDepartmentInfos() ([]departmentInfo, error) {
 	body, err := c.getBrowseJSON()
 	if err != nil {
 		return nil, err

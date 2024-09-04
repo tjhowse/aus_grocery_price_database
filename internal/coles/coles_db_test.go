@@ -2,6 +2,7 @@ package coles
 
 import (
 	"testing"
+	"time"
 
 	"github.com/shopspring/decimal"
 )
@@ -84,4 +85,23 @@ func TestSaveProductInfo(t *testing.T) {
 		t.Errorf("Expected %s, got %s", want, got)
 	}
 
+}
+
+func TestDepartmentInfo(t *testing.T) {
+	w := getInitialisedColes()
+	dept := departmentInfo{SeoToken: "1-E5BEE36E", Name: "Fruit & Veg", Updated: time.Now()}
+	w.saveDepartment(dept)
+	departmentIDs, err := w.loadDepartmentInfoList()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want, got := 1, len(departmentIDs); want != got {
+		t.Errorf("Expected %d, got %d", want, got)
+	}
+	if want, got := "1-E5BEE36E", departmentIDs[0].SeoToken; want != got {
+		t.Errorf("Expected %s, got %s", want, got)
+	}
+	if want, got := "Fruit & Veg", departmentIDs[0].Name; want != got {
+		t.Errorf("Expected %s, got %s", want, got)
+	}
 }

@@ -236,3 +236,47 @@ func (w *Coles) loadProductInfo(productID productID) (colesProductInfo, error) {
 	}
 	return cProdInfo, nil
 }
+
+// Saves product info to the database
+func (c *Coles) saveDepartment(departmentInfo departmentInfo) error {
+	var err error
+	var result sql.Result
+
+	result, err = c.db.Exec(`
+		INSERT INTO departments (departmentID, description, productCount, updated)
+		VALUES (?, ?, ?, ?)
+		ON CONFLICT(departmentID) DO UPDATE SET
+			departmentID = excluded.departmentID,
+			description = excluded.description,
+			productCount = excluded.productCount,
+			updated = excluded.updated`,
+		departmentInfo.SeoToken, departmentInfo.Name, departmentInfo.ProductCount, departmentInfo.Updated)
+
+	if err != nil {
+		return fmt.Errorf("failed to update department ID info: %w", err)
+	}
+	if rowsAffected, err := result.RowsAffected(); err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	} else if rowsAffected == 0 {
+		slog.Warn("Department not upserted")
+	}
+
+	return nil
+}
+
+func (c *Coles) loadDepartmentInfoList() ([]departmentInfo, error) {
+	var departmentInfos []departmentInfo
+	rows, err := c.db.Query("SELECT departmentID, description, productCount, updated FROM departments")
+	if err != nil {
+		return departmentInfos, fmt.Errorf("failed to query departmentIDs: %w", err)
+	}
+	for rows.Next() {
+		var deptInfo departmentInfo
+		err = rows.Scan(&deptInfo.SeoToken, &deptInfo.Name, &deptInfo.ProductCount, &deptInfo.Updated)
+		if err != nil {
+			return departmentInfos, fmt.Errorf("failed to scan departmentID: %w", err)
+		}
+		departmentInfos = append(departmentInfos, deptInfo)
+	}
+	return departmentInfos, nil
+}

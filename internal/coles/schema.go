@@ -840,6 +840,11 @@ type categoryPage struct {
 	NSSP bool `json:"__N_SSP"`
 }
 
+type departmentPage struct {
+	ID   string
+	page int
+}
+
 type departmentInfo struct {
 	ID               string           `json:"id"`
 	Level            int              `json:"level"`
@@ -849,6 +854,7 @@ type departmentInfo struct {
 	SeoToken         string           `json:"seoToken"`
 	CatalogGroupView []departmentInfo `json:"catalogGroupView"`
 	Image            string           `json:"image"`
+	Updated          time.Time
 }
 
 type browsePage struct {
