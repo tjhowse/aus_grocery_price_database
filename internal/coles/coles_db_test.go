@@ -107,3 +107,62 @@ func TestDepartmentInfo(t *testing.T) {
 		t.Errorf("Expected %s, got %s", want, got)
 	}
 }
+
+func TestGetSharedProductsUpdatedAfter(t *testing.T) {
+	c := Coles{}
+	c.Init(colesServer.URL, ":memory:", 5*time.Second)
+	c.filterDepartments = false
+	var infoList []colesProductInfo
+	infoList = append(infoList, colesProductInfo{ID: "123455", Info: productListPageProduct{Name: "1", Pricing: productListPageProductPricing{Now: decimal.NewFromFloat(1.5)}}, Updated: time.Now().Add(-5 * time.Minute)})
+	infoList = append(infoList, colesProductInfo{ID: "123456", Info: productListPageProduct{Name: "2", Pricing: productListPageProductPricing{Now: decimal.NewFromFloat(2.4)}}, Updated: time.Now().Add(-4 * time.Minute)})
+	infoList = append(infoList, colesProductInfo{ID: "123457", Info: productListPageProduct{Name: "3", Pricing: productListPageProductPricing{Now: decimal.NewFromFloat(3.3)}}, Updated: time.Now().Add(-3 * time.Minute)})
+	infoList = append(infoList, colesProductInfo{ID: "123458", Info: productListPageProduct{Name: "4", Pricing: productListPageProductPricing{Now: decimal.NewFromFloat(4.2)}}, Updated: time.Now().Add(-1 * time.Minute)})
+	// Put this one in twice to test the PreviousPriceCents is updated.
+	infoList = append(infoList, colesProductInfo{ID: "123459", Info: productListPageProduct{Name: "5", Pricing: productListPageProductPricing{Now: decimal.NewFromFloat(5.0)}}, Updated: time.Now()})
+	infoList = append(infoList, colesProductInfo{ID: "123459", Info: productListPageProduct{Name: "5", Pricing: productListPageProductPricing{Now: decimal.NewFromFloat(5.1)}}, Updated: time.Now()})
+	// This last one is to test that we don't get products that have a blank name.
+	infoList = append(infoList, colesProductInfo{ID: "123460", Info: productListPageProduct{Name: "", Pricing: productListPageProductPricing{Now: decimal.NewFromFloat(6.0)}}, Updated: time.Now()})
+
+	c.saveProductInfoes(infoList)
+
+	productIDs, err := c.GetSharedProductsUpdatedAfter(time.Now().Add(-2*time.Minute), 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want, got := 2, len(productIDs); want != got {
+		t.Fatalf("Expected %d products, got %d", want, got)
+	}
+	if want, got := COLES_ID_PREFIX+"123458", productIDs[0].ID; want != got {
+		t.Errorf("Expected %s, got %s", want, got)
+	}
+	if want, got := COLES_ID_PREFIX+"123459", productIDs[1].ID; want != got {
+		t.Errorf("Expected %s, got %s", want, got)
+	}
+	if want, got := 500, productIDs[1].PreviousPriceCents; want != got {
+		t.Errorf("Expected %v, got %v", want, got)
+	}
+	if want, got := 510, productIDs[1].PriceCents; want != got {
+		t.Errorf("Expected %v, got %v", want, got)
+	}
+	productIDs, err = c.GetSharedProductsUpdatedAfter(time.Now().Add(-2*time.Minute), 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want, got := 1, len(productIDs); want != got {
+		t.Fatalf("Expected %d products, got %d", want, got)
+	}
+	if want, got := COLES_ID_PREFIX+"123458", productIDs[0].ID; want != got {
+		t.Errorf("Expected %s, got %s", want, got)
+	}
+	if want, got := 420, productIDs[0].PriceCents; want != got {
+		t.Errorf("Expected %v, got %v", want, got)
+	}
+
+	if total, err := c.GetTotalProductCount(); err != nil {
+		t.Fatal(err)
+	} else {
+		if want, got := 6, total; want != got {
+			t.Errorf("Expected %d, got %d", want, got)
+		}
+	}
+}

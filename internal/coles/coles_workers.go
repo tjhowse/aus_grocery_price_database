@@ -71,6 +71,14 @@ func (c *Coles) departmentPageUpdateQueueWorker(output chan<- departmentPage, ma
 			continue
 		}
 		for _, departmentInfo := range departmentInfos {
+			if c.filterDepartments {
+				_, ok := c.filteredDepartmentIDsSet[departmentInfo.SeoToken]
+				if !ok {
+					slog.Debug("Skipping department", "SeoToken", departmentInfo.SeoToken)
+					continue
+				}
+			}
+
 			if time.Since(departmentInfo.Updated) < maxAge {
 				slog.Debug("Skipping update of department", "SeoToken", departmentInfo.SeoToken, "UpdatedAgo", time.Since(departmentInfo.Updated))
 				continue

@@ -2,7 +2,6 @@ package coles
 
 import (
 	"fmt"
-	"log/slog"
 	"testing"
 	"time"
 )
@@ -25,9 +24,9 @@ func TestNewDepartmentInfoWorker(t *testing.T) {
 }
 
 func TestDepartmentPageUpdateQueueWorker(t *testing.T) {
-	slog.SetLogLoggerLevel(slog.LevelDebug)
 	departmentPageChannel := make(chan departmentPage)
 	c := getInitialisedColes()
+	c.filterDepartments = false
 	// We want to get pages from this department, updated an hour ago.
 	c.saveDepartment(departmentInfo{SeoToken: "1-E5BEE36E", Name: "Fruit & Vegetables", ProductCount: PRODUCTS_PER_PAGE * 3, Updated: time.Now().Add(-1 * time.Hour)})
 	// We don't want to get pages from this department, updated an hour in the future.
@@ -85,4 +84,53 @@ func TestProductListPageWorker(t *testing.T) {
 	if want, got := "Bananas Mini Pack", readInfo.Info.Name; want != got {
 		t.Errorf("Expected %s, got %s", want, got)
 	}
+}
+
+func ValidateProduct(t *testing.T, w *Coles, id productID, expectedName string) error {
+	prod, err := w.loadProductInfo(id)
+	if err != nil {
+		return fmt.Errorf("Failed to get product ID %s: %v", id, err)
+	}
+	if prod.Info.Name != expectedName {
+		t.Logf("Expected '%s', got '%s'", expectedName, prod.Info.Name)
+		return fmt.Errorf("Expected '%s', got '%s'", expectedName, prod.Info.Name)
+	}
+	if want, got := "Fruit & Vegetables", prod.departmentDescription; want != got {
+		t.Fatalf("Expected '%s', got '%s'", want, got)
+		return fmt.Errorf("Expected '%s', got '%s'", want, got)
+	}
+	if want, got := "fruit-vegetables", prod.departmentID; want != got {
+		t.Fatalf("Expected '%s', got '%s'", want, got)
+		return fmt.Errorf("Expected '%s', got '%s'", want, got)
+	}
+	return nil
+}
+func TestScheduler(t *testing.T) {
+	c := Coles{}
+	c.Init(colesServer.URL, "delme.db3", 100*time.Second)
+	c.listingPageUpdateInterval = 1 * time.Second
+	cancel := make(chan struct{})
+	go c.Run(cancel)
+
+	done := make(chan struct{})
+	go func() {
+		for {
+			err1 := ValidateProduct(t, &c, "2511791", "Bananas Mini Pack")
+			err2 := ValidateProduct(t, &c, "5111654", "Pink Lady Apples Medium")
+			if err1 == nil && err2 == nil {
+				close(done)
+				return
+			}
+			time.Sleep(1 * time.Second)
+		}
+	}()
+
+	select {
+	case <-time.After(10 * time.Second):
+		t.Fatal("Timed out waiting for scheduler to finish")
+	case <-done:
+
+	}
+
+	close(cancel)
 }

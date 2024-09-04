@@ -22,6 +22,8 @@ type Coles struct {
 	colesAPIVersion           string
 	productMaxAge             time.Duration
 	listingPageUpdateInterval time.Duration
+	filteredDepartmentIDsSet  map[string]bool
+	filterDepartments         bool
 }
 
 // Init initialises the Coles struct.
@@ -50,19 +52,79 @@ func (c *Coles) Init(baseURL string, dbPath string, productMaxAge time.Duration)
 		return err
 	}
 	c.listingPageUpdateInterval = DEFAULT_LISTING_PAGE_CHECK_INTERVAL
+	c.filteredDepartmentIDsSet = map[string]bool{
+		"fruit-vegetables": true,
+	}
+	c.filterDepartments = true
 	return nil
 }
 
-// Run starts the Coles product information getter.
-func (c *Coles) Run(stop <-chan struct{}) {
+// Runs up all the workers and mediates data flowing between them.
+// Currently all sqlite writes happen via this function. This may move
+// off to a separate goroutine in the future.
+func (c *Coles) Run(cancel chan struct{}) {
+	departmentPageChannel := make(chan departmentPage)
+
+	go c.productListPageWorker(departmentPageChannel)
+	go c.newDepartmentInfoWorker()
+	go c.departmentPageUpdateQueueWorker(departmentPageChannel, c.productMaxAge)
+
+	for range cancel {
+		return
+	}
 }
 
 // GetSharedProductsUpdatedAfter provides a list of product IDs that have been updated since the given time
-func (c *Coles) GetSharedProductsUpdatedAfter(t int, count int) ([]shared.ProductInfo, error) {
-	return nil, nil
+func (c *Coles) GetSharedProductsUpdatedAfter(t time.Time, count int) ([]shared.ProductInfo, error) {
+	var productIDs []shared.ProductInfo
+	var deptDescription sql.NullString
+	rows, err := c.db.Query(`
+		SELECT
+			productID,
+			products.name,
+			products.description,
+			departments.description,
+			priceCents,
+			previousPriceCents,
+			weightGrams,
+			products.updated
+		FROM
+			products
+			LEFT JOIN departments ON products.departmentID = departments.departmentID
+		WHERE products.updated > ? AND name != '' LIMIT ?`, t, count)
+	if err != nil {
+		return productIDs, fmt.Errorf("failed to query productIDs: %w", err)
+	}
+	for rows.Next() {
+		var product shared.ProductInfo
+		err = rows.Scan(
+			&product.ID,
+			&product.Name,
+			&product.Description,
+			&deptDescription,
+			&product.PriceCents,
+			&product.PreviousPriceCents,
+			&product.WeightGrams,
+			&product.Timestamp)
+		if err != nil {
+			return productIDs, fmt.Errorf("failed to scan productID: %w", err)
+		}
+		if deptDescription.Valid {
+			product.Department = deptDescription.String
+		}
+		product.ID = COLES_ID_PREFIX + product.ID
+		product.Store = "Coles"
+		productIDs = append(productIDs, product)
+	}
+	return productIDs, nil
 }
 
 // GetTotalProductCount returns the total number of products in the database.
 func (c *Coles) GetTotalProductCount() (int, error) {
-	return 0, nil
+	var count int
+	err := c.db.QueryRow("SELECT COUNT(*) FROM products").Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("failed to query product count: %w", err)
+	}
+	return count, nil
 }

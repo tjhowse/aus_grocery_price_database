@@ -140,7 +140,6 @@ func TestGetSharedProductsUpdatedAfter(t *testing.T) {
 			t.Errorf("Expected %d, got %d", want, got)
 		}
 	}
-
 }
 
 func TestSaveProductInfo(t *testing.T) {

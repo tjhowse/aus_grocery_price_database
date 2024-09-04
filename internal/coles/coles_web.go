@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"time"
 
 	"github.com/tjhowse/aus_grocery_price_database/internal/utils"
 )
@@ -196,6 +197,7 @@ func (c *Coles) getProductsAndTotalCountForCategoryPage(dp departmentPage) ([]co
 			}
 			product.departmentID = dp.ID
 			product.ID = productID(strconv.Itoa(result.ID))
+			product.Updated = time.Now()
 			products = append(products, product)
 		}
 	}

@@ -2,7 +2,6 @@ package woolworths
 
 import (
 	"fmt"
-	"log/slog"
 	"testing"
 	"time"
 )
@@ -28,8 +27,6 @@ func ValidateProduct(t *testing.T, w *Woolworths, id productID, expectedName str
 }
 
 func TestScheduler(t *testing.T) {
-	slog.SetLogLoggerLevel(slog.LevelDebug)
-
 	w := Woolworths{}
 	w.Init(woolworthsServer.URL, ":memory:", 100*time.Second)
 	w.listingPageUpdateInterval = 1 * time.Second

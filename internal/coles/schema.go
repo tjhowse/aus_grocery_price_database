@@ -9,6 +9,8 @@ import (
 type productID string
 type departmentID string
 
+const COLES_ID_PREFIX = "coles_id_"
+
 type colesProductInfo struct {
 	ID                    productID
 	departmentID          string
@@ -18,6 +20,22 @@ type colesProductInfo struct {
 	PreviousPrice         decimal.Decimal
 	RawJSON               []byte
 	Updated               time.Time
+}
+
+type productListPageProductPricing struct {
+	Now  decimal.Decimal `json:"now"`
+	Was  decimal.Decimal `json:"was"`
+	Unit struct {
+		Quantity          float64         `json:"quantity"`
+		OfMeasureQuantity float64         `json:"ofMeasureQuantity"`
+		OfMeasureUnits    string          `json:"ofMeasureUnits"`
+		Price             decimal.Decimal `json:"price"`
+		OfMeasureType     string          `json:"ofMeasureType"`
+		IsWeighted        bool            `json:"isWeighted"`
+	} `json:"unit"`
+	Comparable    string `json:"comparable"`
+	PromotionType string `json:"promotionType"`
+	OnlineSpecial bool   `json:"onlineSpecial"`
 }
 
 type productListPageProduct struct {
@@ -68,40 +86,26 @@ type productListPageProduct struct {
 		AisleID       string `json:"aisleId"`
 		SubCategoryID string `json:"subCategoryId"`
 	} `json:"onlineHeirs,omitempty"`
-	Pricing struct {
-		Now  decimal.Decimal `json:"now"`
-		Was  decimal.Decimal `json:"was"`
-		Unit struct {
-			Quantity          float64         `json:"quantity"`
-			OfMeasureQuantity float64         `json:"ofMeasureQuantity"`
-			OfMeasureUnits    string          `json:"ofMeasureUnits"`
-			Price             decimal.Decimal `json:"price"`
-			OfMeasureType     string          `json:"ofMeasureType"`
-			IsWeighted        bool            `json:"isWeighted"`
-		} `json:"unit"`
-		Comparable    string `json:"comparable"`
-		PromotionType string `json:"promotionType"`
-		OnlineSpecial bool   `json:"onlineSpecial"`
-	} `json:"pricing,omitempty"`
-	CampaignName                     string      `json:"campaignName,omitempty"`
-	Expiry                           interface{} `json:"expiry,omitempty"`
-	HeadingText                      interface{} `json:"headingText,omitempty"`
-	BannerText                       string      `json:"bannerText,omitempty"`
-	BannerTextColour                 interface{} `json:"bannerTextColour,omitempty"`
-	CtaFlag                          interface{} `json:"ctaFlag,omitempty"`
-	CtaText                          string      `json:"ctaText,omitempty"`
-	CtaTextAccessibility             string      `json:"ctaTextAccessibility,omitempty"`
-	CtaLink                          string      `json:"ctaLink,omitempty"`
-	BackgroundColour                 interface{} `json:"backgroundColour,omitempty"`
-	BackgroundImage                  string      `json:"backgroundImage,omitempty"`
-	BackgroundImagePosition          interface{} `json:"backgroundImagePosition,omitempty"`
-	SecondaryBackgroundImage         interface{} `json:"secondaryBackgroundImage,omitempty"`
-	SecondaryBackgroundImagePosition interface{} `json:"secondaryBackgroundImagePosition,omitempty"`
-	HeroImage                        interface{} `json:"heroImage,omitempty"`
-	HeroImageAltText                 interface{} `json:"heroImageAltText,omitempty"`
-	SecondaryHeroImage               string      `json:"secondaryHeroImage,omitempty"`
-	SecondaryHeroImageAltText        string      `json:"secondaryHeroImageAltText,omitempty"`
-	ProductIds                       []string    `json:"productIds,omitempty"`
+	Pricing                          productListPageProductPricing `json:"pricing,omitempty"`
+	CampaignName                     string                        `json:"campaignName,omitempty"`
+	Expiry                           interface{}                   `json:"expiry,omitempty"`
+	HeadingText                      interface{}                   `json:"headingText,omitempty"`
+	BannerText                       string                        `json:"bannerText,omitempty"`
+	BannerTextColour                 interface{}                   `json:"bannerTextColour,omitempty"`
+	CtaFlag                          interface{}                   `json:"ctaFlag,omitempty"`
+	CtaText                          string                        `json:"ctaText,omitempty"`
+	CtaTextAccessibility             string                        `json:"ctaTextAccessibility,omitempty"`
+	CtaLink                          string                        `json:"ctaLink,omitempty"`
+	BackgroundColour                 interface{}                   `json:"backgroundColour,omitempty"`
+	BackgroundImage                  string                        `json:"backgroundImage,omitempty"`
+	BackgroundImagePosition          interface{}                   `json:"backgroundImagePosition,omitempty"`
+	SecondaryBackgroundImage         interface{}                   `json:"secondaryBackgroundImage,omitempty"`
+	SecondaryBackgroundImagePosition interface{}                   `json:"secondaryBackgroundImagePosition,omitempty"`
+	HeroImage                        interface{}                   `json:"heroImage,omitempty"`
+	HeroImageAltText                 interface{}                   `json:"heroImageAltText,omitempty"`
+	SecondaryHeroImage               string                        `json:"secondaryHeroImage,omitempty"`
+	SecondaryHeroImageAltText        string                        `json:"secondaryHeroImageAltText,omitempty"`
+	ProductIds                       []string                      `json:"productIds,omitempty"`
 	AdditionalFields                 []struct {
 		ID    string `json:"id"`
 		Value string `json:"value"`
