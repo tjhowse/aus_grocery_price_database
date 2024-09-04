@@ -194,7 +194,7 @@ func (c *Coles) getProductsAndTotalCountForCategoryPage(category string, page in
 			if err != nil {
 				slog.Warn("Failed to marshal product info for storage", "error", err)
 			}
-
+			product.departmentID = category
 			products = append(products, product)
 		}
 	}

@@ -106,6 +106,16 @@ func TestExtractAPIVersion(t *testing.T) {
 	}
 }
 
+func TestCheckForScrapeTrap(t *testing.T) {
+	body, err := utils.ReadEntireFile("data/scrape_trap.html.file")
+	if body == nil || err != nil {
+		t.Errorf("Failed to read file")
+	}
+	if !checkForScrapeTrap(body) {
+		t.Errorf("Failed to detect scrape trap")
+	}
+}
+
 func TestUpdateAPIVersion(t *testing.T) {
 	c := getInitialisedColes()
 	// Set a deliberately old version
