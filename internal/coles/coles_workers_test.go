@@ -60,3 +60,29 @@ func TestDepartmentPageUpdateQueueWorker(t *testing.T) {
 	// }
 
 }
+
+func TestProductListPageWorker(t *testing.T) {
+	c := getInitialisedColes()
+
+	// Set up a department to scan products from
+	dept := departmentInfo{SeoToken: "fruit-vegetables", Name: "Fruit & Vegetables", Updated: time.Now()}
+	c.saveDepartment(dept)
+
+	departmentPageChannel := make(chan departmentPage)
+	go c.productListPageWorker(departmentPageChannel)
+
+	departmentPageChannel <- departmentPage{
+		ID:   "fruit-vegetables",
+		page: 1,
+	}
+	// TODO remove this hardcoded sleep and use a loop in a goroutine with a channel for the output
+	// as I've done before in another test.
+	time.Sleep(50 * time.Millisecond)
+	readInfo, err := c.loadProductInfo(productID("2511791"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want, got := "Bananas Mini Pack", readInfo.Info.Name; want != got {
+		t.Errorf("Expected %s, got %s", want, got)
+	}
+}

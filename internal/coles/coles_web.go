@@ -195,6 +195,7 @@ func (c *Coles) getProductsAndTotalCountForCategoryPage(dp departmentPage) ([]co
 				slog.Warn("Failed to marshal product info for storage", "error", err)
 			}
 			product.departmentID = dp.ID
+			product.ID = productID(strconv.Itoa(result.ID))
 			products = append(products, product)
 		}
 	}

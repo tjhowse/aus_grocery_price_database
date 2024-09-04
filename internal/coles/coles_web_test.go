@@ -165,6 +165,9 @@ func TestGetProductsAndTotalCountForCategoryPage(t *testing.T) {
 		if want, got := "Bananas Mini Pack", products[0].Info.Name; want != got {
 			t.Errorf("Expected %s, got %s", want, got)
 		}
+		if want, got := productID("2511791"), products[0].ID; want != got {
+			t.Errorf("Expected %s, got %s", want, got)
+		}
 		if want, got := 578, totalRecordCount; want != got {
 			t.Errorf("Expected %d total record count, got %d", want, got)
 		}
@@ -180,6 +183,9 @@ func TestGetProductsAndTotalCountForCategoryPage(t *testing.T) {
 			t.Errorf("Expected %d products, got %d", want, got)
 		}
 		if want, got := "Glorba beans", products[0].Info.Name; want != got {
+			t.Errorf("Expected %s, got %s", want, got)
+		}
+		if want, got := productID("8888888"), products[0].ID; want != got {
 			t.Errorf("Expected %s, got %s", want, got)
 		}
 		if want, got := 50, totalRecordCount; want != got {
