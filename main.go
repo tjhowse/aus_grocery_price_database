@@ -13,7 +13,7 @@ import (
 	woolworths "github.com/tjhowse/aus_grocery_price_database/internal/woolworths"
 )
 
-const VERSION = "0.0.40"
+const VERSION = "0.0.41"
 const SYSTEM_STATUS_UPDATE_INTERVAL_SECONDS = 60
 
 type config struct {

@@ -10,7 +10,7 @@ func TestNewDepartmentInfoWorker(t *testing.T) {
 	c := getInitialisedColes()
 	go c.newDepartmentInfoWorker()
 	// Wait for the worker to run
-	time.Sleep(1 * time.Second)
+	time.Sleep(3 * time.Second)
 
 	// Check that the department list has been updated
 	departments, err := c.loadDepartmentInfoList()
