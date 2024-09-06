@@ -119,6 +119,20 @@ func TestExtractAPIVersion(t *testing.T) {
 	}
 }
 
+func TestExtractAPIVersionAgain(t *testing.T) {
+	body, err := utils.ReadEntireFile("data/browse_different_api_version.html.file")
+	if body == nil || err != nil {
+		t.Errorf("Failed to read file")
+	}
+	if version, err := extractAPIVersion(body); err != nil {
+		t.Errorf("Failed to extract API version: %v", err)
+	} else {
+		if want, got := "20240904.01_v4.10.0", version; want != got {
+			t.Errorf("Expected %s, got %s", want, got)
+		}
+	}
+}
+
 func TestCheckForScrapeTrap(t *testing.T) {
 	body, err := utils.ReadEntireFile("data/scrape_trap.html.file")
 	if body == nil || err != nil {
