@@ -20,16 +20,19 @@ func departmentInSlice(a departmentInfo, list []departmentInfo) *departmentInfo 
 }
 
 // newDepartmentInfoWorker is a worker that monitors for new departments and writes them to the DB.
-func (w *Coles) newDepartmentInfoWorker() {
+func (c *Coles) newDepartmentInfoWorker() {
 	for {
+		// Update this every so often.
+		c.updateAPIVersion()
+
 		// Read the department list from the web...
-		departmentsFromWeb, err := w.getDepartmentInfos()
+		departmentsFromWeb, err := c.getDepartmentInfos()
 		if err != nil {
 			slog.Error(fmt.Sprintf("Error getting department IDs from web: %v", err))
 		}
 
 		// Read the department list from the DB.
-		departmentInfosFromDB, err := w.loadDepartmentInfoList()
+		departmentInfosFromDB, err := c.loadDepartmentInfoList()
 		if err != nil {
 			slog.Error(fmt.Sprintf("Error loading department IDs from DB: %v", err))
 		}
@@ -49,8 +52,8 @@ func (w *Coles) newDepartmentInfoWorker() {
 			if update {
 				// Save the department to the DB.
 				// Set the update time to the past so we force an update on the next poll.
-				webDepartmentInfo.Updated = time.Now().Add(-2 * w.productMaxAge)
-				err := w.saveDepartment(webDepartmentInfo)
+				webDepartmentInfo.Updated = time.Now().Add(-2 * c.productMaxAge)
+				err := c.saveDepartment(webDepartmentInfo)
 				if err != nil {
 					slog.Error(fmt.Sprintf("Error saving department ID to DB: %v", err))
 				}
