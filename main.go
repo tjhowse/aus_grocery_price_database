@@ -8,11 +8,12 @@ import (
 	"time"
 
 	"github.com/caarlos0/env/v11"
+	"github.com/tjhowse/aus_grocery_price_database/internal/coles"
 	shared "github.com/tjhowse/aus_grocery_price_database/internal/shared"
 	woolworths "github.com/tjhowse/aus_grocery_price_database/internal/woolworths"
 )
 
-const VERSION = "0.0.38"
+const VERSION = "0.0.39"
 const SYSTEM_STATUS_UPDATE_INTERVAL_SECONDS = 60
 
 type config struct {
@@ -22,8 +23,10 @@ type config struct {
 	InfluxDBBucket              string `env:"INFLUXDB_BUCKET" envDefault:"groceries"`
 	InfluxUpdateIntervalSeconds int    `env:"INFLUXDB_UPDATE_RATE_SECONDS" envDefault:"10"`
 	LocalWoolworthsDBPath       string `env:"LOCAL_WOOLWORTHS_DB_PATH" envDefault:"woolworths.db3"`
+	LocalColesDBPath            string `env:"LOCAL_COLES_DB_PATH" envDefault:"coles.db3"`
 	MaxProductAgeMinutes        int    `env:"MAX_PRODUCT_AGE_MINUTES" envDefault:"1440"`
 	WoolworthsURL               string `env:"WOOLWORTHS_URL" envDefault:"https://www.woolworths.com.au"`
+	ColesURL                    string `env:"COLES_URL" envDefault:"https://www.coles.com.au"`
 	DebugLogging                bool   `env:"DEBUG_LOGGING" envDefault:"false"`
 }
 
@@ -64,16 +67,22 @@ func main() {
 	slog.Info("AUS Grocery Price Database", "version", VERSION)
 
 	tsDB := influxDB{}
-	w := woolworths.Woolworths{}
-	running := true
-	run(&running, &cfg, &tsDB, &w)
-}
-
-func run(running *bool, cfg *config, tsDB timeseriesDB, w ProductInfoGetter) {
-
-	w.Init(cfg.WoolworthsURL, cfg.LocalWoolworthsDBPath, time.Duration(cfg.MaxProductAgeMinutes)*time.Minute)
 	tsDB.Init(cfg.InfluxDBURL, cfg.InfluxDBToken, cfg.InfluxDBOrg, cfg.InfluxDBBucket)
 	defer tsDB.Close()
+
+	w := woolworths.Woolworths{}
+	w.Init(cfg.WoolworthsURL, cfg.LocalWoolworthsDBPath, time.Duration(cfg.MaxProductAgeMinutes)*time.Minute)
+
+	c := coles.Coles{}
+	c.Init(cfg.ColesURL, cfg.LocalColesDBPath, time.Duration(cfg.MaxProductAgeMinutes)*time.Minute)
+
+	running := true
+	run(&running, &cfg, &tsDB, []ProductInfoGetter{&w, &c})
+
+}
+
+func run(running *bool, cfg *config, tsDB timeseriesDB, pigs []ProductInfoGetter) {
+	var err error
 
 	tsDB.WriteArbitrarySystemDatapoint(SYSTEM_VERSION_FIELD, VERSION)
 
@@ -83,7 +92,9 @@ func run(running *bool, cfg *config, tsDB timeseriesDB, w ProductInfoGetter) {
 
 	cancel := make(chan struct{})
 	defer close(cancel)
-	go w.Run(cancel)
+	for _, pig := range pigs {
+		pig.Run(cancel)
+	}
 
 	updateTime := time.Now().Add(-1 * time.Minute)
 	var updateCountSinceLastStatusReport int
@@ -93,16 +104,21 @@ func run(running *bool, cfg *config, tsDB timeseriesDB, w ProductInfoGetter) {
 	statusReportDeadline := time.Now().Add(-30 * time.Minute)
 
 	for *running {
-		woolworthsProducts, err := w.GetSharedProductsUpdatedAfter(updateTime, 100)
-		if err != nil {
-			slog.Error("Error getting shared products", "error", err)
-			time.Sleep(10 * time.Second)
-			continue
+		// Get the latest products from the grocery stores.
+		products := make([]shared.ProductInfo, 0, 200)
+		for _, pig := range pigs {
+			prods, err := pig.GetSharedProductsUpdatedAfter(updateTime, 100)
+			if err != nil {
+				slog.Error("Error getting shared products", "error", err)
+				time.Sleep(10 * time.Second)
+				continue
+			}
+			products = append(products, prods...)
 		}
-		if len(woolworthsProducts) != 0 {
+		if len(products) != 0 {
 			updateTime = time.Now()
 		}
-		for _, newProductInfo := range woolworthsProducts {
+		for _, newProductInfo := range products {
 			if newProductInfo.Name == "" {
 				slog.Warn("Product has no name", "product", newProductInfo)
 				continue
@@ -110,7 +126,7 @@ func run(running *bool, cfg *config, tsDB timeseriesDB, w ProductInfoGetter) {
 			productInfoUpdateChannel <- newProductInfo
 		}
 
-		updateCountSinceLastStatusReport += len(woolworthsProducts)
+		updateCountSinceLastStatusReport += len(products)
 
 		// Send a system status update if required.
 		if time.Now().After(statusReportDeadline) {
@@ -122,10 +138,14 @@ func run(running *bool, cfg *config, tsDB timeseriesDB, w ProductInfoGetter) {
 			if err != nil {
 				slog.Error("Error getting HDD free space", "error", err)
 			}
-
-			systemStatus.TotalProductCount, err = w.GetTotalProductCount()
-			if err != nil {
-				slog.Error("Error getting total product count", "error", err)
+			// Total up all the products in the system.
+			systemStatus.TotalProductCount = 0
+			for _, pig := range pigs {
+				count, err := pig.GetTotalProductCount()
+				if err != nil {
+					slog.Error("Error getting total product count", "error", err)
+				}
+				systemStatus.TotalProductCount += count
 			}
 			tsDB.WriteSystemDatapoint(systemStatus)
 			statusReportDeadline = time.Now().Add(SYSTEM_STATUS_UPDATE_INTERVAL_SECONDS * time.Second)

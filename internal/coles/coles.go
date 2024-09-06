@@ -44,7 +44,7 @@ func (c *Coles) Init(baseURL string, dbPath string, productMaxAge time.Duration)
 			Jar:     c.cookieJar,
 			Timeout: 30 * time.Second,
 		},
-		Ratelimiter: rate.NewLimiter(rate.Every(1000*time.Millisecond), 1),
+		Ratelimiter: rate.NewLimiter(rate.Every(2000*time.Millisecond), 1),
 	}
 	c.productMaxAge = productMaxAge
 	err = c.initDB(dbPath)
