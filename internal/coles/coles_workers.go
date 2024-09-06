@@ -82,7 +82,7 @@ func (c *Coles) departmentPageUpdateQueueWorker(output chan<- departmentPage, ma
 			if c.filterDepartments {
 				_, ok := c.filteredDepartmentIDsSet[departmentInfo.SeoToken]
 				if !ok {
-					slog.Debug("Skipping department", "SeoToken", departmentInfo.SeoToken)
+					slog.Debug("Skipping excluded department", "SeoToken", departmentInfo.SeoToken)
 					continue
 				}
 			}
