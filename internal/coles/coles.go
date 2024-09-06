@@ -3,6 +3,7 @@ package coles
 import (
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/http/cookiejar"
 	"time"
@@ -116,6 +117,7 @@ func (c *Coles) GetSharedProductsUpdatedAfter(t time.Time, count int) ([]shared.
 		product.Store = "Coles"
 		productIDs = append(productIDs, product)
 	}
+	slog.Info("Coles GetSharedProductsUpdatedAfter", "product_count", len(productIDs))
 	return productIDs, nil
 }
 
