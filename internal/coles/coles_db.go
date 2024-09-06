@@ -147,6 +147,10 @@ func calcWeightInGrams(productInfo colesProductInfo) (int, error) {
 		scalar = 1.0
 	case "kg":
 		scalar = 1000.0
+	case "ml":
+		scalar = 1.0
+	case "l":
+		scalar = 1000.0
 	default:
 		return 0, fmt.Errorf("cannot convert unit `%s` to grams", productInfo.Info.Pricing.Unit.OfMeasureUnits)
 	}
