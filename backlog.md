@@ -16,10 +16,9 @@
 * Set up health check for AGPD container. Touch /tmp/heartbeat or something.
 * Service health monitoring and alerting in general
 * Periodic backups of timeseries DB to S3/other block storage. Possibly just clone fly.io volume?
+* Fix influxdb hdd monitoring. My dashboard lies.
 
 ### General
-* Add persistence to last-checked time. Store it in the grocery data provider. GetProductsSinceLastCheck(maxcount int).
-    * Not sure if this is a great idea. Maybe persist the last-checked time in a main-level DB.
 * Calculate $/g where possible
 * Export grafana config/dashboards/etc to repo. Embed as a part of dockerfile (?)
 * Make sure we're `defer rows.Close()` everywhere we need to.
