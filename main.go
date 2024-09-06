@@ -13,7 +13,7 @@ import (
 	woolworths "github.com/tjhowse/aus_grocery_price_database/internal/woolworths"
 )
 
-const VERSION = "0.0.41"
+const VERSION = "0.0.42"
 const SYSTEM_STATUS_UPDATE_INTERVAL_SECONDS = 60
 
 type config struct {
@@ -93,7 +93,7 @@ func run(running *bool, cfg *config, tsDB timeseriesDB, pigs []ProductInfoGetter
 	cancel := make(chan struct{})
 	defer close(cancel)
 	for _, pig := range pigs {
-		pig.Run(cancel)
+		go pig.Run(cancel)
 	}
 
 	updateTime := time.Now().Add(-1 * time.Minute)
