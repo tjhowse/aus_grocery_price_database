@@ -137,8 +137,6 @@ func (c *Coles) getCategoryJSON(category string, page int) ([]byte, error) {
 	q.Add("slug", category)
 	q.Add("page", strconv.Itoa(page))
 	req.URL.RawQuery = q.Encode()
-	// = req.URL.Query().Add("slug", category)
-	fmt.Println(req.URL)
 
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:129.0) Gecko/20100101 Firefox/129.0")
 	req.Header.Set("Accept", "application/json")
