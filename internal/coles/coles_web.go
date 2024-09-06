@@ -84,7 +84,7 @@ func extractAPIVersion(body []byte) (string, error) {
 	// This locates the string ',"buildId":"20240827.02_v4.7.7",' in the body of the html and extracts
 	// the '20240827.02_v4.7.7' value.
 
-	r := regexp.MustCompile(`,"buildId":"(\d{8}\.\d{2}_v\d\.\d\.\d)",`)
+	r := regexp.MustCompile(`,"buildId":"(\d{8}\.\d{2}_v\d+\.\d+\.\d+)",`)
 	matches := r.FindSubmatch(body)
 	if len(matches) != 2 {
 		return "", fmt.Errorf("failed to find API version in body")
