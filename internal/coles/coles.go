@@ -54,7 +54,20 @@ func (c *Coles) Init(baseURL string, dbPath string, productMaxAge time.Duration)
 	}
 	c.listingPageUpdateInterval = DEFAULT_LISTING_PAGE_CHECK_INTERVAL
 	c.filteredDepartmentIDsSet = map[string]bool{
-		"fruit-vegetables": true,
+		"fruit-vegetables":  true,
+		"dairy-eggs-fridge": true,
+		"bakery":            true,
+		"deli":              true,
+		"pantry":            true,
+		// "meat-seafood":      true,
+		// "frozen":            true,
+		// "drinks":            true,
+		// "household":         true,
+		// "health-beauty":     true,
+		// "baby":              true,
+		// "pet":               true,
+		// "liquor":            true,
+		// "tobacco":           true,
 	}
 	c.filterDepartments = true
 
@@ -122,7 +135,6 @@ func (c *Coles) GetSharedProductsUpdatedAfter(t time.Time, count int) ([]shared.
 		product.Store = "Coles"
 		productIDs = append(productIDs, product)
 	}
-	slog.Info("Coles GetSharedProductsUpdatedAfter", "product_count", len(productIDs))
 	return productIDs, nil
 }
 

@@ -9,6 +9,7 @@
 ### Optimisations
 * Use transactions for all multi-part SQL operations
 * Smear updated times a bit to flatten out request rate peaks.
+* Cache coles API version to DB.
 
 ### Devops
 * Set up private network between services.
@@ -29,7 +30,6 @@
 ## Further work
 
 ### Other storefronts
-* Coles
 * Aldi
 
 ### Hosting
