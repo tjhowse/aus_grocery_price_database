@@ -57,6 +57,11 @@ func (c *Coles) Init(baseURL string, dbPath string, productMaxAge time.Duration)
 		"fruit-vegetables": true,
 	}
 	c.filterDepartments = true
+
+	if err := c.updateAPIVersion(); err != nil {
+		slog.Error("error updating API version", "error", err)
+	}
+
 	return nil
 }
 

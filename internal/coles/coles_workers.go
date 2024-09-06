@@ -22,8 +22,6 @@ func departmentInSlice(a departmentInfo, list []departmentInfo) *departmentInfo 
 // newDepartmentInfoWorker is a worker that monitors for new departments and writes them to the DB.
 func (c *Coles) newDepartmentInfoWorker() {
 	for {
-		// Update this every so often.
-		c.updateAPIVersion()
 
 		// Read the department list from the web...
 		departmentsFromWeb, err := c.getDepartmentInfos()
@@ -59,8 +57,15 @@ func (c *Coles) newDepartmentInfoWorker() {
 				}
 			}
 		}
+
 		// We don't need to check for departments very often.
 		time.Sleep(1 * time.Hour)
+
+		// Update this every so often.
+		if err := c.updateAPIVersion(); err != nil {
+			slog.Error("error updating API version", "error", err)
+		}
+
 	}
 }
 
