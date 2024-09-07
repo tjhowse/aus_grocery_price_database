@@ -108,6 +108,7 @@ func (c *Coles) departmentPageUpdateQueueWorker(output chan<- departmentPage, ma
 			if err != nil {
 				slog.Error("error saving department info", "error", err)
 			}
+			slog.Info("Updated department", "store", "Coles", "department", departmentInfo.SeoToken)
 		}
 		// We've done an update of all departments, so we don't need to check for new departments very often.
 		time.Sleep(c.listingPageUpdateInterval)

@@ -119,6 +119,7 @@ func (w *Woolworths) departmentPageUpdateQueueWorker(output chan<- departmentPag
 			if err != nil {
 				slog.Error("error saving department info", "error", err)
 			}
+			slog.Info("Updated department", "store", "Woolworths", "department", departmentInfo.Description)
 		}
 		// We've done an update of all departments, so we don't need to check for new departments very often.
 		time.Sleep(w.listingPageUpdateInterval)
