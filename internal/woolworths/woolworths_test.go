@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 	"time"
+
+	"golang.org/x/time/rate"
 )
 
 func ValidateProduct(t *testing.T, w *Woolworths, id productID, expectedName string) error {
@@ -29,6 +31,7 @@ func ValidateProduct(t *testing.T, w *Woolworths, id productID, expectedName str
 func TestScheduler(t *testing.T) {
 	w := Woolworths{}
 	w.Init(woolworthsServer.URL, ":memory:", 100*time.Second)
+	w.client.Ratelimiter = rate.NewLimiter(rate.Every(1*time.Millisecond), 1)
 	w.listingPageUpdateInterval = 1 * time.Second
 	w.filteredDepartmentIDsSet = map[departmentID]bool{
 		"1-E5BEE36E": true, // Fruit & Veg
