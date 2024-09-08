@@ -10,7 +10,7 @@ In the future it could read from other Australian grocers, based on time, motiva
 
 **I need help!**
 
-I will set up a bog-standard grafana instance for visualising the data collected. However it would be very nice to have a more tailored frontend. Let me know if you can help out. See `Frontend scope` below.
+I have set up a grafana instance for visualising the data collected. However it would be very nice to have a more tailored frontend. Let me know if you can help out. See `Frontend scope` below.
 
 Additionally: Hosting this will be fairly cheap, but not free. Consider a cheeky github sponsorship if you reckon this project is worthwhile.
 
