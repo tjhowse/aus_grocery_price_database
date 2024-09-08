@@ -24,15 +24,6 @@ func getInitialisedColes() Coles {
 	return c
 }
 
-func getInitialisedRealColes() Coles {
-	c := Coles{}
-	err := c.Init("https://coles.com.au", "delme.db3", 10*time.Minute)
-	if err != nil {
-		slog.Error("Failed to initialise Coles", "error", err)
-	}
-	return c
-}
-
 // This mocks enough of the Woolworths API to test various stuff
 func ColesHTTPServer() *httptest.Server {
 	var err error

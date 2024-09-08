@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 	"time"
+
+	"golang.org/x/time/rate"
 )
 
 func TestNewDepartmentInfoWorker(t *testing.T) {
@@ -107,8 +109,9 @@ func ValidateProduct(t *testing.T, w *Coles, id productID, expectedName string) 
 }
 func TestScheduler(t *testing.T) {
 	c := Coles{}
-	c.Init(colesServer.URL, "delme.db3", 100*time.Second)
+	c.Init(colesServer.URL, ":memory:", 100*time.Second)
 	c.listingPageUpdateInterval = 1 * time.Second
+	c.client.Ratelimiter = rate.NewLimiter(rate.Every(1*time.Millisecond), 1)
 	cancel := make(chan struct{})
 	go c.Run(cancel)
 
