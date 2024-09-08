@@ -83,7 +83,7 @@ func (w *Woolworths) productListPageWorker(input <-chan departmentPage) {
 			slog.Error(fmt.Sprintf("Error committing transaction: %v", err))
 		}
 		if skippedProductCount > 0 {
-			slog.Warn("Skipped products with zero price", "skippedProductCount", skippedProductCount)
+			slog.Debug("Skipped products with zero price", "skippedProductCount", skippedProductCount)
 		}
 	}
 }

@@ -164,7 +164,7 @@ func (c *Coles) saveProductInfo(tx *sql.Tx, productInfo colesProductInfo) error 
 
 	productInfo.WeightGrams, err = calcWeightInGrams(productInfo)
 	if err != nil {
-		slog.Warn("Couldn't calculate weight in grams", "productID", productInfo.ID, "error", err)
+		slog.Debug("Couldn't calculate weight in grams", "productID", productInfo.ID, "error", err)
 		productInfo.WeightGrams = 0
 	}
 
