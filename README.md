@@ -14,6 +14,10 @@ I have set up a grafana instance for visualising the data collected. However it 
 
 Additionally: Hosting this will be fairly cheap, but not free. Consider a cheeky github sponsorship if you reckon this project is worthwhile.
 
+## Similar things
+
+The excellently-named [Heisse Preise](https://heisse-preise.io/) does what I'd like Auscost to do eventually. It's [open source](https://github.com/badlogic/heissepreise) and there's a good writeup on [Wired](https://www.wired.com/story/heisse-preise-food-prices/). I think there's much to be learned from its UI.
+
 ## Architecture
 
 This service consists of three applications:
