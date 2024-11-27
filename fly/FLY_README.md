@@ -144,3 +144,13 @@ VM:
     influx delete --bucket groceries --start '2009-01-02T23:00:00Z' --stop '2029-01-02T23:00:00Z'
     # Reimport the cleaned data from the lp file.
     influx write -b groceries -f 2024-08-14_auscost_backup_cleaned.lp
+
+## InfluxDB data usage
+
+On 2024-11-27 I noticed we'd stopped logging new data since about 2024-10-29 and parts of the landing page weren't showing plots. I found the `/data` volume mount on the InfluxDB machine was full. I extended the volume to 2GB and restarted the machine:
+
+    fly volumes extend vol_r7l95jwqy0j8kp94 -s 2
+    fly scale count 0
+    fly scale count 1
+
+1GB for 3 months of data seems like a lot. I should look into whether there are some optimisations, or drop the timeseries database for a plain sqlite and only store deltas. I'd've thought InfluxDB would be more efficient than this, maybe I'm doing something dumb?
