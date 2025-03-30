@@ -154,3 +154,28 @@ On 2024-11-27 I noticed we'd stopped logging new data since about 2024-10-29 and
     fly scale count 1
 
 1GB for 3 months of data seems like a lot. I should look into whether there are some optimisations, or drop the timeseries database for a plain sqlite and only store deltas. I'd've thought InfluxDB would be more efficient than this, maybe I'm doing something dumb?
+
+## 2025-03-30 Influxdb disk full again?
+
+Seeing "No data" on grafana, though it can pull the total product count. Influxdb logs show:
+
+    2025-03-30T00:35:35Z app[6830315f720038] syd [info]ts=2025-03-30T00:35:35.225962Z lvl=info msg="Cache snapshot (start)" log_id=0udNVaXl000 service=storage-engine engine=tsm1 op_name=tsm1_cache_snapshot op_event=start
+    2025-03-30T00:35:35Z app[6830315f720038] syd [info]ts=2025-03-30T00:35:35.226103Z lvl=info msg="Cache snapshot (end)" log_id=0udNVaXl000 service=storage-engine engine=tsm1 op_name=tsm1_cache_snapshot op_event=end op_elapsed=0.155ms
+    2025-03-30T00:35:35Z app[6830315f720038] syd [info]ts=2025-03-30T00:35:35.226191Z lvl=info msg="Error writing snapshot" log_id=0udNVaXl000 service=storage-engine engine=tsm1 error="error opening new segment file for wal (1): write /var/lib/influxdb2/engine/wal/01c1ca212aa54ac6/autogen/5205/_00114.wal: no space left on device"
+
+But...
+
+    root@6830315f720038:/# df -h
+    Filesystem      Size  Used Avail Use% Mounted on
+    devtmpfs        966M     0  966M   0% /dev
+    none            7.8G   41M  7.4G   1% /
+    /dev/vdb        7.8G   41M  7.4G   1% /.fly-upper-layer
+    shm             988M     0  988M   0% /dev/shm
+    tmpfs           988M     0  988M   0% /sys/fs/cgroup
+    /dev/vdd        2.0G  1.2G  668M  65% /data
+
+Restarted with
+
+    fly scale count 0
+    fly scale count 1
+
