@@ -16,7 +16,7 @@ type MockInfluxDB struct {
 		field string
 		value interface{}
 	}
-	writtenSystemDatapoints []SystemStatusDatapoint
+	writtenSystemDatapoints []shared.SystemStatusDatapoint
 	closed                  bool
 }
 
@@ -40,7 +40,7 @@ func (i *MockInfluxDB) WriteArbitrarySystemDatapoint(field string, value interfa
 	}{field, value})
 }
 
-func (i *MockInfluxDB) WriteSystemDatapoint(data SystemStatusDatapoint) {
+func (i *MockInfluxDB) WriteSystemDatapoint(data shared.SystemStatusDatapoint) {
 	i.writtenSystemDatapoints = append(i.writtenSystemDatapoints, data)
 }
 
