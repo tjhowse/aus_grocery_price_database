@@ -37,6 +37,10 @@ Only the Grafana instance is public-facing via the [main domain](https://auscost
 
 This is setup for hosting on fly.io. I'm not completely happy with investing effort on hosting infrastructure using a for-profit service, but they sure do make it straightforward. It would be easy to throw together a docker-compose to make it more platform-independent.
 
+## Releasing
+
+Bump the `VERSION` in `main.go`. If bumping the version of go, make sure you update it everywhere (`fly.toml`, `go.mod`, `go.yml`, etc). Commit everything to `main`, then run `./tag_and_deploy_release.sh`.
+
 ## Frontend scope
 
 The current grafana frontend is a stopgap. Ideally it would be replaced by a bespoke frontend. Grafana could still be used for generating plots, under the hood.
