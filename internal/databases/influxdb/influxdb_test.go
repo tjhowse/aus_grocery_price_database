@@ -1,4 +1,4 @@
-package main
+package influxdb
 
 import (
 	"testing"
@@ -31,8 +31,8 @@ func (m *MockInfluxdbWriteAPI) Errors() <-chan error {
 
 func (m *MockInfluxdbWriteAPI) SetWriteFailedCallback(cb api.WriteFailedCallback) {}
 
-func InitMockInfluxDB() (*influxDB, *MockInfluxdbWriteAPI, *MockInfluxdbWriteAPI) {
-	i := influxDB{}
+func InitMockInfluxDB() (*InfluxDB, *MockInfluxdbWriteAPI, *MockInfluxdbWriteAPI) {
+	i := InfluxDB{}
 	groceryMock := &MockInfluxdbWriteAPI{}
 	i.groceryWriteAPI = groceryMock
 	systemMock := &MockInfluxdbWriteAPI{}

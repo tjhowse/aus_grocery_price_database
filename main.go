@@ -9,11 +9,12 @@ import (
 
 	"github.com/caarlos0/env/v11"
 	"github.com/tjhowse/aus_grocery_price_database/internal/coles"
-	shared "github.com/tjhowse/aus_grocery_price_database/internal/shared"
-	woolworths "github.com/tjhowse/aus_grocery_price_database/internal/woolworths"
+	"github.com/tjhowse/aus_grocery_price_database/internal/databases/influxdb"
+	"github.com/tjhowse/aus_grocery_price_database/internal/shared"
+	"github.com/tjhowse/aus_grocery_price_database/internal/woolworths"
 )
 
-const VERSION = "0.0.50"
+const VERSION = "0.0.51"
 const SYSTEM_STATUS_UPDATE_INTERVAL_SECONDS = 60
 
 type config struct {
@@ -42,7 +43,7 @@ type timeseriesDB interface {
 	Init(string, string, string, string)
 	WriteProductDatapoint(shared.ProductInfo)
 	WriteArbitrarySystemDatapoint(string, interface{})
-	WriteSystemDatapoint(SystemStatusDatapoint)
+	WriteSystemDatapoint(shared.SystemStatusDatapoint)
 	WriteWorker(<-chan shared.ProductInfo)
 	Close()
 }
@@ -66,7 +67,7 @@ func main() {
 
 	slog.Info("AUS Grocery Price Database", "version", VERSION)
 
-	tsDB := influxDB{}
+	tsDB := influxdb.InfluxDB{}
 	tsDB.Init(cfg.InfluxDBURL, cfg.InfluxDBToken, cfg.InfluxDBOrg, cfg.InfluxDBBucket)
 	defer tsDB.Close()
 
@@ -84,7 +85,7 @@ func main() {
 func run(running *bool, cfg *config, tsDB timeseriesDB, pigs []ProductInfoGetter) {
 	var err error
 
-	tsDB.WriteArbitrarySystemDatapoint(SYSTEM_VERSION_FIELD, VERSION)
+	tsDB.WriteArbitrarySystemDatapoint(shared.SYSTEM_VERSION_FIELD, VERSION)
 
 	productInfoUpdateChannel := make(chan shared.ProductInfo)
 	go tsDB.WriteWorker(productInfoUpdateChannel)
@@ -99,7 +100,7 @@ func run(running *bool, cfg *config, tsDB timeseriesDB, pigs []ProductInfoGetter
 	updateTime := time.Now().Add(-1 * time.Minute)
 	var updateCountSinceLastStatusReport int
 
-	var systemStatus SystemStatusDatapoint
+	var systemStatus shared.SystemStatusDatapoint
 	// Ensure a status update is sent out immediately.
 	statusReportDeadline := time.Now().Add(-30 * time.Minute)
 
