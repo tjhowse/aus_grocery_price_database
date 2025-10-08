@@ -1,889 +1,952 @@
 {
-    "annotations": {
-      "list": [
-        {
-          "builtIn": 1,
-          "datasource": {
-            "type": "grafana",
-            "uid": "-- Grafana --"
-          },
-          "enable": true,
-          "hide": true,
-          "iconColor": "rgba(0, 211, 255, 1)",
-          "name": "Annotations & Alerts",
-          "type": "dashboard"
-        }
-      ]
-    },
-    "editable": true,
-    "fiscalYearStartMonth": 0,
-    "graphTooltip": 0,
-    "id": 4,
-    "links": [],
-    "liveNow": false,
-    "panels": [
+  "annotations": {
+    "list": [
       {
+        "builtIn": 1,
         "datasource": {
-          "type": "influxdb",
-          "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
+          "type": "grafana",
+          "uid": "-- Grafana --"
         },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "palette-classic"
-            },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisColorMode": "text",
-              "axisLabel": "",
-              "axisPlacement": "auto",
-              "barAlignment": 0,
-              "drawStyle": "line",
-              "fillOpacity": 0,
-              "gradientMode": "none",
-              "hideFrom": {
-                "legend": false,
-                "tooltip": false,
-                "viz": false
-              },
-              "lineInterpolation": "linear",
-              "lineWidth": 2,
-              "pointSize": 5,
-              "scaleDistribution": {
-                "type": "linear"
-              },
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": {
-                "group": "A",
-                "mode": "none"
-              },
-              "thresholdsStyle": {
-                "mode": "off"
-              }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 80
-                }
-              ]
-            },
-            "unit": "currencyUSD"
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 11,
-          "w": 24,
-          "x": 0,
-          "y": 0
-        },
-        "id": 5,
-        "options": {
-          "legend": {
-            "calcs": [],
-            "displayMode": "list",
-            "placement": "bottom",
-            "showLegend": true
-          },
-          "tooltip": {
-            "mode": "single",
-            "sort": "none"
-          }
-        },
-        "targets": [
-          {
-            "alias": "$tag_name",
-            "datasource": {
-              "type": "influxdb",
-              "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
-            },
-            "groupBy": [
-              {
-                "params": [
-                  "$__interval"
-                ],
-                "type": "time"
-              },
-              {
-                "params": [
-                  "price::field"
-                ],
-                "type": "tag"
-              }
-            ],
-            "hide": false,
-            "measurement": "product",
-            "orderByTime": "ASC",
-            "policy": "autogen",
-            "query": "SELECT mean(\"cents\")  / 100 FROM \"autogen\".\"product\" WHERE (\"name\"::tag =~ /.*$UserSelectedProduct.*/) AND $timeFilter GROUP BY *, time($__interval) fill(previous)",
-            "rawQuery": true,
-            "refId": "B",
-            "resultFormat": "time_series",
-            "select": [
-              [
-                {
-                  "params": [
-                    "cents"
-                  ],
-                  "type": "field"
-                },
-                {
-                  "params": [],
-                  "type": "mean"
-                },
-                {
-                  "params": [
-                    " / 100"
-                  ],
-                  "type": "math"
-                }
-              ]
-            ],
-            "tags": [
-              {
-                "key": "name::tag",
-                "operator": "=~",
-                "value": "/^$UserSelectedProduct$/"
-              }
-            ]
-          }
-        ],
-        "title": "Price over time of selected products",
-        "transformations": [],
-        "type": "timeseries"
-      },
-      {
-        "datasource": {
-          "type": "influxdb",
-          "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "thresholds"
-            },
-            "custom": {
-              "align": "center",
-              "cellOptions": {
-                "type": "color-text"
-              },
-              "inspect": false
-            },
-            "decimals": 2,
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 0.01
-                }
-              ]
-            },
-            "unit": "currencyUSD"
-          },
-          "overrides": [
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "cents_change"
-              },
-              "properties": [
-                {
-                  "id": "displayName",
-                  "value": "Price change"
-                },
-                {
-                  "id": "custom.width",
-                  "value": 120
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "Time"
-              },
-              "properties": [
-                {
-                  "id": "custom.cellOptions",
-                  "value": {
-                    "type": "auto"
-                  }
-                },
-                {
-                  "id": "displayName",
-                  "value": "Time changed"
-                },
-                {
-                  "id": "custom.width",
-                  "value": 180
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "name"
-              },
-              "properties": [
-                {
-                  "id": "custom.cellOptions",
-                  "value": {
-                    "type": "auto"
-                  }
-                },
-                {
-                  "id": "displayName",
-                  "value": "Product name"
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "cents"
-              },
-              "properties": [
-                {
-                  "id": "displayName",
-                  "value": "Price"
-                },
-                {
-                  "id": "custom.cellOptions",
-                  "value": {
-                    "type": "auto"
-                  }
-                },
-                {
-                  "id": "custom.width",
-                  "value": 120
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "store"
-              },
-              "properties": [
-                {
-                  "id": "displayName",
-                  "value": "Store"
-                },
-                {
-                  "id": "custom.width",
-                  "value": 160
-                },
-                {
-                  "id": "custom.cellOptions",
-                  "value": {
-                    "type": "auto"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "gridPos": {
-          "h": 6,
-          "w": 24,
-          "x": 0,
-          "y": 11
-        },
-        "id": 6,
-        "maxDataPoints": 10,
-        "options": {
-          "cellHeight": "sm",
-          "footer": {
-            "countRows": false,
-            "fields": "",
-            "reducer": [
-              "sum"
-            ],
-            "show": false
-          },
-          "showHeader": true
-        },
-        "pluginVersion": "10.0.0",
-        "targets": [
-          {
-            "alias": "",
-            "datasource": {
-              "type": "influxdb",
-              "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
-            },
-            "groupBy": [],
-            "hide": false,
-            "measurement": "product",
-            "orderByTime": "ASC",
-            "policy": "autogen",
-            "query": "SELECT \"store\",\"name\",\"cents_change\"/100,\"cents\"/100 FROM \"autogen\".\"product\" WHERE (\"cents_change\"::field != 0) AND time >= now()-5d ORDER BY time DESC LIMIT 10",
-            "rawQuery": true,
-            "refId": "A",
-            "resultFormat": "table",
-            "select": [
-              [
-                {
-                  "params": [
-                    "cents_change"
-                  ],
-                  "type": "field"
-                }
-              ]
-            ],
-            "tags": [
-              {
-                "key": "cents_change::field",
-                "operator": "!=",
-                "value": "''"
-              }
-            ]
-          }
-        ],
-        "title": "Recent price changes",
-        "type": "table"
-      },
-      {
-        "datasource": {
-          "type": "influxdb",
-          "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
-        },
-        "description": "",
-        "gridPos": {
-          "h": 11,
-          "w": 14,
-          "x": 0,
-          "y": 17
-        },
-        "id": 2,
-        "options": {
-          "code": {
-            "language": "plaintext",
-            "showLineNumbers": false,
-            "showMiniMap": false
-          },
-          "content": "# AUSCost\n\nHi! Welcome to [AUSCost](https://auscost.com.au)! Thanks for visiting.\n\nThis is an open database of grocery prices in Australia. Its goal is to track long-term price trends to help make good purchasing decisions and hold grocery stores to account for price increases. You're currently looking at the raw data. I know it's not very beautiful yet! It's early days.\n\nThis project is [open source](https://github.com/tjhowse/aus_grocery_price_database), which means anyone is welcome to contribute. I'm looking for collaborators to help with improving the frontend (the thing you're looking at). [Hit me up](mailto:hi@auscost.com.au) if you're interested in lending a hand.\n\nHosting this service is fairly cheap, but not free, and I'm working on it in my spare time. If you feel this project is worthwhile, and you are able, please consider helping with running costs and development via [PayPal](https://www.paypal.com/paypalme/tjhowse), PayID (hi@auscost.com.au) or a [Github Sponsorship](https://github.com/sponsors/tjhowse).\n\nIf you have any feedback please [email](mailto:hi@auscost.com.au) me or create a Github issue. I'm very keen to learn about ideas for different use-cases! I'm also amenable to providing API keys for (respectful) direct access to the price history database for other cool spinoff projects.",
-          "mode": "markdown"
-        },
-        "pluginVersion": "10.0.0",
-        "type": "text"
-      },
-      {
-        "datasource": {
-          "type": "influxdb",
-          "uid": "bb8c0166-7cf1-4cf7-bb6d-7419d16102a7"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "thresholds"
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 20000
-                }
-              ]
-            }
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 11,
-          "w": 10,
-          "x": 14,
-          "y": 17
-        },
-        "id": 4,
-        "options": {
-          "colorMode": "value",
-          "graphMode": "area",
-          "justifyMode": "auto",
-          "orientation": "auto",
-          "reduceOptions": {
-            "calcs": [
-              "lastNotNull"
-            ],
-            "fields": "",
-            "values": false
-          },
-          "textMode": "auto"
-        },
-        "pluginVersion": "10.0.0",
-        "targets": [
-          {
-            "datasource": {
-              "type": "influxdb",
-              "uid": "bb8c0166-7cf1-4cf7-bb6d-7419d16102a7"
-            },
-            "query": "SELECT last(\"total_product_count\") FROM \"autogen\".\"system\"",
-            "rawQuery": true,
-            "refId": "A",
-            "resultFormat": "time_series"
-          }
-        ],
-        "title": "Total tracked product count",
-        "type": "stat"
-      },
-      {
-        "datasource": {
-          "type": "influxdb",
-          "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
-        },
-        "description": "",
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "palette-classic"
-            },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisColorMode": "text",
-              "axisLabel": "",
-              "axisPlacement": "auto",
-              "barAlignment": 0,
-              "drawStyle": "line",
-              "fillOpacity": 0,
-              "gradientMode": "none",
-              "hideFrom": {
-                "legend": false,
-                "tooltip": false,
-                "viz": false
-              },
-              "lineInterpolation": "linear",
-              "lineWidth": 2,
-              "pointSize": 5,
-              "scaleDistribution": {
-                "type": "linear"
-              },
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": {
-                "group": "A",
-                "mode": "none"
-              },
-              "thresholdsStyle": {
-                "mode": "off"
-              }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 80
-                }
-              ]
-            },
-            "unit": "currencyUSD"
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 15,
-          "w": 24,
-          "x": 0,
-          "y": 28
-        },
-        "id": 3,
-        "options": {
-          "legend": {
-            "calcs": [],
-            "displayMode": "list",
-            "placement": "bottom",
-            "showLegend": true
-          },
-          "tooltip": {
-            "mode": "single",
-            "sort": "none"
-          }
-        },
-        "targets": [
-          {
-            "alias": "Royal Gala Apple",
-            "datasource": {
-              "type": "influxdb",
-              "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
-            },
-            "groupBy": [
-              {
-                "params": [
-                  "$__interval"
-                ],
-                "type": "time"
-              },
-              {
-                "params": [
-                  "previous"
-                ],
-                "type": "fill"
-              }
-            ],
-            "measurement": "product",
-            "orderByTime": "ASC",
-            "policy": "autogen",
-            "refId": "A",
-            "resultFormat": "time_series",
-            "select": [
-              [
-                {
-                  "params": [
-                    "cents"
-                  ],
-                  "type": "field"
-                },
-                {
-                  "params": [],
-                  "type": "mean"
-                },
-                {
-                  "params": [
-                    " / 100"
-                  ],
-                  "type": "math"
-                }
-              ]
-            ],
-            "tags": [
-              {
-                "key": "department::tag",
-                "operator": "=",
-                "value": "Fruit & Veg"
-              },
-              {
-                "condition": "AND",
-                "key": "name::tag",
-                "operator": "=~",
-                "value": "/.*Apple Royal Gala.*/"
-              }
-            ]
-          },
-          {
-            "alias": "Cavendish Banana",
-            "datasource": {
-              "type": "influxdb",
-              "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
-            },
-            "groupBy": [
-              {
-                "params": [
-                  "$__interval"
-                ],
-                "type": "time"
-              },
-              {
-                "params": [
-                  "previous"
-                ],
-                "type": "fill"
-              }
-            ],
-            "hide": false,
-            "measurement": "product",
-            "orderByTime": "ASC",
-            "policy": "autogen",
-            "refId": "B",
-            "resultFormat": "time_series",
-            "select": [
-              [
-                {
-                  "params": [
-                    "cents"
-                  ],
-                  "type": "field"
-                },
-                {
-                  "params": [],
-                  "type": "mean"
-                },
-                {
-                  "params": [
-                    " / 100"
-                  ],
-                  "type": "math"
-                }
-              ]
-            ],
-            "tags": [
-              {
-                "key": "department::tag",
-                "operator": "=",
-                "value": "Fruit & Veg"
-              },
-              {
-                "condition": "AND",
-                "key": "name::tag",
-                "operator": "=~",
-                "value": "/.*Cavendish Banana.*/"
-              }
-            ]
-          },
-          {
-            "alias": "Navel Orange",
-            "datasource": {
-              "type": "influxdb",
-              "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
-            },
-            "groupBy": [
-              {
-                "params": [
-                  "$__interval"
-                ],
-                "type": "time"
-              },
-              {
-                "params": [
-                  "previous"
-                ],
-                "type": "fill"
-              }
-            ],
-            "hide": false,
-            "measurement": "product",
-            "orderByTime": "ASC",
-            "policy": "autogen",
-            "refId": "D",
-            "resultFormat": "time_series",
-            "select": [
-              [
-                {
-                  "params": [
-                    "cents"
-                  ],
-                  "type": "field"
-                },
-                {
-                  "params": [],
-                  "type": "mean"
-                },
-                {
-                  "params": [
-                    " / 100"
-                  ],
-                  "type": "math"
-                }
-              ]
-            ],
-            "tags": [
-              {
-                "key": "department::tag",
-                "operator": "=",
-                "value": "Fruit & Veg"
-              },
-              {
-                "condition": "AND",
-                "key": "name::tag",
-                "operator": "=~",
-                "value": "/.*Orange Navel Each.*/"
-              }
-            ]
-          },
-          {
-            "alias": "Mandarin",
-            "datasource": {
-              "type": "influxdb",
-              "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
-            },
-            "groupBy": [
-              {
-                "params": [
-                  "$__interval"
-                ],
-                "type": "time"
-              },
-              {
-                "params": [
-                  "previous"
-                ],
-                "type": "fill"
-              }
-            ],
-            "hide": false,
-            "measurement": "product",
-            "orderByTime": "ASC",
-            "policy": "autogen",
-            "query": "SELECT mean(\"cents\")  / 100 FROM \"autogen\".\"product\" WHERE (\"department\"::tag = 'Fruit & Veg' AND \"name\"::tag = ' Mandarin Afourer  Each') AND $timeFilter GROUP BY time($__interval) fill(previous)",
-            "rawQuery": false,
-            "refId": "E",
-            "resultFormat": "time_series",
-            "select": [
-              [
-                {
-                  "params": [
-                    "cents"
-                  ],
-                  "type": "field"
-                },
-                {
-                  "params": [],
-                  "type": "mean"
-                },
-                {
-                  "params": [
-                    " / 100"
-                  ],
-                  "type": "math"
-                }
-              ]
-            ],
-            "tags": [
-              {
-                "key": "department::tag",
-                "operator": "=",
-                "value": "Fruit & Veg"
-              },
-              {
-                "condition": "AND",
-                "key": "name::tag",
-                "operator": "=~",
-                "value": "/.*Mandarin Afourer Each.*/"
-              }
-            ]
-          },
-          {
-            "alias": "Tomato",
-            "datasource": {
-              "type": "influxdb",
-              "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
-            },
-            "groupBy": [
-              {
-                "params": [
-                  "$__interval"
-                ],
-                "type": "time"
-              },
-              {
-                "params": [
-                  "previous"
-                ],
-                "type": "fill"
-              }
-            ],
-            "hide": false,
-            "measurement": "product",
-            "orderByTime": "ASC",
-            "policy": "autogen",
-            "query": "SELECT mean(\"cents\")  / 100 FROM \"autogen\".\"product\" WHERE (\"department\"::tag = 'Fruit & Veg' AND \"name\"::tag = ' Fresh Tomato  Each') AND $timeFilter GROUP BY time($__interval) fill(previous)",
-            "rawQuery": false,
-            "refId": "F",
-            "resultFormat": "time_series",
-            "select": [
-              [
-                {
-                  "params": [
-                    "cents"
-                  ],
-                  "type": "field"
-                },
-                {
-                  "params": [],
-                  "type": "mean"
-                },
-                {
-                  "params": [
-                    " / 100"
-                  ],
-                  "type": "math"
-                }
-              ]
-            ],
-            "tags": [
-              {
-                "key": "department::tag",
-                "operator": "=",
-                "value": "Fruit & Veg"
-              },
-              {
-                "condition": "AND",
-                "key": "name::tag",
-                "operator": "=~",
-                "value": "/.*Fresh Tomato Each.*/"
-              }
-            ]
-          }
-        ],
-        "title": "Fruit & Veg",
-        "type": "timeseries"
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
       }
-    ],
-    "refresh": "",
-    "schemaVersion": 38,
-    "style": "dark",
-    "tags": [],
-    "templating": {
-      "list": [
-        {
-          "current": {
-            "selected": true,
-            "text": [
-              "Avocado Fresh 5 Pack",
-              "Saxa Black Peppercorn Pepper Grinder 45g",
-              "Saxa Iodised Table Salt Shaker 750g",
-              "Wonder White Bread Vitamins & Minerals Sandwich 700g"
-            ],
-            "value": [
-              "Avocado Fresh 5 Pack",
-              "Saxa Black Peppercorn Pepper Grinder 45g",
-              "Saxa Iodised Table Salt Shaker 750g",
-              "Wonder White Bread Vitamins & Minerals Sandwich 700g"
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 4,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
             ]
           },
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 5,
+      "interval": "1d",
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "$tag_name",
           "datasource": {
             "type": "influxdb",
             "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
           },
-          "definition": "show tag values from \"product\" WITH key = \"name\" WHERE time >= now() - 1h",
-          "description": "Products selected for the custom plot",
-          "hide": 0,
-          "includeAll": false,
-          "label": "Select products to plot",
-          "multi": true,
-          "name": "UserSelectedProduct",
-          "options": [],
-          "query": "show tag values from \"product\" WITH key = \"name\" WHERE time >= now() - 1h",
-          "refresh": 1,
-          "regex": "",
-          "skipUrlSync": false,
-          "sort": 0,
-          "type": "query"
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "price::field"
+              ],
+              "type": "tag"
+            }
+          ],
+          "hide": false,
+          "measurement": "product",
+          "orderByTime": "ASC",
+          "policy": "autogen",
+          "query": "SELECT last(\"cents\")  / 100 FROM \"autogen\".\"product\" WHERE (\"name\"::tag =~ /.*$UserSelectedProduct.*/) AND $timeFilter GROUP BY *, time($__interval) fill(previous)",
+          "rawQuery": true,
+          "refId": "B",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "cents"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  " / 100"
+                ],
+                "type": "math"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "name::tag",
+              "operator": "=~",
+              "value": "/^$UserSelectedProduct$/"
+            }
+          ]
         }
-      ]
+      ],
+      "title": "Price over time of selected products",
+      "transformations": [],
+      "type": "timeseries"
     },
-    "time": {
-      "from": "2024-07-24T11:58:47.000Z",
-      "to": "now"
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "center",
+            "cellOptions": {
+              "type": "color-text"
+            },
+            "inspect": false
+          },
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 0.01
+              }
+            ]
+          },
+          "unit": "currencyUSD"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "cents_change"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Price change"
+              },
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "auto"
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "Time changed"
+              },
+              {
+                "id": "custom.width",
+                "value": 180
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "name"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "auto"
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "Product name"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "cents"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "New Price"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "auto"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "store"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Store"
+              },
+              {
+                "id": "custom.width",
+                "value": 160
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "auto"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 11
+      },
+      "id": 6,
+      "maxDataPoints": 10,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
+          },
+          "groupBy": [],
+          "hide": false,
+          "measurement": "product",
+          "orderByTime": "ASC",
+          "policy": "autogen",
+          "query": "SELECT \"store\",\"name\",\"cents_change\"/100,\"cents\"/100 FROM \"autogen\".\"product\" WHERE (\"cents_change\"::field != 0) AND time >= now()-5d ORDER BY time DESC LIMIT 10",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "table",
+          "select": [
+            [
+              {
+                "params": [
+                  "cents_change"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "cents_change::field",
+              "operator": "!=",
+              "value": "''"
+            }
+          ]
+        }
+      ],
+      "title": "Recent price changes",
+      "type": "table"
     },
-    "timepicker": {},
-    "timezone": "",
-    "title": "Groceries",
-    "uid": "dd34eddb-26fc-48ce-88fb-19ef7b18734e",
-    "version": 38,
-    "weekStart": ""
-  }
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
+      },
+      "description": "",
+      "gridPos": {
+        "h": 11,
+        "w": 14,
+        "x": 0,
+        "y": 17
+      },
+      "id": 2,
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "# AUSCost\n\nHi! Welcome to [AUSCost](https://auscost.com.au)! Thanks for visiting.\n\nThis is an open database of grocery prices in Australia. Its goal is to track long-term price trends to help make good purchasing decisions and hold grocery stores to account for price increases. You're currently looking at the raw data. I know it's not very beautiful yet! It's early days.\n\nThis project is [open source](https://github.com/tjhowse/aus_grocery_price_database), which means anyone is welcome to contribute. I'm looking for collaborators to help with improving the frontend (the thing you're looking at). [Hit me up](mailto:hi@auscost.com.au) if you're interested in lending a hand.\n\nHosting this service is fairly cheap, but not free, and I'm working on it in my spare time. If you feel this project is worthwhile, and you are able, please consider helping with running costs and development via [PayPal](https://www.paypal.com/paypalme/tjhowse), PayID (hi@auscost.com.au) or a [Github Sponsorship](https://github.com/sponsors/tjhowse).\n\nIf you have any feedback please [email](mailto:hi@auscost.com.au) me or create a Github issue. I'm very keen to learn about ideas for different use-cases! I'm also amenable to providing API keys for (respectful) direct access to the price history database for other cool spinoff projects.\n\nNote: There is a gap in the data for most of November 2024. Sorry about that!",
+        "mode": "markdown"
+      },
+      "pluginVersion": "10.0.0",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "bb8c0166-7cf1-4cf7-bb6d-7419d16102a7"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 20000
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 10,
+        "x": 14,
+        "y": 17
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "bb8c0166-7cf1-4cf7-bb6d-7419d16102a7"
+          },
+          "query": "SELECT last(\"total_product_count\") FROM \"autogen\".\"system\"",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "Total tracked product count",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      },
+      "id": 3,
+      "interval": "1d",
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "Royal Gala Apple",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "previous"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "product",
+          "orderByTime": "ASC",
+          "policy": "autogen",
+          "query": "SELECT last(\"cents\")  / 100 FROM \"autogen\".\"product\" WHERE (\"name\"::tag = 'Apple Royal Gala Each') AND $timeFilter GROUP BY time($__interval) fill(previous)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "cents"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "last"
+              },
+              {
+                "params": [
+                  " / 100"
+                ],
+                "type": "math"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "condition": "AND",
+              "key": "name::tag",
+              "operator": "=",
+              "value": " Apple Royal Gala Each"
+            }
+          ]
+        },
+        {
+          "alias": "Cavendish Banana",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "previous"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "product",
+          "orderByTime": "ASC",
+          "policy": "autogen",
+          "query": "SELECT last(\"cents\")  / 100 FROM \"autogen\".\"product\" WHERE (\"name\"::tag = 'Cavendish Bananas each') AND $timeFilter GROUP BY time($__interval) fill(previous)",
+          "rawQuery": true,
+          "refId": "B",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "cents"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "last"
+              },
+              {
+                "params": [
+                  " / 100"
+                ],
+                "type": "math"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "department::tag",
+              "operator": "=",
+              "value": "Fruit & Veg"
+            },
+            {
+              "condition": "AND",
+              "key": "name::tag",
+              "operator": "=~",
+              "value": "/.*Cavendish Banana.*/"
+            }
+          ]
+        },
+        {
+          "alias": "Navel Orange",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "previous"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "product",
+          "orderByTime": "ASC",
+          "policy": "autogen",
+          "query": "SELECT last(\"cents\")  / 100 FROM \"autogen\".\"product\" WHERE (\"name\"::tag = 'Orange Navel Each') AND $timeFilter GROUP BY time($__interval) fill(previous)",
+          "rawQuery": true,
+          "refId": "D",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "cents"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "last"
+              },
+              {
+                "params": [
+                  " / 100"
+                ],
+                "type": "math"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "department::tag",
+              "operator": "=",
+              "value": "Fruit & Veg"
+            },
+            {
+              "condition": "AND",
+              "key": "name::tag",
+              "operator": "=~",
+              "value": "/.*Orange Navel Each.*/"
+            }
+          ]
+        },
+        {
+          "alias": "Mandarin",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "previous"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "product",
+          "orderByTime": "ASC",
+          "policy": "autogen",
+          "query": "SELECT last(\"cents\")  / 100 FROM \"autogen\".\"product\" WHERE (\"name\"::tag = 'Mandarin Afourer each') AND $timeFilter GROUP BY time($__interval) fill(previous)",
+          "rawQuery": true,
+          "refId": "E",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "cents"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "last"
+              },
+              {
+                "params": [
+                  " / 100"
+                ],
+                "type": "math"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "department::tag",
+              "operator": "=",
+              "value": "Fruit & Veg"
+            },
+            {
+              "condition": "AND",
+              "key": "name::tag",
+              "operator": "=~",
+              "value": "/.*Mandarin Afourer Each.*/"
+            }
+          ]
+        },
+        {
+          "alias": "Tomato",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "previous"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "product",
+          "orderByTime": "ASC",
+          "policy": "autogen",
+          "query": "SELECT last(\"cents\")  / 100 FROM \"autogen\".\"product\" WHERE (\"name\"::tag = 'Fresh Tomato each') AND $timeFilter GROUP BY time($__interval) fill(previous)",
+          "rawQuery": true,
+          "refId": "F",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "cents"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "last"
+              },
+              {
+                "params": [
+                  " / 100"
+                ],
+                "type": "math"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "department::tag",
+              "operator": "=",
+              "value": "Fruit & Veg"
+            },
+            {
+              "condition": "AND",
+              "key": "name::tag",
+              "operator": "=",
+              "value": "Fresh Tomato Each"
+            }
+          ]
+        },
+        {
+          "alias": "Red Capsicum",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "previous"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "product",
+          "orderByTime": "ASC",
+          "policy": "autogen",
+          "query": "SELECT last(\"cents\")  / 100 FROM \"autogen\".\"product\" WHERE (\"name\"::tag = 'Red Capsicum each') AND $timeFilter GROUP BY time($__interval) fill(previous)",
+          "rawQuery": true,
+          "refId": "C",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "cents"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "last"
+              },
+              {
+                "params": [
+                  " / 100"
+                ],
+                "type": "math"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "department::tag",
+              "operator": "=",
+              "value": "Fruit & Veg"
+            },
+            {
+              "condition": "AND",
+              "key": "name::tag",
+              "operator": "=",
+              "value": "Fresh Tomato Each"
+            }
+          ]
+        }
+      ],
+      "title": "Fruit & Veg",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "Saxa Black Peppercorn Pepper Grinder 45g",
+            "Wonder White Bread Vitamins & Minerals Sandwich 700g",
+            "Hass Avocado each"
+          ],
+          "value": [
+            "Saxa Black Peppercorn Pepper Grinder 45g",
+            "Wonder White Bread Vitamins & Minerals Sandwich 700g",
+            "Hass Avocado each"
+          ]
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "af5b2aee-940a-431d-8062-42823a15d2ec"
+        },
+        "definition": "show tag values from \"product\" WITH key = \"name\" WHERE time >= now() - 1h",
+        "description": "Products selected for the custom plot",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Select products to plot",
+        "multi": true,
+        "name": "UserSelectedProduct",
+        "options": [],
+        "query": "show tag values from \"product\" WITH key = \"name\" WHERE time >= now() - 1h",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now/y",
+    "to": "now/y"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Groceries",
+  "uid": "dd34eddb-26fc-48ce-88fb-19ef7b18734e",
+  "version": 45,
+  "weekStart": ""
+}
