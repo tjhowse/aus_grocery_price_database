@@ -10,7 +10,7 @@ swap_size_mb = 1024
 [build]
 #   image = 'grafana/grafana:10.0.0'
   [build.args]
-    BASE_IMAGE = 'grafana/grafana:10.0.0'
+    BASE_IMAGE = 'grafana/grafana:12.2'
 
 [env]
 # TODO make sure there isn't anything important written to any of these directories.

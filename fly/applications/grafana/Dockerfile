@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=grafana/grafana:10.0.0
+ARG BASE_IMAGE=grafana/grafana:12.2
 
 FROM ${BASE_IMAGE}
 
