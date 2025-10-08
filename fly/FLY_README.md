@@ -5,6 +5,10 @@
 https://fly.io/docs/laravel/advanced-guides/multiple-applications/
 https://hub.docker.com/_/influxdb
 
+## Updating
+
+Bump the container versions in the Dockerfile and fly.toml, then run `fly deploy` in each directory.
+
 ## Secrets
 
 Set the following secrets with `fly secrets set KEY=VALUE KEY=VALUE`. It's best to set them all in one go, because it restarts the app every time. Make sure the password and token are fairly long, otherwise influxdb will go into a boot loop about it.
