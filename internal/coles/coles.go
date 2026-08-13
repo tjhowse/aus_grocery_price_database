@@ -31,6 +31,9 @@ type Coles struct {
 // Init initialises the Coles struct.
 func (c *Coles) Init(baseURL string, dbPath string, productMaxAge time.Duration) error {
 	var err error
+
+	c.logger = slog.With("store", "Coles")
+
 	// This might change on occasion. We should allow for that.
 	//'https://www.coles.com.au/_next/data/20240809.03_v4.7.3/en/browse.json'
 	c.colesAPIVersion = DEFAULT_API_VERSION
