@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log/slog"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -36,11 +35,11 @@ func (c *Coles) updateAPIVersion() error {
 	if newAPI, err := extractAPIVersion(body); err != nil {
 
 		if err := utils.WriteEntireFile("failed_coles_homepage.html", body); err != nil {
-			slog.Error("Failed to write failed homepage to file", "error", err)
+			c.logger.Error("Failed to write failed homepage to file", "error", err)
 		}
 		return fmt.Errorf("failed to extract API version: %w", err)
 	} else if newAPI != c.colesAPIVersion {
-		slog.Info("Updated API version", "old_version", c.colesAPIVersion, "version", newAPI)
+		c.logger.Info("Updated API version", "old_version", c.colesAPIVersion, "version", newAPI)
 		c.colesAPIVersion = newAPI
 	}
 	return nil
@@ -191,7 +190,7 @@ func (c *Coles) getProductsAndTotalCountForCategoryPage(dp departmentPage) ([]co
 			product.Info = result
 			product.RawJSON, err = json.Marshal(result)
 			if err != nil {
-				slog.Warn("Failed to marshal product info for storage", "error", err)
+				c.logger.Warn("Failed to marshal product info for storage", "error", err)
 			}
 			product.departmentID = dp.ID
 			product.ID = productID(strconv.Itoa(result.ID))

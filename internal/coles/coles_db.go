@@ -3,7 +3,6 @@ package coles
 import (
 	"database/sql"
 	"fmt"
-	"log/slog"
 	"os"
 	"time"
 
@@ -16,32 +15,32 @@ const DB_SCHEMA_VERSION = 1
 
 // Initialises the DB with the schema. Note you must bump the DB_SCHEMA_VERSION
 // constant if you change the schema.
-func (w *Coles) initBlankDB() error {
+func (c *Coles) initBlankDB() error {
 
 	// Drop all tables
 	for _, table := range []string{"schema", "departments", "products"} {
 		// Mildly confused by why this doesn't work? TODO investigate
 		// _, err := w.db.Exec("DROP TABLE IF EXISTS ?", table)
-		_, err := w.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", table))
+		_, err := c.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", table))
 		if err != nil {
 			return err
 		}
 	}
 
-	_, err := w.db.Exec("CREATE TABLE IF NOT EXISTS schema (version INTEGER PRIMARY KEY)")
+	_, err := c.db.Exec("CREATE TABLE IF NOT EXISTS schema (version INTEGER PRIMARY KEY)")
 	if err != nil {
 		return err
 	}
-	_, err = w.db.Exec("INSERT INTO schema (version) VALUES (?)", DB_SCHEMA_VERSION)
+	_, err = c.db.Exec("INSERT INTO schema (version) VALUES (?)", DB_SCHEMA_VERSION)
 	if err != nil {
 		return err
 	}
-	_, err = w.db.Exec("CREATE TABLE IF NOT EXISTS departments (departmentID TEXT UNIQUE, description TEXT, productCount INTEGER, updated DATETIME)")
+	_, err = c.db.Exec("CREATE TABLE IF NOT EXISTS departments (departmentID TEXT UNIQUE, description TEXT, productCount INTEGER, updated DATETIME)")
 	if err != nil {
 		return err
 	}
 	_, err =
-		w.db.Exec(`	CREATE TABLE IF NOT EXISTS products
+		c.db.Exec(`	CREATE TABLE IF NOT EXISTS products
 						(	productID TEXT UNIQUE,
 							name TEXT,
 							description TEXT,
@@ -61,13 +60,13 @@ func (w *Coles) initBlankDB() error {
 
 // backupDB moves the specified DB to the same directory with an ISO8601 timestamp and the schema
 // number prepended to the filename.
-func (w *Coles) backupDB(dbPath string, oldSchema int) error {
+func (c *Coles) backupDB(dbPath string, oldSchema int) error {
 	backupName := fmt.Sprintf("%s.%d.%s", dbPath, oldSchema, time.Now().Format("2006-01-02T15:04:05"))
 	err := os.Rename(dbPath, backupName)
 	if err != nil {
 		return fmt.Errorf("failed to backup existing DB: %w", err)
 	}
-	slog.Info("Backed up old DB", "old", dbPath, "new", backupName)
+	c.logger.Info("Backed up old DB", "old", dbPath, "new", backupName)
 	return nil
 }
 
@@ -91,7 +90,7 @@ func (c *Coles) initDB(dbPath string) error {
 	err = c.db.QueryRow("SELECT version FROM schema").Scan(&version)
 
 	if err != nil || version != DB_SCHEMA_VERSION {
-		slog.Warn("DB schema mismatch", "path", dbPath, "currentVersion", DB_SCHEMA_VERSION, "detectedVersion", version)
+		c.logger.Warn("DB schema mismatch", "path", dbPath, "currentVersion", DB_SCHEMA_VERSION, "detectedVersion", version)
 
 		if version != 0 {
 			// If we detected an old schema, backup the DB and create a new one.
@@ -116,7 +115,7 @@ func (c *Coles) initDB(dbPath string) error {
 		if err != nil {
 			return fmt.Errorf("failed to create blank DB: %w", err)
 		} else {
-			slog.Info("New blank DB created")
+			c.logger.Info("New blank DB created")
 		}
 	}
 	return nil
@@ -164,7 +163,7 @@ func (c *Coles) saveProductInfo(tx *sql.Tx, productInfo colesProductInfo) error 
 
 	productInfo.WeightGrams, err = calcWeightInGrams(productInfo)
 	if err != nil {
-		slog.Debug("Couldn't calculate weight in grams", "productID", productInfo.ID, "error", err)
+		c.logger.Debug("Couldn't calculate weight in grams", "productID", productInfo.ID, "error", err)
 		productInfo.WeightGrams = 0
 	}
 
@@ -192,17 +191,17 @@ func (c *Coles) saveProductInfo(tx *sql.Tx, productInfo colesProductInfo) error 
 	if rowsAffected, err := result.RowsAffected(); err != nil {
 		return fmt.Errorf("failed to get rows affected: %w", err)
 	} else if rowsAffected == 0 {
-		slog.Warn("Product info not updated.")
+		c.logger.Warn("Product info not updated.")
 	}
 
 	return nil
 }
 
 // loadProductInfo loads cached extended product info from the database
-func (w *Coles) loadProductInfo(productID productID) (colesProductInfo, error) {
+func (c *Coles) loadProductInfo(productID productID) (colesProductInfo, error) {
 	var cProdInfo colesProductInfo
 	var deptDescription sql.NullString
-	row := w.db.QueryRow(`
+	row := c.db.QueryRow(`
 	SELECT
 		productID,
 		name,
@@ -262,7 +261,7 @@ func (c *Coles) saveDepartment(departmentInfo departmentInfo) error {
 	if rowsAffected, err := result.RowsAffected(); err != nil {
 		return fmt.Errorf("failed to get rows affected: %w", err)
 	} else if rowsAffected == 0 {
-		slog.Warn("Department not upserted")
+		c.logger.Warn("Department not upserted")
 	}
 
 	return nil
