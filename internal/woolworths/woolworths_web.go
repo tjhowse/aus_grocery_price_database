@@ -77,7 +77,7 @@ func (w *Woolworths) getDepartmentInfos() ([]departmentInfo, error) {
 	for i, departmentInfo := range departmentInfos {
 		_, count, err := w.getProductIDsAndCountFromListPage(departmentInfo.NodeID, 1)
 		if err != nil {
-			slog.Warn("Failed to get product count for department", "department", departmentInfo.NodeID, "error", err)
+			w.logger.Warn("Failed to get product count for department", "department", departmentInfo.NodeID, "error", err)
 			continue
 		}
 		departmentInfos[i].ProductCount = count
@@ -193,7 +193,7 @@ func (w *Woolworths) getProductListPage(department departmentID, page int) ([]by
 	if err != nil {
 		return nil, err
 	}
-	slog.Debug("Requesting product info page", "department", department, "page", page)
+	w.logger.Debug("Requesting product info page", "department", department, "page", page)
 
 	url = fmt.Sprintf("%s/apis/ui/browse/category", w.baseURL)
 	if req, err := http.NewRequest("POST", url, bytes.NewBufferString(requestBody)); err != nil {

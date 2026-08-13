@@ -3,6 +3,7 @@ package woolworths
 import (
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/http/cookiejar"
 	"time"
@@ -26,6 +27,7 @@ type Woolworths struct {
 	listingPageUpdateInterval time.Duration
 	filterDepartments         bool // These are used to limit the departments and products for gradual testing.
 	filteredDepartmentIDsSet  map[departmentID]bool
+	logger                    *slog.Logger
 }
 
 // GetSharedProductsUpdatedAfter provides a list of product IDs that have been updated since the given time
@@ -86,6 +88,8 @@ func (w *Woolworths) GetTotalProductCount() (int, error) {
 // Init sets up the Woolworths struct with the given parameters
 func (w *Woolworths) Init(baseURL string, dbPath string, productMaxAge time.Duration) error {
 	var err error
+
+	w.logger = slog.With("store", "Woolworths")
 
 	// These are overridden by tests for now.
 	w.filterDepartments = true

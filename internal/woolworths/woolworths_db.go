@@ -3,7 +3,6 @@ package woolworths
 import (
 	"database/sql"
 	"fmt"
-	"log/slog"
 	"os"
 	"time"
 
@@ -66,7 +65,7 @@ func (w *Woolworths) backupDB(dbPath string, oldSchema int) error {
 	if err != nil {
 		return fmt.Errorf("failed to backup existing DB: %w", err)
 	}
-	slog.Info("Backed up old DB", "old", dbPath, "new", backupName)
+	w.logger.Info("Backed up old DB", "old", dbPath, "new", backupName)
 	return nil
 }
 
@@ -89,7 +88,7 @@ func (w *Woolworths) initDB(dbPath string) error {
 	err = w.db.QueryRow("SELECT version FROM schema").Scan(&version)
 
 	if err != nil || version != DB_SCHEMA_VERSION {
-		slog.Warn("DB schema mismatch", "path", dbPath, "currentVersion", DB_SCHEMA_VERSION, "detectedVersion", version)
+		w.logger.Warn("DB schema mismatch", "path", dbPath, "currentVersion", DB_SCHEMA_VERSION, "detectedVersion", version)
 
 		if version != 0 {
 			// If we detected an old schema, backup the DB and create a new one.
@@ -114,7 +113,7 @@ func (w *Woolworths) initDB(dbPath string) error {
 		if err != nil {
 			return fmt.Errorf("failed to create blank DB: %w", err)
 		} else {
-			slog.Info("New blank DB created")
+			w.logger.Info("New blank DB created")
 		}
 	}
 	return nil
@@ -149,7 +148,7 @@ func (w *Woolworths) saveProductInfo(tx *sql.Tx, productInfo woolworthsProductIn
 	if rowsAffected, err := result.RowsAffected(); err != nil {
 		return fmt.Errorf("failed to get rows affected: %w", err)
 	} else if rowsAffected == 0 {
-		slog.Warn("Product info not updated.")
+		w.logger.Warn("Product info not updated.")
 	}
 
 	return nil
@@ -193,7 +192,7 @@ func (w *Woolworths) saveDepartment(departmentInfo departmentInfo) error {
 	if rowsAffected, err := result.RowsAffected(); err != nil {
 		return fmt.Errorf("failed to get rows affected: %w", err)
 	} else if rowsAffected == 0 {
-		slog.Warn("Department not upserted")
+		w.logger.Warn("Department not upserted")
 	}
 
 	return nil

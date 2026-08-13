@@ -25,6 +25,7 @@ type Coles struct {
 	listingPageUpdateInterval time.Duration
 	filteredDepartmentIDsSet  map[string]bool
 	filterDepartments         bool
+	logger                    *slog.Logger
 }
 
 // Init initialises the Coles struct.
