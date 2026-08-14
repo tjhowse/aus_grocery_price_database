@@ -124,6 +124,20 @@ func TestExtractAPIVersionAgain(t *testing.T) {
 	}
 }
 
+func TestExtractAPIVersionNewFormat(t *testing.T) {
+	body, err := utils.ReadEntireFile("data/browse_new_api_version_format.html.file")
+	if body == nil || err != nil {
+		t.Errorf("Failed to read file")
+	}
+	if version, err := extractAPIVersion(body); err != nil {
+		t.Errorf("Failed to extract API version: %v", err)
+	} else {
+		if want, got := "20260812.2-bb7ba0d5c9ea46ad61a08d677a91d58d0e18ba03", version; want != got {
+			t.Errorf("Expected %s, got %s", want, got)
+		}
+	}
+}
+
 func TestCheckForScrapeTrap(t *testing.T) {
 	body, err := utils.ReadEntireFile("data/scrape_trap.html.file")
 	if body == nil || err != nil {
