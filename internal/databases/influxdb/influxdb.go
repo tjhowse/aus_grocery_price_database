@@ -1,7 +1,10 @@
 package influxdb
 
 import (
+	"context"
+	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
@@ -13,6 +16,9 @@ type InfluxDB struct {
 	db              influxdb2.Client
 	groceryWriteAPI api.WriteAPI
 	systemWriteAPI  api.WriteAPI
+	queryDB         influxdb2.Client
+	queryAPI        api.QueryAPI
+	bucket          string
 }
 
 func (i *InfluxDB) Init(url, token, org, bucket string) {
@@ -20,6 +26,62 @@ func (i *InfluxDB) Init(url, token, org, bucket string) {
 	i.db = influxdb2.NewClient(url, token)
 	i.groceryWriteAPI = i.db.WriteAPI(org, bucket)
 	i.systemWriteAPI = i.db.WriteAPI(org, "system")
+	i.bucket = bucket
+}
+
+// InitQuery sets up reading price history. The write token is write-only,
+// so this takes a separate token with read access to the bucket.
+func (i *InfluxDB) InitQuery(url, token, org string) {
+	slog.Info("Initialising InfluxDB queries", "url", url, "org", org, "bucket", i.bucket)
+	i.queryDB = influxdb2.NewClient(url, token)
+	i.queryAPI = i.queryDB.QueryAPI(org)
+}
+
+// escapeFluxString makes s safe to embed in a double-quoted Flux string literal.
+func escapeFluxString(s string) string {
+	return strings.NewReplacer(`\`, `\\`, `"`, `\"`, "$", `\$`).Replace(s)
+}
+
+// priceHistoryQuery returns a Flux query for the last price each day (UTC) of the product
+// with the given shared ID, oldest first. group() merges series split by a renamed product.
+func priceHistoryQuery(bucket, id string) string {
+	return fmt.Sprintf(`from(bucket: "%s")
+	|> range(start: 0)
+	|> filter(fn: (r) => r._measurement == "product" and r._field == "cents" and r.id == "%s")
+	|> group()
+	|> sort(columns: ["_time"])
+	|> aggregateWindow(every: 1d, fn: last, createEmpty: false, timeSrc: "_start")`,
+		escapeFluxString(bucket), escapeFluxString(id))
+}
+
+// GetPriceHistory returns the daily price of the product with the given shared ID, oldest first.
+func (i *InfluxDB) GetPriceHistory(ctx context.Context, id string) ([]shared.PricePoint, error) {
+	var history []shared.PricePoint
+	if i.queryAPI == nil {
+		return history, nil
+	}
+	result, err := i.queryAPI.Query(ctx, priceHistoryQuery(i.bucket, id))
+	if err != nil {
+		return history, fmt.Errorf("failed to query price history: %w", err)
+	}
+	defer result.Close()
+	for result.Next() {
+		record := result.Record()
+		var cents int
+		switch v := record.Value().(type) {
+		case int64:
+			cents = int(v)
+		case float64:
+			cents = int(v)
+		default:
+			continue
+		}
+		history = append(history, shared.PricePoint{Time: record.Time(), PriceCents: cents})
+	}
+	if result.Err() != nil {
+		return history, fmt.Errorf("failed to read price history: %w", result.Err())
+	}
+	return history, nil
 }
 
 func (i *InfluxDB) WriteProductDatapoint(info shared.ProductInfo) {
@@ -79,4 +141,7 @@ func (i *InfluxDB) Close() {
 	i.groceryWriteAPI.Flush()
 	i.systemWriteAPI.Flush()
 	i.db.Close()
+	if i.queryDB != nil {
+		i.queryDB.Close()
+	}
 }

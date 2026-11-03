@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
+	"github.com/tjhowse/aus_grocery_price_database/internal/shared"
 )
 
 func TestCalcWeightInGrams(t *testing.T) {
@@ -164,5 +165,50 @@ func TestGetSharedProductsUpdatedAfter(t *testing.T) {
 		if want, got := 6, total; want != got {
 			t.Errorf("Expected %d, got %d", want, got)
 		}
+	}
+}
+
+func TestGetSharedProductsPage(t *testing.T) {
+	c := Coles{}
+	c.Init(colesServer.URL, ":memory:", 5*time.Second)
+	c.filterDepartments = false
+	var infoList []colesProductInfo
+	infoList = append(infoList, colesProductInfo{ID: "123457", Info: productListPageProduct{Name: "3", Pricing: productListPageProductPricing{Now: decimal.NewFromFloat(3.3)}}, Updated: time.Now()})
+	infoList = append(infoList, colesProductInfo{ID: "123455", Info: productListPageProduct{Name: "1", Pricing: productListPageProductPricing{Now: decimal.NewFromFloat(1.5)}}, Updated: time.Now()})
+	infoList = append(infoList, colesProductInfo{ID: "123456", Info: productListPageProduct{Name: "2", Pricing: productListPageProductPricing{Now: decimal.NewFromFloat(2.4)}}, Updated: time.Now()})
+	// Products with a blank name are skipped.
+	infoList = append(infoList, colesProductInfo{ID: "123458", Info: productListPageProduct{Name: "", Pricing: productListPageProductPricing{Now: decimal.NewFromFloat(6.0)}}, Updated: time.Now()})
+	c.saveProductInfoes(infoList)
+
+	page, err := c.GetSharedProductsPage("", 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want, got := 2, len(page); want != got {
+		t.Fatalf("Expected %d products, got %d", want, got)
+	}
+	if want, got := COLES_ID_PREFIX+"123455", page[0].ID; want != got {
+		t.Errorf("Expected %s, got %s", want, got)
+	}
+	page, err = c.GetSharedProductsPage("123456", 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want, got := 1, len(page); want != got {
+		t.Fatalf("Expected %d products, got %d", want, got)
+	}
+	if want, got := 330, page[0].PriceCents; want != got {
+		t.Errorf("Expected %v, got %v", want, got)
+	}
+
+	product, err := c.GetSharedProduct("123456")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want, got := 240, product.PriceCents; want != got {
+		t.Errorf("Expected %v, got %v", want, got)
+	}
+	if _, err := c.GetSharedProduct("123458"); err != shared.ErrProductMissing {
+		t.Errorf("Expected %v, got %v", shared.ErrProductMissing, err)
 	}
 }

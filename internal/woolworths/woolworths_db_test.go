@@ -253,3 +253,50 @@ func TestBackupDB(t *testing.T) {
 	}()
 
 }
+
+func TestGetSharedProductsPage(t *testing.T) {
+	w := Woolworths{}
+	w.Init(woolworthsServer.URL, ":memory:", 5*time.Second)
+	w.filterDepartments = false
+	var infoList []woolworthsProductInfo
+	infoList = append(infoList, woolworthsProductInfo{ID: "123457", Info: productListPageProduct{DisplayName: "3", Price: decimal.NewFromFloat(3.3)}, Updated: time.Now()})
+	infoList = append(infoList, woolworthsProductInfo{ID: "123455", Info: productListPageProduct{DisplayName: "1", Price: decimal.NewFromFloat(1.5)}, Updated: time.Now()})
+	infoList = append(infoList, woolworthsProductInfo{ID: "123456", Info: productListPageProduct{DisplayName: "2", Price: decimal.NewFromFloat(2.4)}, Updated: time.Now()})
+	// Products with a blank name are skipped.
+	infoList = append(infoList, woolworthsProductInfo{ID: "123458", Info: productListPageProduct{DisplayName: "", Price: decimal.NewFromFloat(6.0)}, Updated: time.Now()})
+	for _, info := range infoList {
+		w.saveProductInfoNoTx(info)
+	}
+
+	page, err := w.GetSharedProductsPage("", 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want, got := 2, len(page); want != got {
+		t.Fatalf("Expected %d products, got %d", want, got)
+	}
+	if want, got := WOOLWORTHS_ID_PREFIX+"123455", page[0].ID; want != got {
+		t.Errorf("Expected %s, got %s", want, got)
+	}
+	page, err = w.GetSharedProductsPage("123456", 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want, got := 1, len(page); want != got {
+		t.Fatalf("Expected %d products, got %d", want, got)
+	}
+	if want, got := 330, page[0].PriceCents; want != got {
+		t.Errorf("Expected %v, got %v", want, got)
+	}
+
+	product, err := w.GetSharedProduct("123456")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want, got := 240, product.PriceCents; want != got {
+		t.Errorf("Expected %v, got %v", want, got)
+	}
+	if _, err := w.GetSharedProduct("123458"); err != shared.ErrProductMissing {
+		t.Errorf("Expected %v, got %v", shared.ErrProductMissing, err)
+	}
+}

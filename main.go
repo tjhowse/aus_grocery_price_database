@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/caarlos0/env/v11"
+	"github.com/tjhowse/aus_grocery_price_database/internal/api"
 	"github.com/tjhowse/aus_grocery_price_database/internal/coles"
 	"github.com/tjhowse/aus_grocery_price_database/internal/databases/influxdb"
 	"github.com/tjhowse/aus_grocery_price_database/internal/shared"
@@ -29,6 +30,8 @@ type config struct {
 	WoolworthsURL               string `env:"WOOLWORTHS_URL" envDefault:"https://www.woolworths.com.au"`
 	ColesURL                    string `env:"COLES_URL" envDefault:"https://www.coles.com.au"`
 	DebugLogging                bool   `env:"DEBUG_LOGGING" envDefault:"false"`
+	APIListenAddress            string `env:"API_LISTEN_ADDRESS"`  // E.G. ":8080". The API is off if this is empty.
+	InfluxDBReadToken           string `env:"INFLUXDB_READ_TOKEN"` // Without this the API returns no price history.
 }
 
 // ProductInfoGetter defines the expectations for a product information getter.
@@ -76,6 +79,23 @@ func main() {
 
 	c := coles.Coles{}
 	c.Init(cfg.ColesURL, cfg.LocalColesDBPath, time.Duration(cfg.MaxProductAgeMinutes)*time.Minute)
+
+	if cfg.APIListenAddress != "" {
+		var historian api.PriceHistorian
+		if cfg.InfluxDBReadToken != "" {
+			tsDB.InitQuery(cfg.InfluxDBURL, cfg.InfluxDBReadToken, cfg.InfluxDBOrg)
+			historian = &tsDB
+		}
+		server := api.NewServer([]api.Store{
+			{Name: "woolworths", IDPrefix: woolworths.WOOLWORTHS_ID_PREFIX, Source: &w},
+			{Name: "coles", IDPrefix: coles.COLES_ID_PREFIX, Source: &c},
+		}, historian)
+		go func() {
+			if err := server.ListenAndServe(cfg.APIListenAddress); err != nil {
+				slog.Error("API server stopped", "error", err)
+			}
+		}()
+	}
 
 	running := true
 	run(&running, &cfg, &tsDB, []ProductInfoGetter{&w, &c})
