@@ -56,6 +56,8 @@ func (w *Woolworths) getDepartmentInfos() ([]departmentInfo, error) {
 	if req, err = http.NewRequest("GET", url, nil); err != nil {
 		return departmentInfos, err
 	}
+	// Woolworths returns 403 to Go's default User-Agent.
+	req.Header.Set("User-Agent", USER_AGENT)
 	resp, err = w.client.Do(req)
 	if err != nil {
 		return departmentInfos, err
@@ -202,7 +204,7 @@ func (w *Woolworths) getProductListPage(department departmentID, page int) ([]by
 		// This is the minimal set of headers the request expects to see.
 		// Note that the cookie jar must be full from previous requests
 		// to the /shop/browse/* endpoint for this to work.
-		req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:127.0) Gecko/20100101 Firefox/127.0")
+		req.Header.Set("User-Agent", USER_AGENT)
 		req.Header.Set("Accept", "application/json, text/plain, */*")
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Request-Id", "|b14af797522740e5a25290ac283f739d.037da5c5e87f4706")

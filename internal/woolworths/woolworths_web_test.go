@@ -50,6 +50,11 @@ func WoolworthsHTTPServer() *httptest.Server {
 	}
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var responseFilename string
+		// Like the real site, reject Go's default User-Agent.
+		if strings.HasPrefix(r.UserAgent(), "Go-http-client") {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
 		if strings.HasPrefix(r.URL.Path, "/api/v3/ui/schemaorg/product/") {
 			var productID int
 			if _, err := fmt.Sscanf(r.URL.Path, "/api/v3/ui/schemaorg/product/%d", &productID); err != nil {
