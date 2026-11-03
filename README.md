@@ -33,6 +33,22 @@ Each of these applications runs in a separate docker container. Each container p
 
 Only the Grafana instance is public-facing via the [main domain](https://auscost.com.au). It has a read-only API token for reading from InfluxDB. AGPD has write-only tokens for writing to InfluxDB.
 
+## Product data API
+
+AGPD can serve product data in the [Heisse Preise](https://github.com/badlogic/heissepreise) format. It is off unless `API_LISTEN_ADDRESS` is set, E.G. `:8080`.
+
+* `GET /api/v1/products/{store}` returns a page of a store's products ordered by ID, with an empty `priceHistory`. `store` is `woolworths` or `coles`. Pass `limit` (1-1000, default 100) and, for the next page, `after` set to the last product's `id`. An empty list means the end.
+* `GET /api/v1/products/{store}/{id}` returns one product with its `priceHistory`: each date (UTC) the price changed, newest first.
+
+Product data comes from AGPD's local SQLite databases. Price history comes from InfluxDB and needs `INFLUXDB_READ_TOKEN`, a token with read access to the bucket, because `INFLUXDB_TOKEN` is write-only. Without it `priceHistory` is always empty.
+
+Limits, so a public API can't take the scraper or InfluxDB down:
+
+* 2 requests a second per client IP, bursting to 20, then `429`. Behind Fly the IP comes from `Fly-Client-IP`.
+* At most 4 price history queries in flight, then `503` with `Retry-After`. Each one reads a product's whole history from InfluxDB.
+* Responses carry `Cache-Control: public, max-age=3600` so a CDN can absorb repeat reads.
+* One log line per request: method, path, query, status, duration, IP and user agent.
+
 ## Hosting
 
 This is setup for hosting on fly.io. I'm not completely happy with investing effort on hosting infrastructure using a for-profit service, but they sure do make it straightforward. It would be easy to throw together a docker-compose to make it more platform-independent.

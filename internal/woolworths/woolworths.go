@@ -32,6 +32,29 @@ type Woolworths struct {
 
 // GetSharedProductsUpdatedAfter provides a list of product IDs that have been updated since the given time
 func (w *Woolworths) GetSharedProductsUpdatedAfter(t time.Time, count int) ([]shared.ProductInfo, error) {
+	return w.querySharedProducts("products.updated > ? AND name != '' LIMIT ?", t, count)
+}
+
+// GetSharedProductsPage provides up to count products with an ID greater than afterID, ordered by ID.
+// afterID is the store's own product ID, without the shared prefix. Pass "" for the first page.
+func (w *Woolworths) GetSharedProductsPage(afterID string, count int) ([]shared.ProductInfo, error) {
+	return w.querySharedProducts("productID > ? AND name != '' ORDER BY productID LIMIT ?", afterID, count)
+}
+
+// GetSharedProduct provides a single product by the store's own product ID, without the shared prefix.
+func (w *Woolworths) GetSharedProduct(id string) (shared.ProductInfo, error) {
+	products, err := w.querySharedProducts("productID = ? AND name != ''", id)
+	if err != nil {
+		return shared.ProductInfo{}, err
+	}
+	if len(products) == 0 {
+		return shared.ProductInfo{}, shared.ErrProductMissing
+	}
+	return products[0], nil
+}
+
+// querySharedProducts reads products matching the where clause into the shared format.
+func (w *Woolworths) querySharedProducts(where string, args ...any) ([]shared.ProductInfo, error) {
 	var productIDs []shared.ProductInfo
 	var deptDescription sql.NullString
 	rows, err := w.db.Query(`
@@ -47,10 +70,11 @@ func (w *Woolworths) GetSharedProductsUpdatedAfter(t time.Time, count int) ([]sh
 		FROM
 			products
 			LEFT JOIN departments ON products.departmentID = departments.departmentID
-		WHERE products.updated > ? AND name != '' LIMIT ?`, t, count)
+		WHERE `+where, args...)
 	if err != nil {
 		return productIDs, fmt.Errorf("failed to query productIDs: %w", err)
 	}
+	defer rows.Close()
 	for rows.Next() {
 		var product shared.ProductInfo
 		err = rows.Scan(

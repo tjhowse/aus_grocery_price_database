@@ -21,6 +21,12 @@ type ProductInfo struct {
 	Timestamp          time.Time
 }
 
+// PricePoint is a product's price at a point in time.
+type PricePoint struct {
+	Time       time.Time
+	PriceCents int
+}
+
 const SYSTEM_VERSION_FIELD = "version"
 const SYSTEM_SERVICE_NAME = "agpd"
 const SYSTEM_RAM_UTILISATION_PERCENT_FIELD = "ram_utilisation_percentage"

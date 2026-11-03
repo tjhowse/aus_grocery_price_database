@@ -1,6 +1,7 @@
 package influxdb
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -151,4 +152,11 @@ func TestWriteProductDatapoint(t *testing.T) {
 		}
 	}
 
+}
+
+func TestPriceHistoryQueryEscaping(t *testing.T) {
+	query := priceHistoryQuery("groceries", `a"b\c${d}`)
+	if want := `r.id == "a\"b\\c\${d}"`; !strings.Contains(query, want) {
+		t.Errorf("Expected query to contain %s, got %s", want, query)
+	}
 }
