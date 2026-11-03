@@ -80,10 +80,11 @@ func (c *Coles) getBrowseHomepage() ([]byte, error) {
 
 // extractAPIVersion extracts the API version from the given HTML.
 func extractAPIVersion(body []byte) (string, error) {
-	// This locates the string ',"buildId":"20240827.02_v4.7.7",' in the body of the html and extracts
-	// the '20240827.02_v4.7.7' value.
+	// This locates the string '"buildId":"20240827.02_v4.7.7"' in the body of the html and extracts
+	// the '20240827.02_v4.7.7' value. The format has changed before, E.G. to
+	// '20261029.4-012bb8a3b45e7b939b4fee4a367646ae1dc20aa7', so accept any characters safe in a URL path.
 
-	r := regexp.MustCompile(`,"buildId":"(\d{8}\.\d{2}_v\d+\.\d+\.\d+)",`)
+	r := regexp.MustCompile(`"buildId":"([\w.-]+)"`)
 	matches := r.FindSubmatch(body)
 	if len(matches) != 2 {
 		return "", fmt.Errorf("failed to find API version in body")

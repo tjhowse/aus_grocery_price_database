@@ -238,3 +238,15 @@ func TestGetDepartmentInfos(t *testing.T) {
 		}
 	}
 }
+
+func TestExtractAPIVersionNewFormat(t *testing.T) {
+	// The buildId format Coles switched to by October 2026.
+	body := []byte(`<script id="__NEXT_DATA__" type="application/json">{"props":{},"page":"/browse","buildId":"20261029.4-012bb8a3b45e7b939b4fee4a367646ae1dc20aa7","isFallback":false}</script>`)
+	if version, err := extractAPIVersion(body); err != nil {
+		t.Errorf("Failed to extract API version: %v", err)
+	} else {
+		if want, got := "20261029.4-012bb8a3b45e7b939b4fee4a367646ae1dc20aa7", version; want != got {
+			t.Errorf("Expected %s, got %s", want, got)
+		}
+	}
+}

@@ -15,6 +15,7 @@ import (
 
 const WOOLWORTHS_PRODUCT_URL_FORMAT = "%s/api/v3/ui/schemaorg/product/%s"
 const PRODUCT_INFO_WORKER_COUNT = 2
+const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:127.0) Gecko/20100101 Firefox/127.0"
 const DEFAULT_LISTING_PAGE_CHECK_INTERVAL = 1 * time.Minute
 
 // Woolworths satisfies the ProductInfoGetter interface to provide a stream of product information from Woolworths.
